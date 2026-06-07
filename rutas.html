@@ -225,6 +225,7 @@
           <div class="opt-row">
             <button class="btn-opt" onclick="optimizar('moto')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
             <button class="btn-toggle" id="toggleMoto" onclick="toggleCriterio('moto')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxtMoto">Cercano → Lejano</span></button>
+            <button class="btn-toggle" onclick="reGeocod('moto')" title="Reintentar geocodificación" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
           </div>
           <div class="route-list" id="listaMoto"></div>
         </div>
@@ -267,6 +268,7 @@
           <div class="opt-row">
             <button class="btn-opt amber" onclick="optimizar('auto')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
             <button class="btn-toggle" id="toggleAuto" onclick="toggleCriterio('auto')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxtAuto">Cercano → Lejano</span></button>
+            <button class="btn-toggle" onclick="reGeocod('auto')" title="Reintentar geocodificación" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
           </div>
           <div class="route-list" id="listaAuto"></div>
         </div>
@@ -582,6 +584,30 @@
     return null;
   }
 
+  // ── Re-geocodificar pedidos sin GPS ──────────────────────
+  window.reGeocod = async (V) => {
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    const sinGPS = state[V].pedidos.filter(p => !p.lat || !p.lng);
+    if (sinGPS.length === 0) {
+      mostrarToast("Todos los pedidos ya tienen GPS ✓", "ok");
+      return;
+    }
+    document.getElementById(`geoProc${Cap}`).classList.add("show");
+    let geocoded = 0;
+    for (const p of state[V].pedidos) {
+      if (p.lat && p.lng) continue;
+      document.getElementById(`geoTxt${Cap}`).textContent = `Reintentando ${geocoded+1} de ${sinGPS.length}...`;
+      const coords = await geocodificar(p.direccion);
+      if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
+      await sleep(500); // más delay para evitar rate limit
+    }
+    document.getElementById(`geoProc${Cap}`).classList.remove("show");
+    document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
+    guardarLS();
+    optimizar(V);
+    mostrarToast(`${geocoded} direcciones geocodificadas ✓`, "ok");
+  };
+
   // ── Leer Excel ────────────────────────────────────────────
   function leerArchivo(file) {
     return new Promise(resolve => {
@@ -645,7 +671,7 @@
       document.getElementById(`geoTxt${Cap}`).textContent = `Geocodificando ${geocoded} de ${pedidos.length}...`;
       const coords = await geocodificar(p.direccion);
       if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
-      await sleep(350);
+      await sleep(500);
     }
 
     state[V].pedidos  = pedidos;
