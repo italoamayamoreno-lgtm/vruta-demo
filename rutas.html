@@ -396,6 +396,35 @@
   const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
   const fechaKey = new Date().toISOString().split("T")[0];
 
+  // ── Generar token seguro (mismo algoritmo que flota y repartidor) ──
+  function generarToken(repId, fecha, empresaId) {
+    const SALT = "vruta_etrazia_2026";
+    const str  = `${repId}|${fecha}|${empresaId}|${SALT}`;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  // ── Cargar repartidores activos desde Flota ───────────────
+  let repartidoresActivos = [];
+  async function cargarRepartidores() {
+    try {
+      const snap = await getDocs(collection(db, "empresas", usuario.empresa_id, "repartidores"));
+      repartidoresActivos = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(r => r.activo !== false);
+    } catch(e) { console.warn("Error cargando repartidores:", e.message); }
+  }
+  await cargarRepartidores();
+
+  // Obtener repartidor activo por tipo de vehículo
+  function getRepartidor(vehiculo) {
+    return repartidoresActivos.find(r => r.vehiculo === vehiculo) || null;
+  }
+
   // ── Verificar reagendados para hoy ───────────────────────
   let reagendadosHoy = [];
 
@@ -882,18 +911,22 @@
   // ── Modal WhatsApp con lógica de ruta adicional ───────────
   window.abrirModalWA = async (V) => {
     if (state[V].pedidos.length === 0) return;
-    mostrarToast("Verificando jornada...", "ok");
 
-    // Verificar si ya hay ruta activa para este vehículo
+    // Verificar que existe un repartidor activo para este vehículo
+    const rep = getRepartidor(V);
+    if (!rep) {
+      mostrarToast(`No hay repartidor activo asignado a ${V === "moto" ? "Moto" : "Auto"}. Ve a Flota y activa uno.`, "err");
+      return;
+    }
+
+    mostrarToast("Verificando jornada...", "ok");
     const hayRutaActiva = await tieneRutaActiva(V);
 
     if (hayRutaActiva) {
-      // Mostrar modal de ruta adicional
       abrirModalAdicional(V);
       return;
     }
 
-    // Primera vez del día — flujo normal
     await lanzarRuta(V, null);
   };
 
@@ -912,11 +945,16 @@
     try { await guardarJornada(V, prioridad); }
     catch(e) { mostrarToast("Error: " + e.message, "err"); return; }
 
-    const repNombre = V==="moto" ? "Repartidor 1" : "Repartidor 2";
+    const repNombre = rep ? rep.nombre.split(" ")[0] : (V==="moto" ? "Repartidor 1" : "Repartidor 2");
     const veh       = V==="moto" ? "Moto" : "Auto";
     const cantidad  = state[V].pedidos.length;
     const fecha     = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
-    const link      = `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}`;
+    const rep    = getRepartidor(V);
+    const repId  = rep ? rep.id : V;
+    const token  = generarToken(repId, fechaKey, usuario.empresa_id);
+    const link   = rep
+      ? `${window.location.origin}/repartidor.html?rep=${repId}&fecha=${fechaKey}&e=${usuario.empresa_id}&token=${token}`
+      : `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}&e=${usuario.empresa_id}`;
 
     let mensaje;
     if (prioridad === "urgente") {
