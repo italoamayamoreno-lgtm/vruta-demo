@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vruta · Flota</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <style>
+    :root{--mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;--copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--red:#ef4444;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;}
+    .topbar{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+    .logo-area{display:flex;align-items:center;gap:10px;}
+    .logo-text{display:flex;flex-direction:column;line-height:1.1;}
+    .logo-main{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
+    .logo-sub{font-size:9px;color:var(--copper);letter-spacing:0.07em;}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .client-chip{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:999px;padding:4px 14px;font-size:11px;color:var(--copper);font-weight:500;}
+    .user-dot{width:30px;height:30px;border-radius:50%;background:rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--copper);}
+    .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;}
+    .btn-logout:hover{border-color:rgba(239,68,68,0.4);color:var(--red);}
+    .app-body{display:flex;flex:1;}
+    .sidebar{background:var(--mid2);width:56px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);}
+    .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+    .sib:hover{background:rgba(255,255,255,0.05);color:var(--ice);}
+    .sib.active{background:rgba(184,115,51,0.15);color:var(--copper);}
+    .sib-spacer{flex:1;}
+    .main{flex:1;padding:24px;overflow:auto;}
+    .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:16px;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+    .page-title{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ice);}
+    .page-sub{font-size:12px;color:var(--graph);margin-top:2px;}
+    .btn-primary{background:var(--copper);border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:600;color:var(--ice);cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;transition:opacity 0.15s;}
+    .btn-primary:hover{opacity:0.88;}
+
+    /* ── Grid repartidores ── */
+    .rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+    .rep-card{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color 0.15s;}
+    .rep-card:hover{border-color:rgba(184,115,51,0.2);}
+    .rep-card.inactivo{opacity:0.55;}
+    .rc-header{display:flex;align-items:center;gap:12px;}
+    .rc-avatar{width:48px;height:48px;border-radius:50%;background:var(--mid3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--copper);flex-shrink:0;overflow:hidden;border:1.5px solid rgba(184,115,51,0.2);}
+    .rc-avatar img{width:100%;height:100%;object-fit:cover;}
+    .rc-info{flex:1;min-width:0;}
+    .rc-name{font-size:14px;font-weight:600;color:var(--ice);}
+    .rc-vehiculo{font-size:11px;color:var(--graph);margin-top:2px;display:flex;align-items:center;gap:4px;}
+    .rc-estado{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;}
+    .estado-activo{background:rgba(34,197,94,0.12);color:var(--green);}
+    .estado-inactivo{background:rgba(148,163,184,0.1);color:var(--graph);}
+    .rc-datos{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+    .rc-dato{background:rgba(255,255,255,0.03);border-radius:7px;padding:7px 9px;}
+    .rc-dato-lbl{font-size:9px;color:var(--graph);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;}
+    .rc-dato-val{font-size:11px;color:var(--ice);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .rc-actions{display:flex;gap:6px;}
+    .rc-btn{flex:1;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.09);border-radius:7px;padding:7px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Inter',sans-serif;transition:all 0.15s;}
+    .rc-btn:hover{border-color:rgba(184,115,51,0.35);color:var(--copper);}
+    .rc-btn.danger:hover{border-color:rgba(239,68,68,0.35);color:var(--red);}
+    .rc-btn.toggle-on{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.2);color:var(--green);}
+    .rc-btn.toggle-off{background:rgba(148,163,184,0.06);border-color:rgba(148,163,184,0.15);color:var(--graph);}
+    .rc-dnis{display:flex;gap:6px;}
+    .dni-thumb{flex:1;height:56px;border-radius:7px;background:rgba(255,255,255,0.03);border:0.5px dashed rgba(255,255,255,0.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--graph);overflow:hidden;cursor:pointer;}
+    .dni-thumb img{width:100%;height:100%;object-fit:cover;}
+    .dni-thumb:hover{border-color:rgba(184,115,51,0.3);}
+
+    /* ── Empty ── */
+    .empty-state{text-align:center;padding:60px 20px;color:var(--graph);}
+    .empty-state i{font-size:40px;margin-bottom:14px;opacity:0.3;display:block;}
+    .empty-state p{font-size:13px;opacity:0.6;margin-bottom:16px;}
+
+    /* ── Modales ── */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+    .modal-bg.show{opacity:1;pointer-events:all;}
+    .modal{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px;width:100%;max-width:480px;transform:translateY(10px);transition:transform 0.2s;max-height:90vh;overflow-y:auto;}
+    .modal-bg.show .modal{transform:translateY(0);}
+    .modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
+    .modal-title{font-size:16px;font-weight:600;color:var(--ice);}
+    .modal-sub{font-size:11px;color:var(--graph);margin-top:2px;}
+    .close-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--graph);cursor:pointer;flex-shrink:0;}
+
+    /* ── Form ── */
+    .form-section{font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--graph);margin:16px 0 10px;opacity:0.7;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+    .form-grid.full{grid-template-columns:1fr;}
+    .field{display:flex;flex-direction:column;gap:4px;}
+    .field label{font-size:11px;color:var(--graph);font-weight:500;}
+    .field input,.field select{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:9px 11px;font-size:13px;color:var(--ice);font-family:'Inter',sans-serif;outline:none;transition:border-color 0.15s;}
+    .field input:focus,.field select:focus{border-color:rgba(184,115,51,0.5);background:rgba(184,115,51,0.04);}
+    .field select option{background:var(--mid2);}
+    .field input::placeholder{color:rgba(148,163,184,0.4);}
+
+    /* ── Foto upload ── */
+    .foto-upload{border:1px dashed rgba(255,255,255,0.12);border-radius:9px;padding:16px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;}
+    .foto-upload:hover{border-color:rgba(184,115,51,0.4);background:rgba(184,115,51,0.03);}
+    .foto-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .foto-upload .fu-icon{font-size:20px;color:var(--graph);margin-bottom:4px;}
+    .foto-upload .fu-txt{font-size:11px;color:var(--graph);}
+    .foto-upload img{width:100%;max-height:120px;object-fit:cover;border-radius:6px;display:none;}
+    .foto-upload.has-img .fu-icon,.foto-upload.has-img .fu-txt{display:none;}
+    .foto-upload.has-img img{display:block;}
+    .foto-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
+
+    /* ── Modal acciones ── */
+    .modal-actions{display:flex;gap:8px;margin-top:20px;}
+    .btn-save{flex:2;background:var(--copper);border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;color:var(--ice);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s;}
+    .btn-save:hover{opacity:0.88;}
+    .btn-save:disabled{opacity:0.4;cursor:not-allowed;}
+    .btn-cancel-form{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px;font-size:13px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
+
+    /* ── Modal confirmar eliminar ── */
+    .confirm-icon{width:44px;height:44px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);margin-bottom:14px;}
+    .confirm-title{font-size:15px;font-weight:600;color:var(--ice);margin-bottom:6px;}
+    .confirm-msg{font-size:12px;color:var(--graph);line-height:1.6;margin-bottom:20px;}
+    .btn-del-confirm{flex:1;background:rgba(239,68,68,0.15);border:0.5px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;font-family:'Inter',sans-serif;}
+    .btn-del-confirm:hover{background:rgba(239,68,68,0.25);}
+
+    /* ── Toast ── */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:300;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;max-width:320px;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.ok{border-color:rgba(34,197,94,0.3);}
+    .toast.err{border-color:rgba(239,68,68,0.3);}
+    .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr;}.foto-row{grid-template-columns:1fr 1fr;}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
+      <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
+    </svg>
+    <div class="logo-text"><span class="logo-main">VRUTA</span><span class="logo-sub">powered by Etrazia</span></div>
+  </div>
+  <div class="topbar-right">
+    <span class="client-chip" id="clienteNombre">Cargando...</span>
+    <div class="user-dot" id="usuarioAvatar">OP</div>
+    <button class="btn-logout" id="btnLogout"><i class="ti ti-logout"></i>Salir</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <nav class="sidebar">
+    <a class="sib" href="dashboard.html"><i class="ti ti-layout-dashboard"></i></a>
+    <a class="sib" href="rutas.html"><i class="ti ti-route"></i></a>
+    <a class="sib active" href="flota.html"><i class="ti ti-motorbike"></i></a>
+    <a class="sib" href="historial.html"><i class="ti ti-history"></i></a>
+    <div class="sib-spacer"></div>
+    <a class="sib" href="configuracion.html"><i class="ti ti-settings"></i></a>
+  </nav>
+
+  <main class="main">
+    <div class="mod-label">Gestión de flota</div>
+    <div class="page-header">
+      <div>
+        <div class="page-title">Repartidores</div>
+        <div class="page-sub" id="subtituloFlota">Cargando...</div>
+      </div>
+      <button class="btn-primary" onclick="abrirFormNuevo()">
+        <i class="ti ti-plus" style="font-size:14px"></i>Nuevo repartidor
+      </button>
+    </div>
+    <div class="rep-grid" id="repGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--graph);">
+        <div class="spin" style="margin:0 auto 12px;width:24px;height:24px;border-width:2.5px;border-top-color:var(--copper);border-color:rgba(184,115,51,0.2);"></div>
+        Cargando repartidores...
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal form repartidor -->
+<div class="modal-bg" id="modalForm">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="formTitulo">Nuevo repartidor</div>
+        <div class="modal-sub">Completa los datos del repartidor</div>
+      </div>
+      <div class="close-btn" onclick="cerrarModal('modalForm')"><i class="ti ti-x"></i></div>
+    </div>
+
+    <div class="form-section">Datos personales</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre completo *</label>
+        <input type="text" id="fNombre" placeholder="Juan Pérez"/>
+      </div>
+      <div class="field">
+        <label>Teléfono *</label>
+        <input type="tel" id="fTelefono" placeholder="987 654 321"/>
+      </div>
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" id="fEmail" placeholder="juan@correo.com"/>
+      </div>
+      <div class="field">
+        <label>Dirección</label>
+        <input type="text" id="fDireccion" placeholder="Av. Lima 123, Miraflores"/>
+      </div>
+    </div>
+
+    <div class="form-section">Vehículo</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Tipo de vehículo *</label>
+        <select id="fVehiculo">
+          <option value="">Seleccionar...</option>
+          <option value="moto">Moto</option>
+          <option value="auto">Auto</option>
+          <option value="bicicleta">Bicicleta</option>
+          <option value="pie">A pie</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Placa (opcional)</label>
+        <input type="text" id="fPlaca" placeholder="ABC-123"/>
+      </div>
+    </div>
+
+    <div class="form-section">Fotos</div>
+    <div class="foto-row">
+      <div>
+        <div style="font-size:10px;color:var(--graph);margin-bottom:5px;">Foto de perfil</div>
+        <div class="foto-upload" id="uploadPerfil">
+          <input type="file" accept="image/*" onchange="cargarFoto(event,'perfil')"/>
+          <div class="fu-icon"><i class="ti ti-user-circle"></i></div>
+          <div class="fu-txt">Subir foto</div>
+          <img id="previewPerfil" alt=""/>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--graph);margin-bottom:5px;">DNI frontal</div>
+        <div class="foto-upload" id="uploadDniFront">
+          <input type="file" accept="image/*" onchange="cargarFoto(event,'dniFront')"/>
+          <div class="fu-icon"><i class="ti ti-id"></i></div>
+          <div class="fu-txt">Subir DNI</div>
+          <img id="previewDniFront" alt=""/>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--graph);margin-bottom:5px;">DNI posterior</div>
+        <div class="foto-upload" id="uploadDniBack">
+          <input type="file" accept="image/*" onchange="cargarFoto(event,'dniBack')"/>
+          <div class="fu-icon"><i class="ti ti-id"></i></div>
+          <div class="fu-txt">Subir DNI</div>
+          <img id="previewDniBack" alt=""/>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-form" onclick="cerrarModal('modalForm')">Cancelar</button>
+      <button class="btn-save" id="btnGuardar" onclick="guardarRepartidor()">
+        <i class="ti ti-check"></i>Guardar repartidor
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmar eliminar -->
+<div class="modal-bg" id="modalEliminar">
+  <div class="modal" style="max-width:360px;">
+    <div class="confirm-icon"><i class="ti ti-user-minus"></i></div>
+    <div class="confirm-title">¿Eliminar repartidor?</div>
+    <div class="confirm-msg" id="eliminarMsg"></div>
+    <div class="modal-actions" style="margin-top:0;">
+      <button class="btn-cancel-form" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button class="btn-del-confirm" id="btnConfirmarEliminar">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { requireAuth, logout } from "./assets/js/auth.js";
+  import { db } from "./assets/js/firebase-config.js";
+  import {
+    collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+    onSnapshot, orderBy, query, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── Auth ─────────────────────────────────────────────────
+  const usuario = requireAuth("operador");
+  if (!usuario) throw new Error("No autorizado");
+  document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
+  document.getElementById("btnLogout").addEventListener("click", logout);
+
+  const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
+  document.getElementById("clienteNombre").textContent = empresaSnap.data().nombre;
+
+  const EMPRESA_ID = usuario.empresa_id;
+
+  // ── Estado del form ───────────────────────────────────────
+  let modoEdicion  = false;
+  let repEditandoId = null;
+  const fotos = { perfil: null, dniFront: null, dniBack: null };
+
+  // ── Generar token seguro para link del repartidor ────────
+  function generarToken(repId, fecha, empresaId) {
+    // Hash simple: combina los tres valores con un salt fijo del proyecto
+    const SALT = "vruta_etrazia_2026";
+    const str  = `${repId}|${fecha}|${empresaId}|${SALT}`;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  // Exportar para uso en rutas.html
+  window.generarTokenRep = generarToken;
+
+  // ── Escuchar repartidores en tiempo real ─────────────────
+  const repRef = collection(db, "empresas", EMPRESA_ID, "repartidores");
+  const q      = query(repRef, orderBy("nombre", "asc"));
+
+  onSnapshot(q, snap => {
+    const repartidores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderGrid(repartidores);
+    const activos = repartidores.filter(r => r.activo !== false).length;
+    document.getElementById("subtituloFlota").textContent =
+      `${repartidores.length} repartidor${repartidores.length !== 1 ? "es" : ""} · ${activos} activo${activos !== 1 ? "s" : ""}`;
+  });
+
+  // ── Render grid ───────────────────────────────────────────
+  function renderGrid(repartidores) {
+    const grid = document.getElementById("repGrid");
+    if (repartidores.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <i class="ti ti-motorbike"></i>
+          <p>Aún no hay repartidores registrados.</p>
+          <button class="btn-primary" onclick="abrirFormNuevo()" style="margin:0 auto;">
+            <i class="ti ti-plus"></i>Agregar primer repartidor
+          </button>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = repartidores.map(r => {
+      const iniciales = r.nombre.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase();
+      const activo    = r.activo !== false;
+      const vehiculoIcon = { moto:"ti-motorbike", auto:"ti-car", bicicleta:"ti-bike", pie:"ti-walk" }[r.vehiculo] || "ti-motorbike";
+      const vehiculoLabel = { moto:"Moto", auto:"Auto", bicicleta:"Bicicleta", pie:"A pie" }[r.vehiculo] || r.vehiculo;
+      const fechaHoy  = new Date().toISOString().split("T")[0];
+      const token     = generarToken(r.id, fechaHoy, EMPRESA_ID);
+      const linkHoy   = `${window.location.origin}/repartidor.html?rep=${r.id}&fecha=${fechaHoy}&e=${EMPRESA_ID}&token=${token}`;
+
+      return `
+        <div class="rep-card ${activo ? "" : "inactivo"}">
+          <div class="rc-header">
+            <div class="rc-avatar">
+              ${r.foto_perfil
+                ? `<img src="${r.foto_perfil}" alt="${r.nombre}"/>`
+                : iniciales}
+            </div>
+            <div class="rc-info">
+              <div class="rc-name">${r.nombre}</div>
+              <div class="rc-vehiculo"><i class="ti ${vehiculoIcon}" style="font-size:13px"></i>${vehiculoLabel}${r.placa ? ` · ${r.placa}` : ""}</div>
+            </div>
+            <span class="rc-estado ${activo ? "estado-activo" : "estado-inactivo"}">
+              <i class="ti ti-circle-dot" style="font-size:10px"></i>${activo ? "Activo" : "Inactivo"}
+            </span>
+          </div>
+
+          <div class="rc-datos">
+            <div class="rc-dato">
+              <div class="rc-dato-lbl">Teléfono</div>
+              <div class="rc-dato-val">${r.telefono || "—"}</div>
+            </div>
+            <div class="rc-dato">
+              <div class="rc-dato-lbl">Correo</div>
+              <div class="rc-dato-val">${r.email || "—"}</div>
+            </div>
+            <div class="rc-dato" style="grid-column:1/-1;">
+              <div class="rc-dato-lbl">Dirección</div>
+              <div class="rc-dato-val">${r.direccion || "—"}</div>
+            </div>
+          </div>
+
+          ${r.foto_dni_front || r.foto_dni_back ? `
+          <div class="rc-dnis">
+            <div class="dni-thumb" title="DNI frontal">
+              ${r.foto_dni_front
+                ? `<img src="${r.foto_dni_front}" alt="DNI frontal"/>`
+                : `<i class="ti ti-id" style="font-size:18px;opacity:0.3"></i><span>DNI front</span>`}
+            </div>
+            <div class="dni-thumb" title="DNI posterior">
+              ${r.foto_dni_back
+                ? `<img src="${r.foto_dni_back}" alt="DNI posterior"/>`
+                : `<i class="ti ti-id" style="font-size:18px;opacity:0.3"></i><span>DNI back</span>`}
+            </div>
+          </div>` : ""}
+
+          <div class="rc-actions">
+            <button class="rc-btn" onclick="copiarLink('${linkHoy}','${r.nombre}')" title="Copiar link del día">
+              <i class="ti ti-link" style="font-size:13px"></i>Link del día
+            </button>
+            <button class="rc-btn" onclick="abrirFormEditar('${r.id}')" title="Editar">
+              <i class="ti ti-edit" style="font-size:13px"></i>Editar
+            </button>
+            <button class="rc-btn ${activo ? "toggle-on" : "toggle-off"}" onclick="toggleEstado('${r.id}',${activo})" title="${activo ? "Desactivar" : "Activar"}">
+              <i class="ti ti-power" style="font-size:13px"></i>${activo ? "Activo" : "Inactivo"}
+            </button>
+            <button class="rc-btn danger" onclick="confirmarEliminar('${r.id}','${r.nombre}')" title="Eliminar">
+              <i class="ti ti-trash" style="font-size:13px"></i>
+            </button>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  // ── Copiar link del día ───────────────────────────────────
+  window.copiarLink = async (link, nombre) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      mostrarToast(`Link de ${nombre} copiado ✓`, "ok");
+    } catch(e) {
+      // Fallback
+      const el = document.createElement("textarea");
+      el.value = link;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      mostrarToast(`Link de ${nombre} copiado ✓`, "ok");
+    }
+  };
+
+  // ── Toggle activo/inactivo ────────────────────────────────
+  window.toggleEstado = async (id, estadoActual) => {
+    try {
+      await updateDoc(doc(db, "empresas", EMPRESA_ID, "repartidores", id), {
+        activo: !estadoActual
+      });
+      mostrarToast(!estadoActual ? "Repartidor activado ✓" : "Repartidor desactivado", "ok");
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+    }
+  };
+
+  // ── Form nuevo ────────────────────────────────────────────
+  window.abrirFormNuevo = () => {
+    modoEdicion   = false;
+    repEditandoId = null;
+    resetForm();
+    document.getElementById("formTitulo").textContent = "Nuevo repartidor";
+    document.getElementById("modalForm").classList.add("show");
+  };
+
+  // ── Form editar ───────────────────────────────────────────
+  window.abrirFormEditar = async (id) => {
+    modoEdicion   = true;
+    repEditandoId = id;
+    resetForm();
+
+    const snap = await getDoc(doc(db, "empresas", EMPRESA_ID, "repartidores", id));
+    if (!snap.exists()) return;
+    const r = snap.data();
+
+    document.getElementById("fNombre").value   = r.nombre    || "";
+    document.getElementById("fTelefono").value = r.telefono  || "";
+    document.getElementById("fEmail").value    = r.email     || "";
+    document.getElementById("fDireccion").value= r.direccion || "";
+    document.getElementById("fVehiculo").value = r.vehiculo  || "";
+    document.getElementById("fPlaca").value    = r.placa     || "";
+
+    if (r.foto_perfil)    mostrarPreview("perfil",   r.foto_perfil);
+    if (r.foto_dni_front) mostrarPreview("dniFront", r.foto_dni_front);
+    if (r.foto_dni_back)  mostrarPreview("dniBack",  r.foto_dni_back);
+
+    fotos.perfil   = r.foto_perfil    || null;
+    fotos.dniFront = r.foto_dni_front || null;
+    fotos.dniBack  = r.foto_dni_back  || null;
+
+    document.getElementById("formTitulo").textContent = "Editar repartidor";
+    document.getElementById("modalForm").classList.add("show");
+  };
+
+  // ── Guardar repartidor ────────────────────────────────────
+  window.guardarRepartidor = async () => {
+    const nombre   = document.getElementById("fNombre").value.trim();
+    const telefono = document.getElementById("fTelefono").value.trim();
+    const vehiculo = document.getElementById("fVehiculo").value;
+
+    if (!nombre || !telefono || !vehiculo) {
+      mostrarToast("Completa los campos obligatorios (*)", "err");
+      return;
+    }
+
+    const btn = document.getElementById("btnGuardar");
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spin"></div>Guardando...`;
+
+    const data = {
+      nombre,
+      telefono,
+      email:      document.getElementById("fEmail").value.trim(),
+      direccion:  document.getElementById("fDireccion").value.trim(),
+      vehiculo,
+      placa:      document.getElementById("fPlaca").value.trim().toUpperCase(),
+      foto_perfil:    fotos.perfil   || null,
+      foto_dni_front: fotos.dniFront || null,
+      foto_dni_back:  fotos.dniBack  || null,
+      empresa_id: EMPRESA_ID,
+      activo:     true
+    };
+
+    try {
+      if (modoEdicion && repEditandoId) {
+        await updateDoc(doc(db, "empresas", EMPRESA_ID, "repartidores", repEditandoId), {
+          ...data, actualizado_en: new Date().toISOString()
+        });
+        mostrarToast("Repartidor actualizado ✓", "ok");
+      } else {
+        await addDoc(collection(db, "empresas", EMPRESA_ID, "repartidores"), {
+          ...data, creado_en: new Date().toISOString()
+        });
+        mostrarToast("Repartidor creado ✓", "ok");
+      }
+      cerrarModal("modalForm");
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="ti ti-check"></i>Guardar repartidor`;
+    }
+  };
+
+  // ── Confirmar eliminar ────────────────────────────────────
+  window.confirmarEliminar = (id, nombre) => {
+    document.getElementById("eliminarMsg").textContent =
+      `¿Estás seguro de eliminar a "${nombre}"? Se eliminarán todos sus datos incluyendo fotos. Esta acción no se puede deshacer.`;
+    document.getElementById("btnConfirmarEliminar").onclick = () => ejecutarEliminar(id);
+    document.getElementById("modalEliminar").classList.add("show");
+  };
+
+  async function ejecutarEliminar(id) {
+    cerrarModal("modalEliminar");
+    try {
+      await deleteDoc(doc(db, "empresas", EMPRESA_ID, "repartidores", id));
+      mostrarToast("Repartidor eliminado ✓", "ok");
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+    }
+  }
+
+  // ── Fotos ─────────────────────────────────────────────────
+  window.cargarFoto = (event, tipo) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX = tipo === "perfil" ? 400 : 800;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
+          else       { w = Math.round(w*MAX/h); h = MAX; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        const b64 = canvas.toDataURL("image/jpeg", tipo === "perfil" ? 0.8 : 0.72);
+        fotos[tipo] = b64;
+        mostrarPreview(tipo, b64);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  function mostrarPreview(tipo, b64) {
+    const ids = { perfil:"Perfil", dniFront:"DniFront", dniBack:"DniBack" };
+    const cap = ids[tipo];
+    const preview = document.getElementById(`preview${cap}`);
+    const zone    = document.getElementById(`upload${cap}`);
+    preview.src   = b64;
+    zone.classList.add("has-img");
+  }
+
+  // ── Reset form ────────────────────────────────────────────
+  function resetForm() {
+    ["fNombre","fTelefono","fEmail","fDireccion","fPlaca"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("fVehiculo").value = "";
+    fotos.perfil = fotos.dniFront = fotos.dniBack = null;
+    ["Perfil","DniFront","DniBack"].forEach(cap => {
+      document.getElementById(`preview${cap}`).src = "";
+      document.getElementById(`upload${cap}`).classList.remove("has-img");
+    });
+    const btn = document.getElementById("btnGuardar");
+    btn.disabled = false;
+    btn.innerHTML = `<i class="ti ti-check"></i>Guardar repartidor`;
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  window.cerrarModal = (id) => document.getElementById(id).classList.remove("show");
+  ["modalForm","modalEliminar"].forEach(id => {
+    document.getElementById(id).addEventListener("click", e => {
+      if (e.target === document.getElementById(id)) cerrarModal(id);
+    });
+  });
+
+  let toastTimer;
+  function mostrarToast(msg, tipo = "ok") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = `toast show ${tipo}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
+  }
+</script>
+</body>
+</html>
