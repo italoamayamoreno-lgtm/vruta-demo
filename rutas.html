@@ -992,8 +992,7 @@ _El link es válido solo para hoy._`;
 
     document.getElementById("waTitulo").textContent = prioridad ? `Pedidos adicionales — ${veh}` : `Lanzar ruta ${veh}`;
     document.getElementById("waSub").textContent    = `${cantidad} pedido(s) · ${repNombre}`;
-    document.getElementById("waMensaje").innerHTML  = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/
-/g,"<br>");
+    document.getElementById("waMensaje").innerHTML  = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
 
     document.getElementById("btnAbrirWA").onclick = () => {
       window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`,"_blank");
