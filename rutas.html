@@ -794,25 +794,49 @@
   // ── Guardar jornada en Firestore ──────────────────────────
   async function guardarJornada(V) {
     const pedidos = state[V].pedidos;
-    const batch = writeBatch(db);
+    const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
+
+    // 1. Borrar pedidos existentes de este vehiculo para evitar duplicados
+    const snapExistente = await getDocs(pedidosRef);
+    const batchDel = writeBatch(db);
+    let hayQueEliminar = false;
+    snapExistente.docs.forEach(d => {
+      if (d.data().vehiculo === V) {
+        batchDel.delete(d.ref);
+        hayQueEliminar = true;
+      }
+    });
+    if (hayQueEliminar) await batchDel.commit();
+
+    // 2. Guardar los pedidos actuales limpios
+    const batchAdd = writeBatch(db);
     for (const p of pedidos) {
-      const ref = doc(collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos"));
-      batch.set(ref, {
-        cliente: p.cliente, direccion: p.direccion,
-        producto: p.producto||"", nota: p.nota||"",
-        lat: p.lat||null, lng: p.lng||null,
-        orden: p.orden, vehiculo: V,
-        estado: "pendiente",
-        repartidor_id: V==="moto"?"repartidor1":"repartidor2",
-        creado_en: new Date().toISOString()
+      const ref = doc(pedidosRef);
+      batchAdd.set(ref, {
+        cliente:       p.cliente,
+        direccion:     p.direccion,
+        producto:      p.producto || "",
+        nota:          p.nota || "",
+        lat:           p.lat || null,
+        lng:           p.lng || null,
+        orden:         p.orden,
+        vehiculo:      V,
+        estado:        "pendiente",
+        repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
+        creado_en:     new Date().toISOString()
       });
     }
+
+    // 3. Metadata de jornada
     const jornadaRef = doc(db, "empresas", usuario.empresa_id, "jornadas", fechaKey);
-    batch.set(jornadaRef, {
-      fecha: fechaKey, estado:"activa", empresa: usuario.empresa_id,
+    batchAdd.set(jornadaRef, {
+      fecha:   fechaKey,
+      estado:  "activa",
+      empresa: usuario.empresa_id,
       [`lanzado_${V}`]: new Date().toISOString()
-    }, { merge:true });
-    await batch.commit();
+    }, { merge: true });
+
+    await batchAdd.commit();
   }
 
   // ── Modal WhatsApp ────────────────────────────────────────
