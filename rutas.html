@@ -140,6 +140,15 @@
     .btn-cancel{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
     .btn-confirm-del{flex:1;background:rgba(239,68,68,0.15);border:0.5px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;font-family:'Inter',sans-serif;}
     .btn-confirm-del:hover{background:rgba(239,68,68,0.25);}
+    /* ── Banner reagendados ── */
+    .banner-reag{background:rgba(217,119,6,0.08);border:0.5px solid rgba(217,119,6,0.3);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+    .banner-reag-txt{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ice);}
+    .banner-reag-txt i{font-size:18px;color:var(--amber);flex-shrink:0;}
+    .banner-reag-txt b{color:var(--amber);}
+    .banner-reag-actions{display:flex;gap:6px;flex-shrink:0;}
+    .btn-reag-si{background:rgba(217,119,6,0.2);border:0.5px solid rgba(217,119,6,0.4);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:600;color:var(--amber);cursor:pointer;font-family:'Inter',sans-serif;}
+    .btn-reag-si:hover{background:rgba(217,119,6,0.3);}
+    .btn-reag-no{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:6px 12px;font-size:11px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
     @media(max-width:800px){.vehicles-grid{grid-template-columns:1fr;}}
   </style>
 </head>
@@ -173,6 +182,7 @@
 
   <main class="main">
     <div class="mod-label">Planificador de rutas</div>
+    <div id="bannerReagendados" style="display:none"></div>
     <div class="steps">
       <div class="step done"><div class="step-num"><i class="ti ti-check" style="font-size:9px"></i></div>Cargar Excel</div>
       <div class="step-arrow">›</div>
@@ -331,7 +341,8 @@
   import { requireAuth, logout } from "./assets/js/auth.js";
   import { db } from "./assets/js/firebase-config.js";
   import {
-    doc, setDoc, getDoc, collection, writeBatch, getDocs, query, deleteDoc
+    doc, setDoc, getDoc, collection, writeBatch, getDocs, query,
+    deleteDoc, where
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   // ── Auth ─────────────────────────────────────────────────
@@ -345,6 +356,81 @@
   document.getElementById("clienteNombre").textContent = empresa.nombre;
   const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
   const fechaKey = new Date().toISOString().split("T")[0];
+
+  // ── Verificar reagendados para hoy ───────────────────────
+  let reagendadosHoy = [];
+
+  async function verificarReagendados() {
+    try {
+      const ref = collection(db, "empresas", usuario.empresa_id, "reagendados");
+      const snap = await getDocs(query(ref, where("fecha_programada","==",fechaKey), where("estado","==","programado")));
+      reagendadosHoy = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+      if (reagendadosHoy.length > 0) mostrarBannerReagendados();
+    } catch(e) { console.warn("Error verificando reagendados:", e.message); }
+  }
+
+  function mostrarBannerReagendados() {
+    const banner = document.getElementById("bannerReagendados");
+    const moto = reagendadosHoy.filter(p=>p.vehiculo==="moto").length;
+    const auto = reagendadosHoy.filter(p=>p.vehiculo==="auto").length;
+    let detalle = [];
+    if (moto>0) detalle.push(`${moto} para Moto`);
+    if (auto>0) detalle.push(`${auto} para Auto`);
+
+    banner.style.display = "";
+    banner.innerHTML = `
+      <div class="banner-reag">
+        <div class="banner-reag-txt">
+          <i class="ti ti-calendar-exclamation"></i>
+          <div>Hay <b>${reagendadosHoy.length} pedido${reagendadosHoy.length>1?"s":""} reagendado${reagendadosHoy.length>1?"s":""}</b> del día anterior programados para hoy (${detalle.join(", ")}).
+          ¿Deseas sumarlos a la ruta en planificación?</div>
+        </div>
+        <div class="banner-reag-actions">
+          <button class="btn-reag-si" onclick="agregarReagendados()">Sí, agregar</button>
+          <button class="btn-reag-no" onclick="descartarBanner()">Ignorar</button>
+        </div>
+      </div>`;
+  }
+
+  window.agregarReagendados = async () => {
+    for (const p of reagendadosHoy) {
+      const V = p.vehiculo || "moto";
+      const nuevoPedido = {
+        id:        `reag_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
+        cliente:   p.cliente,
+        direccion: p.direccion,
+        producto:  p.producto || "",
+        nota:      `[Reagendado] ${p.nota||""}`.trim(),
+        lat:       p.lat || null,
+        lng:       p.lng || null,
+        orden:     state[V].pedidos.length + 1,
+        estado:    "pendiente"
+      };
+      state[V].pedidos.push(nuevoPedido);
+      if (!state[V].listo) {
+        state[V].listo    = true;
+        state[V].fileName = "reagendados";
+        mostrarVehiculo(V);
+      }
+      renderLista(V);
+
+      // Marcar como procesado en Firestore
+      try {
+        const reagRef = doc(db, "empresas", usuario.empresa_id, "reagendados", p.docId);
+        await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
+          .then(({updateDoc}) => updateDoc(reagRef, { estado: "procesado", procesado_en: new Date().toISOString() }));
+      } catch(e) {}
+    }
+
+    guardarLS();
+    document.getElementById("bannerReagendados").style.display = "none";
+    mostrarToast(`${reagendadosHoy.length} pedidos reagendados agregados a la ruta ✓`, "ok");
+    reagendadosHoy = [];
+  };
+
+  window.descartarBanner = () => {
+    document.getElementById("bannerReagendados").style.display = "none";
+  };
 
   // ── Persistencia con localStorage ────────────────────────
   // localStorage persiste entre navegaciones de página a diferencia de variables JS
@@ -386,6 +472,9 @@
       renderLista(V);
     }
   }
+
+  // Verificar pedidos reagendados para hoy
+  await verificarReagendados();
 
   // ── Mostrar sección vehículo cargado ──────────────────────
   function mostrarVehiculo(V) {
