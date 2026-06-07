@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Vruta · Setup inicial</title>
+  <style>
+    body { background:#0B1120; color:#F8FAFC; font-family:monospace; padding:2rem; }
+    .log { margin: 6px 0; font-size:14px; }
+    .ok  { color:#22c55e; }
+    .err { color:#ef4444; }
+    .inf { color:#94A3B8; }
+    button { background:#B87333; border:none; border-radius:8px; padding:12px 24px; color:white; font-size:14px; font-weight:700; cursor:pointer; margin-bottom:1.5rem; }
+  </style>
+</head>
+<body>
+  <h2 style="color:#B87333;margin-bottom:1rem;">Vruta · Setup inicial de Firestore</h2>
+  <p style="color:#94A3B8;margin-bottom:1.5rem;font-size:13px;">
+    Ejecuta esto UNA SOLA VEZ después de crear los 3 usuarios en Firebase Auth.<br>
+    Asegúrate de haber creado los usuarios con los emails correctos primero.
+  </p>
+  <button onclick="runSetup()">▶ Ejecutar setup</button>
+  <div id="logs"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzX3QK3cm9UZ46GMZ7lbNZ58ShRDr3qFc",
+    authDomain: "vruta-demo.firebaseapp.com",
+    projectId: "vruta-demo",
+    storageBucket: "vruta-demo.firebasestorage.app",
+    messagingSenderId: "752394046683",
+    appId: "1:752394046683:web:a80cde825fb6d4c99590fe"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const db   = getFirestore(app);
+  const auth = getAuth(app);
+
+  const log = (msg, tipo = "inf") => {
+    const el = document.createElement("div");
+    el.className = `log ${tipo}`;
+    el.textContent = msg;
+    document.getElementById("logs").appendChild(el);
+  };
+
+  // Datos de usuarios demo
+  // UIDs los obtenemos logueándonos con cada uno
+  const usuarios = [
+    { email: "operador@vruta-demo.com",    password: "Vruta2026#", rol: "operador",    nombre: "Operador Demo",    vehiculo: null },
+    { email: "repartidor1@vruta-demo.com", password: "Vruta2026#", rol: "repartidor",  nombre: "Repartidor 1",     vehiculo: "moto" },
+    { email: "repartidor2@vruta-demo.com", password: "Vruta2026#", rol: "repartidor",  nombre: "Repartidor 2",     vehiculo: "auto" },
+  ];
+
+  window.runSetup = async () => {
+    document.getElementById("logs").innerHTML = "";
+    log("Iniciando setup de Vruta Demo...", "inf");
+
+    // 1. Crear empresa demo
+    try {
+      await setDoc(doc(db, "empresas", "demo"), {
+        nombre:       "Marca Demo SAC",
+        ruc:          "20512345678",
+        almacen_dir:  "Av. Javier Prado 1240, San Isidro, Lima",
+        almacen_lat:  -12.0933,
+        almacen_lng:  -77.0272,
+        config: {
+          criterio_ruta:    "cercano",  // "cercano" | "lejano"
+          foto_obligatoria: true,
+          plan:             "demo"
+        },
+        creado_en: new Date().toISOString()
+      });
+      log("✓ Empresa 'Marca Demo SAC' creada en Firestore", "ok");
+    } catch (e) {
+      log("✗ Error creando empresa: " + e.message, "err");
+    }
+
+    // 2. Crear documentos de usuarios (obteniendo UID via login)
+    for (const u of usuarios) {
+      try {
+        log(`→ Procesando ${u.email}...`, "inf");
+        const cred = await signInWithEmailAndPassword(auth, u.email, u.password);
+        const uid  = cred.user.uid;
+
+        await setDoc(doc(db, "usuarios", uid), {
+          nombre:     u.nombre,
+          email:      u.email,
+          rol:        u.rol,
+          vehiculo:   u.vehiculo,
+          empresa_id: "demo",
+          activo:     true,
+          creado_en:  new Date().toISOString()
+        });
+
+        log(`✓ Usuario '${u.nombre}' (${u.rol}) registrado con UID: ${uid}`, "ok");
+      } catch (e) {
+        log(`✗ Error con ${u.email}: ${e.message}`, "err");
+      }
+    }
+
+    log("", "inf");
+    log("━━━ Setup completado ━━━", "ok");
+    log("Puedes eliminar este archivo setup.html del repo una vez terminado.", "inf");
+    log("Ahora abre index.html y prueba el login.", "inf");
+  };
+</script>
+</body>
+</html>
