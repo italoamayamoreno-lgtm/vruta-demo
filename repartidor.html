@@ -271,68 +271,97 @@
 
   // ── Leer parámetros URL ───────────────────────────────────
   const params    = new URLSearchParams(window.location.search);
-  const vehiculo  = params.get("v");
+  const repId     = params.get("rep");
   const fechaKey  = params.get("fecha");
   const empresaId = params.get("e") || "demo";
+  const tokenUrl  = params.get("token");
 
-  if (!vehiculo || !fechaKey || !["moto","auto"].includes(vehiculo)) {
+  // ── Validar token de seguridad ────────────────────────────
+  function generarToken(repId, fecha, empresaId) {
+    const SALT = "vruta_etrazia_2026";
+    const str  = `${repId}|${fecha}|${empresaId}|${SALT}`;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  const tokenEsperado = generarToken(repId, fechaKey, empresaId);
+  const tokenValido   = tokenUrl === tokenEsperado;
+
+  // Soporte legacy para links con ?v=moto (compatibilidad temporal)
+  const vehiculoLegacy = params.get("v");
+  const esLinkLegacy   = !repId && vehiculoLegacy;
+
+  if (!fechaKey || (!repId && !vehiculoLegacy)) {
     document.getElementById("errorScreen").style.display = "";
     document.getElementById("appShell").style.display    = "none";
     throw new Error("Parámetros inválidos");
   }
 
-  // ── Auto-login ────────────────────────────────────────────
-  const auth     = getAuth();
-  const repEmail = vehiculo === "moto"
-    ? "repartidor1@vruta-demo.com"
-    : "repartidor2@vruta-demo.com";
-
-  try {
-    await signInWithEmailAndPassword(auth, repEmail, "Vruta2026#");
-  } catch(e) {
-    // Si ya hay sesión activa, continúa sin error
-    console.log("Auth:", e.code);
+  if (repId && !tokenValido) {
+    document.getElementById("errorScreen").style.display = "";
+    document.getElementById("appShell").style.display    = "none";
+    throw new Error("Token inválido");
   }
 
-  // ── Empresa ───────────────────────────────────────────────
-  let empresa = { nombre: "Demo" };
+  // ── Auto-login Firebase (necesario para leer Firestore) ───
+  const auth = getAuth();
+  const loginEmail = vehiculoLegacy === "auto"
+    ? "repartidor2@vruta-demo.com"
+    : "repartidor1@vruta-demo.com";
   try {
-    const snap = await getDoc(doc(db, "empresas", empresaId));
-    if (snap.exists()) empresa = snap.data();
+    await signInWithEmailAndPassword(auth, loginEmail, "Vruta2026#");
   } catch(e) {}
 
+  // ── Cargar datos del repartidor desde Firestore ───────────
+  let repData   = null;
+  let vehiculo  = vehiculoLegacy || "moto";
+  let empresa   = { nombre: "Demo" };
+
+  try {
+    const empresaSnap = await getDoc(doc(db, "empresas", empresaId));
+    if (empresaSnap.exists()) empresa = empresaSnap.data();
+  } catch(e) {}
+
+  if (repId) {
+    try {
+      const repSnap = await getDoc(doc(db, "empresas", empresaId, "repartidores", repId));
+      if (repSnap.exists()) {
+        repData  = repSnap.data();
+        vehiculo = repData.vehiculo || "moto";
+      }
+    } catch(e) {}
+  }
+
   // ── UI inicial ────────────────────────────────────────────
-  const repNombre    = vehiculo === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+  const repNombre    = repData ? repData.nombre : (vehiculo === "moto" ? "Repartidor 1" : "Repartidor 2");
+  const vehLabel     = { moto:"Moto", auto:"Auto", bicicleta:"Bicicleta", pie:"A pie" }[vehiculo] || vehiculo;
   const fechaDisplay = new Date(fechaKey + "T00:00:00")
     .toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long"});
 
-  document.getElementById("repChip").textContent   = repNombre;
+  document.getElementById("repChip").textContent   = `${repNombre} · ${vehLabel}`;
   document.getElementById("headerSub").textContent = `${fechaDisplay} · ${empresa.nombre}`;
   document.getElementById("appShell").style.display = "flex";
 
   // ── Estado ───────────────────────────────────────────────
-  let todosPedidos = [];  // solo los de este vehículo
+  let todosPedidos = [];
   let tabActiva    = "pendiente";
   let pedidoActivo = null;
   let fotoBase64   = null;
   let motivoInc    = null;
 
-  // ── Escuchar pedidos — filtrado por vehiculo en Firestore ─
-  // Usamos where() para filtrar directo en la query y evitar
-  // mezclar pedidos de moto y auto
+  // ── Escuchar pedidos en tiempo real ───────────────────────
   const pedidosRef = collection(db, "empresas", empresaId, "jornadas", fechaKey, "pedidos");
-  const q = query(
-    pedidosRef,
-    where("vehiculo", "==", vehiculo),
-    orderBy("orden", "asc")
-  );
+  const q = query(pedidosRef, where("vehiculo", "==", vehiculo), orderBy("orden", "asc"));
 
   onSnapshot(q, snap => {
     todosPedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     actualizarUI();
   }, err => {
-    // Si falla el índice compuesto, fallback sin where
-    console.warn("Índice no disponible, usando filtro local:", err.message);
+    console.warn("Índice no disponible, fallback:", err.message);
     const qFallback = query(pedidosRef, orderBy("orden","asc"));
     onSnapshot(qFallback, snap2 => {
       todosPedidos = snap2.docs
