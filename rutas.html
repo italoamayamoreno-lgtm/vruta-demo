@@ -96,7 +96,7 @@
     .btn-toggle.active{background:rgba(184,115,51,0.1);border-color:rgba(184,115,51,0.35);color:var(--copper);}
 
     /* ── Lista de ruta ── */
-    .route-list{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;padding-right:2px;}
+    .route-list{display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 420px);min-height:120px;overflow-y:auto;padding-right:4px;}
     .route-list::-webkit-scrollbar{width:3px;}
     .route-list::-webkit-scrollbar-track{background:transparent;}
     .route-list::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.2);border-radius:999px;}
@@ -133,6 +133,22 @@
     .toast.show{transform:translateY(0);opacity:1;}
     .toast.ok{border-color:rgba(34,197,94,0.3);}
     .toast.err{border-color:rgba(239,68,68,0.3);}
+
+    /* ── Botón limpiar ruta ── */
+    .btn-limpiar{background:none;border:0.5px solid rgba(239,68,68,0.2);border-radius:6px;padding:4px 10px;font-size:10px;color:rgba(239,68,68,0.6);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;font-family:'Inter',sans-serif;}
+    .btn-limpiar:hover{border-color:rgba(239,68,68,0.5);color:var(--red);background:rgba(239,68,68,0.06);}
+
+    /* ── Modal confirmación ── */
+    .confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+    .confirm-bg.show{opacity:1;pointer-events:all;}
+    .confirm-box{background:var(--mid2);border:0.5px solid rgba(239,68,68,0.25);border-radius:14px;padding:24px;width:100%;max-width:360px;}
+    .confirm-icon{width:44px;height:44px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);margin-bottom:14px;}
+    .confirm-title{font-size:15px;font-weight:600;color:var(--ice);margin-bottom:6px;}
+    .confirm-msg{font-size:12px;color:var(--graph);line-height:1.6;margin-bottom:20px;}
+    .confirm-actions{display:flex;gap:8px;}
+    .btn-cancel{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
+    .btn-confirm-del{flex:1;background:rgba(239,68,68,0.15);border:0.5px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s;}
+    .btn-confirm-del:hover{background:rgba(239,68,68,0.25);}
 
     /* ── Modal WA ── */
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
@@ -203,7 +219,10 @@
             <div class="vcol-icon" style="background:rgba(34,197,94,0.12);color:var(--green);"><i class="ti ti-motorbike"></i></div>
             Repartidor 1 — Moto
           </div>
-          <span class="tag tag-empty" id="tagMoto">Sin cargar</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="tag tag-empty" id="tagMoto">Sin cargar</span>
+            <button class="btn-limpiar" id="btnLimpiarMoto" style="display:none" onclick="confirmarLimpiar('moto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
+          </div>
         </div>
 
         <!-- Upload -->
@@ -253,7 +272,10 @@
             <div class="vcol-icon" style="background:rgba(217,119,6,0.12);color:var(--amber);"><i class="ti ti-car"></i></div>
             Repartidor 2 — Auto
           </div>
-          <span class="tag tag-empty" id="tagAuto">Sin cargar</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="tag tag-empty" id="tagAuto">Sin cargar</span>
+            <button class="btn-limpiar" id="btnLimpiarAuto" style="display:none" onclick="confirmarLimpiar('auto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
+          </div>
         </div>
 
         <div class="upload-zone" id="uploadAuto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'auto')">
@@ -297,6 +319,19 @@
   </main>
 </div>
 
+<!-- Modal confirmación limpiar -->
+<div class="confirm-bg" id="confirmBg">
+  <div class="confirm-box">
+    <div class="confirm-icon"><i class="ti ti-alert-triangle"></i></div>
+    <div class="confirm-title">¿Limpiar esta ruta?</div>
+    <div class="confirm-msg" id="confirmMsg">Se eliminarán todos los pedidos de esta ruta, incluyendo los registros en el dashboard. Esta acción no se puede deshacer.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="cerrarConfirm()">Cancelar</button>
+      <button class="btn-confirm-del" id="btnConfirmDel">Sí, limpiar ruta</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -325,7 +360,8 @@
   import { requireAuth, logout } from "./assets/js/auth.js";
   import { db } from "./assets/js/firebase-config.js";
   import {
-    doc, setDoc, getDoc, collection, writeBatch
+    doc, setDoc, getDoc, collection, writeBatch,
+    getDocs, deleteDoc, query
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   // ── Auth ─────────────────────────────────────────────────
@@ -344,11 +380,69 @@
 
   // ── Estado ───────────────────────────────────────────────
   const state = {
-    moto: { pedidos: [], criterio: "cercano", listo: false },
-    auto: { pedidos: [], criterio: "cercano", listo: false }
+    moto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" },
+    auto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" }
   };
 
+  // Cargar sesión guardada si existe
+  cargarSession();
+  restaurarDesdeSession();
+
   const fechaKey = new Date().toISOString().split("T")[0];
+
+  // ── Persistencia sessionStorage ──────────────────────────
+  const SESSION_KEY = `vruta_rutas_${fechaKey}`;
+
+  function guardarSession() {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+  }
+
+  function cargarSession() {
+    try {
+      const data = sessionStorage.getItem(SESSION_KEY);
+      if (data) {
+        const saved = JSON.parse(data);
+        if (saved.moto) state.moto = saved.moto;
+        if (saved.auto) state.auto = saved.auto;
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  function limpiarSession(V) {
+    if (V) {
+      state[V] = { pedidos: [], criterio: "cercano", listo: false };
+    } else {
+      state.moto = { pedidos: [], criterio: "cercano", listo: false };
+      state.auto = { pedidos: [], criterio: "cercano", listo: false };
+    }
+    guardarSession();
+  }
+
+  // Restaurar UI desde session si hay datos guardados
+  function restaurarDesdeSession() {
+    for (const V of ["moto", "auto"]) {
+      if (state[V].listo && state[V].pedidos.length > 0) {
+        const Cap = V === "moto" ? "Moto" : "Auto";
+        document.getElementById(`upload${Cap}`).style.display = "none";
+        document.getElementById(`info${Cap}`).style.display = "flex";
+        document.getElementById(`info${Cap}`).style.flexDirection = "column";
+        document.getElementById(`info${Cap}`).style.gap = "10px";
+        document.getElementById(`fileNameMoto`.replace("Moto", Cap)).textContent =
+          state[V].fileName || "archivo.xlsx";
+        document.getElementById(`fileName${Cap}`).textContent = state[V].fileName || "archivo.xlsx";
+        document.getElementById(`statPed${Cap}`).textContent = state[V].pedidos.length;
+        document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
+        document.getElementById(`tag${Cap}`).textContent = `${state[V].pedidos.length} pedidos`;
+        document.getElementById(`tag${Cap}`).className = "tag tag-loaded";
+        document.getElementById(`toggleTxt${Cap}`).textContent =
+          state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
+        document.getElementById(`btnLimpiar${Cap}`).style.display = "flex";
+        renderLista(V);
+      }
+    }
+  }
 
   // ── Geocoding via Nominatim (gratis, sin API key) ────────
   async function geocodificar(direccion) {
@@ -441,6 +535,7 @@
 
     state[V].pedidos = pedidos;
     state[V].listo = true;
+    state[V].fileName = file.name;
 
     // UI
     mostrarGeo(V, false);
@@ -453,7 +548,10 @@
     document.getElementById(`tag${V === "moto" ? "Moto" : "Auto"}`).textContent = `${pedidos.length} pedidos`;
     document.getElementById(`tag${V === "moto" ? "Moto" : "Auto"}`).className = "tag tag-loaded";
 
+    document.getElementById(`btnLimpiar${V === "moto" ? "Moto" : "Auto"}`).style.display = "flex";
+
     optimizar(V);
+    guardarSession();
     mostrarToast(`${pedidos.length} pedidos cargados para ${V === "moto" ? "Moto" : "Auto"}`, "ok");
   }
 
@@ -507,6 +605,7 @@
     s.pedidos = nearestNeighbor(s.pedidos, ALMACEN, s.criterio);
     s.pedidos = s.pedidos.map((p, i) => ({ ...p, orden: i+1 }));
     renderLista(V);
+    guardarSession();
   };
 
   window.toggleCriterio = (V) => {
@@ -517,6 +616,7 @@
     const btn = document.getElementById(`toggle${V === "moto" ? "Moto" : "Auto"}`);
     btn.classList.toggle("active", s.criterio === "lejano");
     optimizar(V);
+    guardarSession();
   };
 
   // ── Render lista ─────────────────────────────────────────
@@ -570,11 +670,13 @@
       orden: i+1
     }));
     renderLista(V);
+    guardarSession();
   }
 
   window.eliminarPedido = (V, id) => {
     state[V].pedidos = state[V].pedidos.filter(p => p.id !== id);
     renderLista(V);
+    guardarSession();
   };
 
   // ── Guardar jornada en Firestore ─────────────────────────
@@ -650,14 +752,71 @@
     if (e.target === document.getElementById("modalBg")) cerrarModal();
   });
 
-  // ── Reset vehículo ────────────────────────────────────────
-  window.resetVehiculo = (V) => {
+  // ── Confirmar limpiar ruta ────────────────────────────────
+  let vehiculoALimpiar = null;
+
+  window.confirmarLimpiar = (V) => {
+    vehiculoALimpiar = V;
+    const veh = V === "moto" ? "Moto" : "Auto";
+    document.getElementById("confirmMsg").textContent =
+      `Se eliminarán todos los pedidos de la ruta de ${veh} del día de hoy, incluyendo los registros en el Dashboard. Esta acción no se puede deshacer.`;
+    document.getElementById("confirmBg").classList.add("show");
+    document.getElementById("btnConfirmDel").onclick = () => ejecutarLimpiar(vehiculoALimpiar);
+  };
+
+  window.cerrarConfirm = () => {
+    document.getElementById("confirmBg").classList.remove("show");
+    vehiculoALimpiar = null;
+  };
+
+  async function ejecutarLimpiar(V) {
+    cerrarConfirm();
+    mostrarToast("Eliminando registros...", "ok");
+
+    try {
+      // Borrar pedidos de Firestore para este vehículo
+      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
+      const snap = await getDocs(query(pedidosRef));
+      const batch = writeBatch(db);
+      let count = 0;
+      snap.docs.forEach(d => {
+        if (d.data().vehiculo === V) {
+          batch.delete(d.ref);
+          count++;
+        }
+      });
+      if (count > 0) await batch.commit();
+    } catch(e) {
+      console.warn("No se pudo borrar de Firestore:", e.message);
+    }
+
+    // Limpiar estado y sessionStorage
+    limpiarSession(V);
+
+    // Reset UI
     const Cap = V === "moto" ? "Moto" : "Auto";
-    state[V] = { pedidos: [], criterio: "cercano", listo: false };
     document.getElementById(`upload${Cap}`).style.display = "";
     document.getElementById(`info${Cap}`).style.display = "none";
     document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
     document.getElementById(`tag${Cap}`).className = "tag tag-empty";
+    document.getElementById(`btnLimpiar${Cap}`).style.display = "none";
+    const btn = document.getElementById(`btnLanzar${Cap}`);
+    btn.disabled = true;
+    btn.className = "launch-btn launch-dis";
+
+    mostrarToast(`Ruta de ${V === "moto" ? "Moto" : "Auto"} limpiada ✓`, "ok");
+  }
+
+  // ── Reset vehículo (cambiar archivo) ─────────────────────
+  window.resetVehiculo = (V) => {
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    state[V] = { pedidos: [], criterio: "cercano", listo: false, fileName: "" };
+    guardarSession();
+    document.getElementById(`upload${Cap}`).style.display = "";
+    document.getElementById(`info${Cap}`).style.display = "none";
+    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
+    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
+    document.getElementById(`btnLimpiar${Cap}`).style.display = "none";
     const btn = document.getElementById(`btnLanzar${Cap}`);
     btn.disabled = true;
     btn.className = "launch-btn launch-dis";
