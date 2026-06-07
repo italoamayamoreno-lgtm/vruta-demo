@@ -7,9 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
-  <!-- SheetJS para leer Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- SortableJS para drag-and-drop -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
     :root{
@@ -19,8 +17,6 @@
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;}
-
-    /* ── Topbar ── */
     .topbar{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:100;}
     .logo-area{display:flex;align-items:center;gap:10px;}
     .logo-text{display:flex;flex-direction:column;line-height:1.1;}
@@ -31,8 +27,6 @@
     .user-dot{width:30px;height:30px;border-radius:50%;background:rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--copper);}
     .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;}
     .btn-logout:hover{border-color:rgba(239,68,68,0.4);color:var(--red);}
-
-    /* ── Layout ── */
     .app-body{display:flex;flex:1;}
     .sidebar{background:var(--mid2);width:56px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);}
     .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;text-decoration:none;transition:all 0.15s;}
@@ -40,11 +34,7 @@
     .sib.active{background:rgba(184,115,51,0.15);color:var(--copper);}
     .sib-spacer{flex:1;}
     .main{flex:1;padding:24px;overflow:auto;}
-
-    /* ── Header ── */
     .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:16px;}
-
-    /* ── Steps ── */
     .steps{display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
     .step{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--graph);}
     .step.done{color:var(--green);}
@@ -53,19 +43,15 @@
     .step.done .step-num{background:rgba(34,197,94,0.15);color:var(--green);}
     .step.active .step-num{background:rgba(184,115,51,0.2);color:var(--copper);}
     .step-arrow{color:rgba(148,163,184,0.3);font-size:12px;}
-
-    /* ── Grid vehículos ── */
     .vehicles-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
     .vcol{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;}
     .vcol-header{display:flex;align-items:center;justify-content:space-between;}
     .vcol-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ice);}
     .vcol-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+    .vcol-actions{display:flex;align-items:center;gap:6px;}
     .tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;}
     .tag-empty{background:rgba(148,163,184,0.1);color:var(--graph);}
     .tag-loaded{background:rgba(184,115,51,0.15);color:var(--copper);}
-    .tag-ready{background:rgba(34,197,94,0.12);color:var(--green);}
-
-    /* ── Upload zone ── */
     .upload-zone{border:1px dashed rgba(148,163,184,0.2);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;}
     .upload-zone:hover,.upload-zone.drag{border-color:rgba(184,115,51,0.5);background:rgba(184,115,51,0.04);}
     .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -73,20 +59,14 @@
     .upload-txt{font-size:13px;color:var(--ice);margin-bottom:3px;font-weight:500;}
     .upload-sub{font-size:11px;color:var(--graph);}
     .upload-hint{font-size:10px;color:rgba(148,163,184,0.5);margin-top:6px;}
-
-    /* ── Archivo cargado ── */
     .file-info{display:flex;align-items:center;justify-content:space-between;}
     .fi-name{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--graph);}
     .fi-change{font-size:10px;color:var(--copper);cursor:pointer;display:flex;align-items:center;gap:3px;}
     .fi-change:hover{text-decoration:underline;}
-
-    /* ── Stats ── */
     .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
     .stat{background:rgba(255,255,255,0.04);border-radius:7px;padding:8px;text-align:center;}
     .stat-lbl{font-size:9px;color:var(--graph);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
     .stat-val{font-size:17px;font-weight:600;color:var(--ice);}
-
-    /* ── Botones optimizar ── */
     .opt-row{display:flex;gap:6px;}
     .btn-opt{flex:1;background:var(--copper);border:none;border-radius:7px;padding:8px;font-size:10px;font-weight:600;color:var(--ice);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:opacity 0.15s;font-family:'Inter',sans-serif;}
     .btn-opt:hover{opacity:0.88;}
@@ -94,32 +74,30 @@
     .btn-toggle{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;font-size:10px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;font-family:'Inter',sans-serif;transition:all 0.15s;}
     .btn-toggle:hover{border-color:rgba(184,115,51,0.4);color:var(--copper);}
     .btn-toggle.active{background:rgba(184,115,51,0.1);border-color:rgba(184,115,51,0.35);color:var(--copper);}
-
-    /* ── Lista de ruta ── */
-    .route-list{display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 420px);min-height:120px;overflow-y:auto;padding-right:4px;}
-    .route-list::-webkit-scrollbar{width:3px;}
+    .btn-limpiar{background:none;border:0.5px solid rgba(239,68,68,0.25);border-radius:6px;padding:4px 10px;font-size:10px;color:rgba(239,68,68,0.65);cursor:pointer;display:none;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:all 0.15s;}
+    .btn-limpiar:hover{border-color:rgba(239,68,68,0.5);color:var(--red);background:rgba(239,68,68,0.06);}
+    .btn-limpiar.visible{display:flex;}
+    .route-list{display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 440px);min-height:120px;overflow-y:auto;padding-right:4px;}
+    .route-list::-webkit-scrollbar{width:4px;}
     .route-list::-webkit-scrollbar-track{background:transparent;}
     .route-list::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.2);border-radius:999px;}
     .ri{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.06);border-radius:7px;padding:8px 10px;cursor:grab;transition:background 0.15s;}
     .ri:hover{background:rgba(255,255,255,0.06);}
     .ri.sortable-ghost{opacity:0.3;}
     .ri.sortable-chosen{background:rgba(184,115,51,0.08);border-color:rgba(184,115,51,0.2);}
-    .ri-grip{font-size:14px;color:rgba(148,163,184,0.3);}
+    .ri-grip{font-size:14px;color:rgba(148,163,184,0.25);flex-shrink:0;}
     .ri-num{font-size:10px;color:var(--graph);min-width:18px;font-weight:500;}
-    .ri-info{flex:1;min-width:0;}
-    .ri-name{font-size:11px;font-weight:500;color:var(--ice);}
+    .ri-info{flex:1;min-width:0;cursor:pointer;}
+    .ri-info:hover .ri-name{color:var(--copper);}
+    .ri-name{font-size:11px;font-weight:500;color:var(--ice);transition:color 0.15s;}
     .ri-addr{font-size:10px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .ri-maps{width:26px;height:26px;border-radius:5px;background:rgba(184,115,51,0.1);border:0.5px solid rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--copper);flex-shrink:0;text-decoration:none;}
     .ri-del{width:22px;height:22px;border-radius:4px;background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--red);cursor:pointer;flex-shrink:0;}
-    .ri-del:hover{background:rgba(239,68,68,0.18);}
-
-    /* ── Geocoding progress ── */
+    .ri-del:hover{background:rgba(239,68,68,0.2);}
     .geo-progress{background:rgba(184,115,51,0.08);border:0.5px solid rgba(184,115,51,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--copper);display:none;align-items:center;gap:8px;}
     .geo-progress.show{display:flex;}
     .geo-spin{width:14px;height:14px;border:2px solid rgba(184,115,51,0.3);border-top-color:var(--copper);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
     @keyframes spin{to{transform:rotate(360deg);}}
-
-    /* ── Lanzar ── */
     .launch-btn{width:100%;border:none;border-radius:9px;padding:11px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Montserrat',sans-serif;letter-spacing:0.02em;transition:all 0.2s;}
     .launch-moto{background:rgba(34,197,94,0.15);border:0.5px solid rgba(34,197,94,0.35);color:var(--green);}
     .launch-moto:hover{background:rgba(34,197,94,0.22);}
@@ -127,44 +105,41 @@
     .launch-auto:hover{background:rgba(217,119,6,0.22);}
     .launch-dis{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);color:rgba(148,163,184,0.35);cursor:not-allowed;}
     .divider-line{border:none;border-top:0.5px solid rgba(255,255,255,0.06);}
-
-    /* ── Toast ── */
-    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:300;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:400;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;max-width:320px;}
     .toast.show{transform:translateY(0);opacity:1;}
     .toast.ok{border-color:rgba(34,197,94,0.3);}
     .toast.err{border-color:rgba(239,68,68,0.3);}
-
-    /* ── Botón limpiar ruta ── */
-    .btn-limpiar{background:none;border:0.5px solid rgba(239,68,68,0.2);border-radius:6px;padding:4px 10px;font-size:10px;color:rgba(239,68,68,0.6);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;font-family:'Inter',sans-serif;}
-    .btn-limpiar:hover{border-color:rgba(239,68,68,0.5);color:var(--red);background:rgba(239,68,68,0.06);}
-
-    /* ── Modal confirmación ── */
-    .confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
-    .confirm-bg.show{opacity:1;pointer-events:all;}
-    .confirm-box{background:var(--mid2);border:0.5px solid rgba(239,68,68,0.25);border-radius:14px;padding:24px;width:100%;max-width:360px;}
-    .confirm-icon{width:44px;height:44px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);margin-bottom:14px;}
-    .confirm-title{font-size:15px;font-weight:600;color:var(--ice);margin-bottom:6px;}
-    .confirm-msg{font-size:12px;color:var(--graph);line-height:1.6;margin-bottom:20px;}
-    .confirm-actions{display:flex;gap:8px;}
-    .btn-cancel{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
-    .btn-confirm-del{flex:1;background:rgba(239,68,68,0.15);border:0.5px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s;}
-    .btn-confirm-del:hover{background:rgba(239,68,68,0.25);}
-
-    /* ── Modal WA ── */
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+    /* Modales */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
     .modal-bg.show{opacity:1;pointer-events:all;}
-    .modal{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px;width:100%;max-width:420px;}
+    .modal{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px;width:100%;max-width:420px;transform:translateY(10px);transition:transform 0.2s;}
+    .modal-bg.show .modal{transform:translateY(0);}
     .modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
     .modal-title{font-size:15px;font-weight:600;color:var(--ice);}
     .modal-sub{font-size:11px;color:var(--graph);margin-top:2px;}
-    .close-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--graph);cursor:pointer;}
+    .close-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--graph);cursor:pointer;flex-shrink:0;}
     .wa-box{background:rgba(37,211,102,0.06);border:0.5px solid rgba(37,211,102,0.25);border-radius:10px;padding:14px;margin-bottom:14px;}
     .wa-header{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(37,211,102,0.8);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
     .wa-msg{font-size:12px;color:var(--ice);line-height:1.7;white-space:pre-line;}
     .wa-msg b{color:var(--green);}
     .btn-wa{width:100%;background:rgba(37,211,102,0.15);border:0.5px solid rgba(37,211,102,0.35);border-radius:8px;padding:11px;font-size:12px;font-weight:600;color:rgba(37,211,102,0.95);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Montserrat',sans-serif;transition:background 0.15s;}
     .btn-wa:hover{background:rgba(37,211,102,0.22);}
-
+    /* Modal detalle cliente */
+    .detalle-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+    .dc{background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px;}
+    .dc-lbl{font-size:10px;color:var(--graph);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
+    .dc-val{font-size:13px;color:var(--ice);font-weight:500;line-height:1.4;}
+    .dc-full{grid-column:1/-1;}
+    .dc-nota{background:rgba(184,115,51,0.06);border:0.5px solid rgba(184,115,51,0.15);}
+    /* Modal confirmación */
+    .confirm-box{background:var(--mid2);border:0.5px solid rgba(239,68,68,0.25);border-radius:14px;padding:24px;width:100%;max-width:360px;}
+    .confirm-icon{width:44px;height:44px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);margin-bottom:14px;}
+    .confirm-title{font-size:15px;font-weight:600;color:var(--ice);margin-bottom:6px;}
+    .confirm-msg{font-size:12px;color:var(--graph);line-height:1.6;margin-bottom:20px;}
+    .confirm-actions{display:flex;gap:8px;}
+    .btn-cancel{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
+    .btn-confirm-del{flex:1;background:rgba(239,68,68,0.15);border:0.5px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;font-family:'Inter',sans-serif;}
+    .btn-confirm-del:hover{background:rgba(239,68,68,0.25);}
     @media(max-width:800px){.vehicles-grid{grid-template-columns:1fr;}}
   </style>
 </head>
@@ -177,10 +152,7 @@
       <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
       <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
     </svg>
-    <div class="logo-text">
-      <span class="logo-main">VRUTA</span>
-      <span class="logo-sub">powered by Etrazia</span>
-    </div>
+    <div class="logo-text"><span class="logo-main">VRUTA</span><span class="logo-sub">powered by Etrazia</span></div>
   </div>
   <div class="topbar-right">
     <span class="client-chip" id="clienteNombre">Cargando...</span>
@@ -201,31 +173,27 @@
 
   <main class="main">
     <div class="mod-label">Planificador de rutas</div>
-
     <div class="steps">
-      <div class="step done" id="step1"><div class="step-num"><i class="ti ti-check" style="font-size:9px"></i></div>Cargar Excel</div>
+      <div class="step done"><div class="step-num"><i class="ti ti-check" style="font-size:9px"></i></div>Cargar Excel</div>
       <div class="step-arrow">›</div>
-      <div class="step active" id="step2"><div class="step-num">2</div>Optimizar ruta</div>
+      <div class="step active"><div class="step-num">2</div>Optimizar ruta</div>
       <div class="step-arrow">›</div>
-      <div class="step" id="step3"><div class="step-num">3</div>Lanzar jornada</div>
+      <div class="step"><div class="step-num">3</div>Lanzar jornada</div>
     </div>
 
     <div class="vehicles-grid">
-
-      <!-- ── MOTO ── -->
-      <div class="vcol" id="colMoto">
+      <!-- MOTO -->
+      <div class="vcol">
         <div class="vcol-header">
           <div class="vcol-name">
             <div class="vcol-icon" style="background:rgba(34,197,94,0.12);color:var(--green);"><i class="ti ti-motorbike"></i></div>
             Repartidor 1 — Moto
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div class="vcol-actions">
             <span class="tag tag-empty" id="tagMoto">Sin cargar</span>
-            <button class="btn-limpiar" id="btnLimpiarMoto" style="display:none" onclick="confirmarLimpiar('moto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
+            <button class="btn-limpiar" id="btnLimpiarMoto" onclick="confirmarLimpiar('moto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
           </div>
         </div>
-
-        <!-- Upload -->
         <div class="upload-zone" id="uploadMoto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'moto')">
           <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'moto')"/>
           <div class="upload-icon"><i class="ti ti-file-spreadsheet"></i></div>
@@ -233,22 +201,15 @@
           <div class="upload-sub">Arrastra el archivo o haz clic</div>
           <div class="upload-hint">Columnas: nombre · dirección · producto · nota</div>
         </div>
-
-        <!-- Geocoding progress -->
-        <div class="geo-progress" id="geoProcMoto">
-          <div class="geo-spin"></div>
-          <span id="geoTxtMoto">Geocodificando direcciones...</span>
-        </div>
-
-        <!-- Archivo info (oculto hasta cargar) -->
-        <div style="display:none" id="infoMoto">
+        <div class="geo-progress" id="geoProcMoto"><div class="geo-spin"></div><span id="geoTxtMoto">Geocodificando...</span></div>
+        <div style="display:none;flex-direction:column;gap:10px;" id="infoMoto">
           <div class="file-info">
             <div class="fi-name"><i class="ti ti-file-check" style="color:var(--green)"></i><span id="fileNameMoto">archivo.xlsx</span></div>
-            <div class="fi-change" onclick="resetVehiculo('moto')"><i class="ti ti-refresh"></i>Cambiar</div>
+            <div class="fi-change" onclick="resetVehiculo('moto')"><i class="ti ti-refresh"></i>Cambiar archivo</div>
           </div>
           <div class="stats-row">
             <div class="stat"><div class="stat-lbl">Pedidos</div><div class="stat-val" id="statPedMoto">0</div></div>
-            <div class="stat"><div class="stat-lbl">Geocod.</div><div class="stat-val" id="statGeoMoto">0</div></div>
+            <div class="stat"><div class="stat-lbl">GPS OK</div><div class="stat-val" id="statGeoMoto">0</div></div>
             <div class="stat"><div class="stat-lbl">Zonas</div><div class="stat-val" id="statZonMoto">—</div></div>
           </div>
           <div class="opt-row">
@@ -257,27 +218,24 @@
           </div>
           <div class="route-list" id="listaMoto"></div>
         </div>
-
         <hr class="divider-line"/>
         <button class="launch-btn launch-dis" id="btnLanzarMoto" disabled onclick="abrirModalWA('moto')">
-          <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>
-          Lanzar ruta · enviar por WhatsApp
+          <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Lanzar ruta · enviar por WhatsApp
         </button>
       </div>
 
-      <!-- ── AUTO ── -->
-      <div class="vcol" id="colAuto">
+      <!-- AUTO -->
+      <div class="vcol">
         <div class="vcol-header">
           <div class="vcol-name">
             <div class="vcol-icon" style="background:rgba(217,119,6,0.12);color:var(--amber);"><i class="ti ti-car"></i></div>
             Repartidor 2 — Auto
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div class="vcol-actions">
             <span class="tag tag-empty" id="tagAuto">Sin cargar</span>
-            <button class="btn-limpiar" id="btnLimpiarAuto" style="display:none" onclick="confirmarLimpiar('auto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
+            <button class="btn-limpiar" id="btnLimpiarAuto" onclick="confirmarLimpiar('auto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
           </div>
         </div>
-
         <div class="upload-zone" id="uploadAuto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'auto')">
           <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'auto')"/>
           <div class="upload-icon"><i class="ti ti-file-spreadsheet"></i></div>
@@ -285,20 +243,15 @@
           <div class="upload-sub">Arrastra el archivo o haz clic</div>
           <div class="upload-hint">Columnas: nombre · dirección · producto · nota</div>
         </div>
-
-        <div class="geo-progress" id="geoProcAuto">
-          <div class="geo-spin"></div>
-          <span id="geoTxtAuto">Geocodificando direcciones...</span>
-        </div>
-
-        <div style="display:none" id="infoAuto">
+        <div class="geo-progress" id="geoProcAuto"><div class="geo-spin"></div><span id="geoTxtAuto">Geocodificando...</span></div>
+        <div style="display:none;flex-direction:column;gap:10px;" id="infoAuto">
           <div class="file-info">
             <div class="fi-name"><i class="ti ti-file-check" style="color:var(--amber)"></i><span id="fileNameAuto">archivo.xlsx</span></div>
-            <div class="fi-change" onclick="resetVehiculo('auto')"><i class="ti ti-refresh"></i>Cambiar</div>
+            <div class="fi-change" onclick="resetVehiculo('auto')"><i class="ti ti-refresh"></i>Cambiar archivo</div>
           </div>
           <div class="stats-row">
             <div class="stat"><div class="stat-lbl">Pedidos</div><div class="stat-val" id="statPedAuto">0</div></div>
-            <div class="stat"><div class="stat-lbl">Geocod.</div><div class="stat-val" id="statGeoAuto">0</div></div>
+            <div class="stat"><div class="stat-lbl">GPS OK</div><div class="stat-val" id="statGeoAuto">0</div></div>
             <div class="stat"><div class="stat-lbl">Zonas</div><div class="stat-val" id="statZonAuto">—</div></div>
           </div>
           <div class="opt-row">
@@ -307,76 +260,115 @@
           </div>
           <div class="route-list" id="listaAuto"></div>
         </div>
-
         <hr class="divider-line"/>
         <button class="launch-btn launch-dis" id="btnLanzarAuto" disabled onclick="abrirModalWA('auto')">
-          <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>
-          Lanzar ruta · enviar por WhatsApp
+          <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Lanzar ruta · enviar por WhatsApp
         </button>
       </div>
-
     </div>
   </main>
 </div>
 
-<!-- Modal confirmación limpiar -->
-<div class="confirm-bg" id="confirmBg">
-  <div class="confirm-box">
-    <div class="confirm-icon"><i class="ti ti-alert-triangle"></i></div>
-    <div class="confirm-title">¿Limpiar esta ruta?</div>
-    <div class="confirm-msg" id="confirmMsg">Se eliminarán todos los pedidos de esta ruta, incluyendo los registros en el dashboard. Esta acción no se puede deshacer.</div>
-    <div class="confirm-actions">
-      <button class="btn-cancel" onclick="cerrarConfirm()">Cancelar</button>
-      <button class="btn-confirm-del" id="btnConfirmDel">Sí, limpiar ruta</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
 <!-- Modal WhatsApp -->
-<div class="modal-bg" id="modalBg">
+<div class="modal-bg" id="modalWA">
   <div class="modal">
     <div class="modal-header">
-      <div>
-        <div class="modal-title" id="modalTitulo">Lanzar ruta</div>
-        <div class="modal-sub" id="modalSub"></div>
-      </div>
-      <div class="close-btn" onclick="cerrarModal()"><i class="ti ti-x"></i></div>
+      <div><div class="modal-title" id="waTitulo">Lanzar ruta</div><div class="modal-sub" id="waSub"></div></div>
+      <div class="close-btn" onclick="document.getElementById('modalWA').classList.remove('show')"><i class="ti ti-x"></i></div>
     </div>
     <div class="wa-box">
       <div class="wa-header"><i class="ti ti-brand-whatsapp" style="font-size:13px"></i>Mensaje de WhatsApp</div>
       <div class="wa-msg" id="waMensaje"></div>
     </div>
-    <button class="btn-wa" id="btnAbrirWA">
-      <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>
-      Abrir WhatsApp y enviar
-    </button>
+    <button class="btn-wa" id="btnAbrirWA"><i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Abrir WhatsApp y enviar</button>
   </div>
 </div>
+
+<!-- Modal detalle cliente -->
+<div class="modal-bg" id="modalDetalle">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="detalleTitulo">Detalle del pedido</div><div class="modal-sub" id="detalleSub"></div></div>
+      <div class="close-btn" onclick="document.getElementById('modalDetalle').classList.remove('show')"><i class="ti ti-x"></i></div>
+    </div>
+    <div id="detalleBody"></div>
+  </div>
+</div>
+
+<!-- Modal confirmación eliminar cliente -->
+<div class="modal-bg" id="modalConfirmCliente">
+  <div class="modal" style="max-width:360px;">
+    <div class="confirm-box" style="background:transparent;border:none;padding:0;">
+      <div class="confirm-icon"><i class="ti ti-user-minus"></i></div>
+      <div class="confirm-title">¿Eliminar cliente de la ruta?</div>
+      <div class="confirm-msg" id="confirmClienteMsg"></div>
+      <div class="confirm-actions">
+        <button class="btn-cancel" onclick="document.getElementById('modalConfirmCliente').classList.remove('show')">Cancelar</button>
+        <button class="btn-confirm-del" id="btnConfirmEliminar">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmación limpiar ruta -->
+<div class="modal-bg" id="modalConfirmLimpiar">
+  <div class="modal" style="max-width:360px;">
+    <div class="confirm-box" style="background:transparent;border:none;padding:0;">
+      <div class="confirm-icon"><i class="ti ti-alert-triangle"></i></div>
+      <div class="confirm-title">¿Limpiar esta ruta?</div>
+      <div class="confirm-msg" id="confirmLimpiarMsg"></div>
+      <div class="confirm-actions">
+        <button class="btn-cancel" onclick="document.getElementById('modalConfirmLimpiar').classList.remove('show')">Cancelar</button>
+        <button class="btn-confirm-del" id="btnConfirmLimpiar">Sí, limpiar ruta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script type="module">
   import { requireAuth, logout } from "./assets/js/auth.js";
   import { db } from "./assets/js/firebase-config.js";
   import {
-    doc, setDoc, getDoc, collection, writeBatch,
-    getDocs, deleteDoc, query
+    doc, setDoc, getDoc, collection, writeBatch, getDocs, query, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   // ── Auth ─────────────────────────────────────────────────
   const usuario = requireAuth("operador");
   if (!usuario) throw new Error("No autorizado");
-
   document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
   document.getElementById("btnLogout").addEventListener("click", logout);
 
   const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
   const empresa = empresaSnap.data();
   document.getElementById("clienteNombre").textContent = empresa.nombre;
-
-  // Almacén base para el algoritmo
   const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
+  const fechaKey = new Date().toISOString().split("T")[0];
+
+  // ── Persistencia con localStorage ────────────────────────
+  // localStorage persiste entre navegaciones de página a diferencia de variables JS
+  const LS_KEY = `vruta_rutas_${usuario.empresa_id}_${fechaKey}`;
+
+  function guardarLS() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        moto: { pedidos: state.moto.pedidos, criterio: state.moto.criterio, listo: state.moto.listo, fileName: state.moto.fileName },
+        auto: { pedidos: state.auto.pedidos, criterio: state.auto.criterio, listo: state.auto.listo, fileName: state.auto.fileName }
+      }));
+    } catch(e) { console.warn("localStorage no disponible:", e); }
+  }
+
+  function cargarLS() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return false;
+      const saved = JSON.parse(raw);
+      if (saved.moto) Object.assign(state.moto, saved.moto);
+      if (saved.auto) Object.assign(state.auto, saved.auto);
+      return true;
+    } catch(e) { return false; }
+  }
 
   // ── Estado ───────────────────────────────────────────────
   const state = {
@@ -384,98 +376,71 @@
     auto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" }
   };
 
-  // Cargar sesión guardada si existe
-  cargarSession();
-  restaurarDesdeSession();
+  // Cargar desde localStorage al iniciar
+  cargarLS();
 
-  const fechaKey = new Date().toISOString().split("T")[0];
-
-  // ── Persistencia sessionStorage ──────────────────────────
-  const SESSION_KEY = `vruta_rutas_${fechaKey}`;
-
-  function guardarSession() {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
-  }
-
-  function cargarSession() {
-    try {
-      const data = sessionStorage.getItem(SESSION_KEY);
-      if (data) {
-        const saved = JSON.parse(data);
-        if (saved.moto) state.moto = saved.moto;
-        if (saved.auto) state.auto = saved.auto;
-        return true;
-      }
-    } catch(e) {}
-    return false;
-  }
-
-  function limpiarSession(V) {
-    if (V) {
-      state[V] = { pedidos: [], criterio: "cercano", listo: false };
-    } else {
-      state.moto = { pedidos: [], criterio: "cercano", listo: false };
-      state.auto = { pedidos: [], criterio: "cercano", listo: false };
-    }
-    guardarSession();
-  }
-
-  // Restaurar UI desde session si hay datos guardados
-  function restaurarDesdeSession() {
-    for (const V of ["moto", "auto"]) {
-      if (state[V].listo && state[V].pedidos.length > 0) {
-        const Cap = V === "moto" ? "Moto" : "Auto";
-        document.getElementById(`upload${Cap}`).style.display = "none";
-        document.getElementById(`info${Cap}`).style.display = "flex";
-        document.getElementById(`info${Cap}`).style.flexDirection = "column";
-        document.getElementById(`info${Cap}`).style.gap = "10px";
-        document.getElementById(`fileNameMoto`.replace("Moto", Cap)).textContent =
-          state[V].fileName || "archivo.xlsx";
-        document.getElementById(`fileName${Cap}`).textContent = state[V].fileName || "archivo.xlsx";
-        document.getElementById(`statPed${Cap}`).textContent = state[V].pedidos.length;
-        document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
-        document.getElementById(`tag${Cap}`).textContent = `${state[V].pedidos.length} pedidos`;
-        document.getElementById(`tag${Cap}`).className = "tag tag-loaded";
-        document.getElementById(`toggleTxt${Cap}`).textContent =
-          state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
-        document.getElementById(`btnLimpiar${Cap}`).style.display = "flex";
-        renderLista(V);
-      }
+  // Restaurar UI si hay datos guardados
+  for (const V of ["moto","auto"]) {
+    if (state[V].listo && state[V].pedidos.length > 0) {
+      mostrarVehiculo(V);
+      renderLista(V);
     }
   }
 
-  // ── Geocoding via Nominatim (gratis, sin API key) ────────
-  async function geocodificar(direccion) {
+  // ── Mostrar sección vehículo cargado ──────────────────────
+  function mostrarVehiculo(V) {
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    document.getElementById(`upload${Cap}`).style.display = "none";
+    const info = document.getElementById(`info${Cap}`);
+    info.style.display = "flex";
+    info.style.flexDirection = "column";
+    info.style.gap = "10px";
+    document.getElementById(`fileName${Cap}`).textContent = state[V].fileName || "archivo.xlsx";
+    document.getElementById(`statPed${Cap}`).textContent = state[V].pedidos.length;
+    document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
+    document.getElementById(`tag${Cap}`).textContent = `${state[V].pedidos.length} pedidos`;
+    document.getElementById(`tag${Cap}`).className = "tag tag-loaded";
+    document.getElementById(`toggleTxt${Cap}`).textContent = state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
+    document.getElementById(`btnLimpiar${Cap}`).classList.add("visible");
+    actualizarBtnLanzar(V);
+  }
+
+  function actualizarBtnLanzar(V) {
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    const btn = document.getElementById(`btnLanzar${Cap}`);
+    const tiene = state[V].pedidos.length > 0;
+    btn.disabled = !tiene;
+    btn.className = `launch-btn ${tiene ? (V==="moto"?"launch-moto":"launch-auto") : "launch-dis"}`;
+  }
+
+  // ── Geocoding (Nominatim, gratis) ─────────────────────────
+  async function geocodificar(dir) {
     try {
-      const q = encodeURIComponent(direccion + ", Lima, Peru");
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
-        headers: { "Accept-Language": "es" }
-      });
-      const data = await r.json();
-      if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-    } catch(e) {}
+      const q = encodeURIComponent(dir + ", Lima, Peru");
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
+        { headers:{"Accept-Language":"es","User-Agent":"VrutaApp/1.0"} });
+      const d = await r.json();
+      if (d.length > 0) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+    } catch(e){}
     return null;
   }
 
-  // ── Leer Excel/CSV ───────────────────────────────────────
+  // ── Leer Excel ────────────────────────────────────────────
   function leerArchivo(file) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const wb = XLSX.read(e.target.result, { type: "binary" });
+      reader.onload = e => {
+        const wb = XLSX.read(e.target.result, { type:"binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
-        resolve(rows);
+        resolve(XLSX.utils.sheet_to_json(ws, { defval:"" }));
       };
       reader.readAsBinaryString(file);
     });
   }
 
-  // Normalizar columnas del Excel (flexible)
   function normalizarFila(row) {
-    const keys = Object.keys(row).map(k => k.toLowerCase().trim());
-    const get = (...nombres) => {
-      for (const n of nombres) {
+    const get = (...ns) => {
+      for (const n of ns) {
         const k = Object.keys(row).find(k => k.toLowerCase().trim().includes(n));
         if (k && row[k]) return String(row[k]).trim();
       }
@@ -489,96 +454,67 @@
     };
   }
 
-  // ── Cargar archivo ───────────────────────────────────────
-  window.cargarArchivo = async (event, vehiculo) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    await procesarArchivo(file, vehiculo);
+  // ── Cargar archivo ────────────────────────────────────────
+  window.cargarArchivo = async (e, V) => {
+    const file = e.target.files[0];
+    if (file) await procesarArchivo(file, V);
   };
 
-  async function procesarArchivo(file, vehiculo) {
-    const V = vehiculo;
-    mostrarGeo(V, true, "Leyendo archivo...");
+  async function procesarArchivo(file, V) {
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    document.getElementById(`geoProc${Cap}`).classList.add("show");
+    document.getElementById(`geoTxt${Cap}`).textContent = "Leyendo archivo...";
 
     let rows;
-    try {
-      rows = await leerArchivo(file);
-    } catch(e) {
-      mostrarToast("Error leyendo el archivo. Verifica el formato.", "err");
-      mostrarGeo(V, false);
+    try { rows = await leerArchivo(file); }
+    catch(e) {
+      mostrarToast("Error leyendo el archivo.", "err");
+      document.getElementById(`geoProc${Cap}`).classList.remove("show");
       return;
     }
 
-    const pedidos = rows.map((r, i) => ({ ...normalizarFila(r), id: `p${i}`, orden: i, lat: null, lng: null, estado: "pendiente" }))
-                        .filter(p => p.cliente && p.direccion);
+    const pedidos = rows
+      .map((r, i) => ({ ...normalizarFila(r), id:`p${Date.now()}_${i}`, orden:i, lat:null, lng:null, estado:"pendiente" }))
+      .filter(p => p.cliente && p.direccion);
 
     if (pedidos.length === 0) {
-      mostrarToast("No se encontraron pedidos válidos. Verifica las columnas del Excel.", "err");
-      mostrarGeo(V, false);
+      mostrarToast("No se encontraron pedidos válidos.", "err");
+      document.getElementById(`geoProc${Cap}`).classList.remove("show");
       return;
     }
 
-    document.getElementById(`fileNameMoto`.replace("Moto", V === "moto" ? "Moto" : "Auto")).textContent = file.name;
-    document.getElementById(`fileName${V === "moto" ? "Moto" : "Auto"}`).textContent = file.name;
-    document.getElementById(`statPed${V === "moto" ? "Moto" : "Auto"}`).textContent = pedidos.length;
-
-    // Geocodificar
-    mostrarGeo(V, true, `Geocodificando 0 de ${pedidos.length}...`);
     let geocoded = 0;
     for (const p of pedidos) {
+      document.getElementById(`geoTxt${Cap}`).textContent = `Geocodificando ${geocoded} de ${pedidos.length}...`;
       const coords = await geocodificar(p.direccion);
       if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
-      document.getElementById(`geoTxt${V === "moto" ? "Moto" : "Auto"}`).textContent =
-        `Geocodificando ${geocoded} de ${pedidos.length}...`;
-      await sleep(300); // Nominatim rate limit
+      await sleep(350);
     }
 
-    state[V].pedidos = pedidos;
-    state[V].listo = true;
+    state[V].pedidos  = pedidos;
+    state[V].listo    = true;
     state[V].fileName = file.name;
 
-    // UI
-    mostrarGeo(V, false);
-    document.getElementById(`uploadMoto`.replace("Moto", V === "moto" ? "Moto" : "Auto")).style.display = "none";
-    document.getElementById(`upload${V === "moto" ? "Moto" : "Auto"}`).style.display = "none";
-    document.getElementById(`info${V === "moto" ? "Moto" : "Auto"}`).style.display = "flex";
-    document.getElementById(`info${V === "moto" ? "Moto" : "Auto"}`).style.flexDirection = "column";
-    document.getElementById(`info${V === "moto" ? "Moto" : "Auto"}`).style.gap = "10px";
-    document.getElementById(`statGeo${V === "moto" ? "Moto" : "Auto"}`).textContent = geocoded;
-    document.getElementById(`tag${V === "moto" ? "Moto" : "Auto"}`).textContent = `${pedidos.length} pedidos`;
-    document.getElementById(`tag${V === "moto" ? "Moto" : "Auto"}`).className = "tag tag-loaded";
-
-    document.getElementById(`btnLimpiar${V === "moto" ? "Moto" : "Auto"}`).style.display = "flex";
-
+    document.getElementById(`geoProc${Cap}`).classList.remove("show");
+    mostrarVehiculo(V);
     optimizar(V);
-    guardarSession();
-    mostrarToast(`${pedidos.length} pedidos cargados para ${V === "moto" ? "Moto" : "Auto"}`, "ok");
+    mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
   }
 
-  // ── Algoritmo Nearest Neighbor ───────────────────────────
+  // ── Algoritmo Nearest Neighbor ────────────────────────────
   function nearestNeighbor(pedidos, inicio, criterio) {
     const conCoords = pedidos.filter(p => p.lat && p.lng);
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
-
     let pendientes = [...conCoords];
     const ruta = [];
     let actual = inicio;
 
-    // Si criterio es "lejano", empezamos por el más lejano del almacén
-    if (criterio === "lejano") {
-      pendientes.sort((a,b) => distancia(inicio,b) - distancia(inicio,a));
-    }
-
     while (pendientes.length > 0) {
-      let idx = 0;
-      let bestDist = criterio === "lejano" && ruta.length === 0
-        ? -Infinity
-        : Infinity;
-
+      let idx = 0, bestDist = Infinity;
       for (let i = 0; i < pendientes.length; i++) {
         const d = distancia(actual, pendientes[i]);
         if (criterio === "lejano" && ruta.length === 0) {
-          if (d > bestDist) { bestDist = d; idx = i; }
+          if (d > bestDist || bestDist === Infinity) { bestDist = d; idx = i; }
         } else {
           if (d < bestDist) { bestDist = d; idx = i; }
         }
@@ -587,41 +523,36 @@
       actual = pendientes[idx];
       pendientes.splice(idx, 1);
     }
-
     return [...ruta, ...sinCoords];
   }
 
   function distancia(a, b) {
-    const R = 6371;
-    const dLat = deg2rad(b.lat - a.lat);
-    const dLon = deg2rad(b.lng - a.lng);
-    const x = Math.sin(dLat/2)**2 + Math.cos(deg2rad(a.lat)) * Math.cos(deg2rad(b.lat)) * Math.sin(dLon/2)**2;
+    const R = 6371, dLat = deg2rad(b.lat-a.lat), dLon = deg2rad(b.lng-a.lng);
+    const x = Math.sin(dLat/2)**2 + Math.cos(deg2rad(a.lat))*Math.cos(deg2rad(b.lat))*Math.sin(dLon/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
   }
-  function deg2rad(d) { return d * Math.PI / 180; }
+  function deg2rad(d) { return d*Math.PI/180; }
 
   window.optimizar = (V) => {
-    const s = state[V];
-    s.pedidos = nearestNeighbor(s.pedidos, ALMACEN, s.criterio);
-    s.pedidos = s.pedidos.map((p, i) => ({ ...p, orden: i+1 }));
+    state[V].pedidos = nearestNeighbor(state[V].pedidos, ALMACEN, state[V].criterio)
+      .map((p,i) => ({...p, orden:i+1}));
     renderLista(V);
-    guardarSession();
+    guardarLS();
   };
 
   window.toggleCriterio = (V) => {
-    const s = state[V];
-    s.criterio = s.criterio === "cercano" ? "lejano" : "cercano";
-    const txt = s.criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
-    document.getElementById(`toggleTxt${V === "moto" ? "Moto" : "Auto"}`).textContent = txt;
-    const btn = document.getElementById(`toggle${V === "moto" ? "Moto" : "Auto"}`);
-    btn.classList.toggle("active", s.criterio === "lejano");
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    state[V].criterio = state[V].criterio === "cercano" ? "lejano" : "cercano";
+    document.getElementById(`toggleTxt${Cap}`).textContent =
+      state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
+    document.getElementById(`toggle${Cap}`).classList.toggle("active", state[V].criterio === "lejano");
     optimizar(V);
-    guardarSession();
   };
 
-  // ── Render lista ─────────────────────────────────────────
+  // ── Render lista ──────────────────────────────────────────
   function renderLista(V) {
-    const lista = document.getElementById(`lista${V === "moto" ? "Moto" : "Auto"}`);
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    const lista = document.getElementById(`lista${Cap}`);
     const pedidos = state[V].pedidos;
 
     lista.innerHTML = pedidos.map((p, i) => {
@@ -632,12 +563,12 @@
         <div class="ri" data-id="${p.id}">
           <i class="ti ti-grip-vertical ri-grip"></i>
           <div class="ri-num">${String(i+1).padStart(2,"0")}</div>
-          <div class="ri-info">
+          <div class="ri-info" onclick="verDetalle('${V}','${p.id}')" title="Ver detalle del pedido">
             <div class="ri-name">${p.cliente}</div>
             <div class="ri-addr">${p.direccion}</div>
           </div>
-          <a class="ri-maps" href="${mapsUrl}" target="_blank" title="Ver en Maps"><i class="ti ti-map-pin"></i></a>
-          <div class="ri-del" onclick="eliminarPedido('${V}','${p.id}')" title="Eliminar"><i class="ti ti-x"></i></div>
+          <a class="ri-maps" href="${mapsUrl}" target="_blank" onclick="event.stopPropagation()" title="Ver en Google Maps"><i class="ti ti-map-pin"></i></a>
+          <div class="ri-del" onclick="pedirConfirmEliminar('${V}','${p.id}')" title="Eliminar de la ruta"><i class="ti ti-x"></i></div>
         </div>`;
     }).join("");
 
@@ -646,212 +577,208 @@
       animation: 150,
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
-      onEnd: () => reordenarDesdeDOM(V)
+      onEnd: () => {
+        const ids = [...lista.querySelectorAll(".ri")].map(el => el.dataset.id);
+        state[V].pedidos = ids.map((id,i) => ({
+          ...state[V].pedidos.find(p=>p.id===id), orden:i+1
+        }));
+        guardarLS();
+      }
     });
 
-    // Actualizar zonas (distritos únicos aproximados)
-    const zonas = new Set(pedidos.map(p => p.direccion.split(",").pop()?.trim()).filter(Boolean));
-    document.getElementById(`statZon${V === "moto" ? "Moto" : "Auto"}`).textContent = zonas.size || "—";
-
-    // Habilitar botón lanzar
-    const btnId = `btnLanzar${V === "moto" ? "Moto" : "Auto"}`;
-    const btn = document.getElementById(btnId);
-    btn.disabled = pedidos.length === 0;
-    btn.className = `launch-btn ${pedidos.length > 0
-      ? (V === "moto" ? "launch-moto" : "launch-auto")
-      : "launch-dis"}`;
+    // Actualizar stats
+    const zonas = new Set(pedidos.map(p => p.direccion.split(",").slice(-2,-1)[0]?.trim()).filter(Boolean));
+    document.getElementById(`statPed${Cap}`).textContent = pedidos.length;
+    document.getElementById(`statGeo${Cap}`).textContent = pedidos.filter(p=>p.lat).length;
+    document.getElementById(`statZon${Cap}`).textContent = zonas.size || "—";
+    actualizarBtnLanzar(V);
   }
 
-  function reordenarDesdeDOM(V) {
-    const lista = document.getElementById(`lista${V === "moto" ? "Moto" : "Auto"}`);
-    const ids = [...lista.querySelectorAll(".ri")].map(el => el.dataset.id);
-    state[V].pedidos = ids.map((id, i) => ({
-      ...state[V].pedidos.find(p => p.id === id),
-      orden: i+1
-    }));
-    renderLista(V);
-    guardarSession();
-  }
-
-  window.eliminarPedido = (V, id) => {
-    state[V].pedidos = state[V].pedidos.filter(p => p.id !== id);
-    renderLista(V);
-    guardarSession();
+  // ── Ver detalle del pedido ────────────────────────────────
+  window.verDetalle = (V, id) => {
+    const p = state[V].pedidos.find(x => x.id === id);
+    if (!p) return;
+    const veh = V === "moto" ? "Moto" : "Auto";
+    document.getElementById("detalleTitulo").textContent = p.cliente;
+    document.getElementById("detalleSub").textContent = `Pedido asignado a ${veh}`;
+    document.getElementById("detalleBody").innerHTML = `
+      <div class="detalle-grid">
+        <div class="dc dc-full">
+          <div class="dc-lbl">Dirección de entrega</div>
+          <div class="dc-val">${p.direccion}</div>
+        </div>
+        <div class="dc">
+          <div class="dc-lbl">Producto</div>
+          <div class="dc-val">${p.producto || "—"}</div>
+        </div>
+        <div class="dc">
+          <div class="dc-lbl">GPS</div>
+          <div class="dc-val" style="font-size:11px;color:${p.lat?'var(--green)':'var(--red)'}">
+            ${p.lat ? '✓ Geocodificado' : '✗ Sin coordenadas'}
+          </div>
+        </div>
+        ${p.nota ? `<div class="dc dc-full dc-nota"><div class="dc-lbl">Nota / Observación</div><div class="dc-val">${p.nota}</div></div>` : ''}
+      </div>`;
+    document.getElementById("modalDetalle").classList.add("show");
   };
 
-  // ── Guardar jornada en Firestore ─────────────────────────
+  // ── Confirmar eliminar cliente ────────────────────────────
+  window.pedirConfirmEliminar = (V, id) => {
+    const p = state[V].pedidos.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById("confirmClienteMsg").textContent =
+      `¿Estás seguro de eliminar a "${p.cliente}" de la ruta? También se eliminará del Dashboard si ya fue lanzada.`;
+    document.getElementById("btnConfirmEliminar").onclick = () => ejecutarEliminarCliente(V, id);
+    document.getElementById("modalConfirmCliente").classList.add("show");
+  };
+
+  async function ejecutarEliminarCliente(V, id) {
+    document.getElementById("modalConfirmCliente").classList.remove("show");
+    state[V].pedidos = state[V].pedidos.filter(p => p.id !== id);
+    renderLista(V);
+    guardarLS();
+
+    // Intentar borrar de Firestore si ya fue guardado
+    try {
+      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
+      const snap = await getDocs(pedidosRef);
+      const batch = writeBatch(db);
+      let found = false;
+      snap.docs.forEach(d => {
+        if (d.data().vehiculo === V && d.data().cliente === state[V].pedidos.find(p=>p.id===id)?.cliente) {
+          batch.delete(d.ref); found = true;
+        }
+      });
+      if (found) await batch.commit();
+    } catch(e) {}
+
+    mostrarToast("Cliente eliminado de la ruta ✓", "ok");
+  }
+
+  // ── Confirmar limpiar ruta completa ───────────────────────
+  window.confirmarLimpiar = (V) => {
+    const veh = V === "moto" ? "Moto" : "Auto";
+    document.getElementById("confirmLimpiarMsg").textContent =
+      `Se eliminarán todos los pedidos de la ruta ${veh} del día de hoy, incluyendo los registros en el Dashboard. Esta acción no se puede deshacer.`;
+    document.getElementById("btnConfirmLimpiar").onclick = () => ejecutarLimpiar(V);
+    document.getElementById("modalConfirmLimpiar").classList.add("show");
+  };
+
+  async function ejecutarLimpiar(V) {
+    document.getElementById("modalConfirmLimpiar").classList.remove("show");
+    mostrarToast("Eliminando registros...", "ok");
+
+    try {
+      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
+      const snap = await getDocs(pedidosRef);
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => { if (d.data().vehiculo === V) batch.delete(d.ref); });
+      await batch.commit();
+    } catch(e) { console.warn("Firestore:", e.message); }
+
+    state[V] = { pedidos:[], criterio:"cercano", listo:false, fileName:"" };
+    guardarLS();
+
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    document.getElementById(`upload${Cap}`).style.display = "";
+    document.getElementById(`info${Cap}`).style.display = "none";
+    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
+    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
+    document.getElementById(`btnLimpiar${Cap}`).classList.remove("visible");
+    actualizarBtnLanzar(V);
+    mostrarToast(`Ruta ${Cap} limpiada ✓`, "ok");
+  }
+
+  // ── Reset vehículo (cambiar archivo sin borrar Firestore) ──
+  window.resetVehiculo = (V) => {
+    state[V] = { pedidos:[], criterio:"cercano", listo:false, fileName:"" };
+    guardarLS();
+    const Cap = V === "moto" ? "Moto" : "Auto";
+    document.getElementById(`upload${Cap}`).style.display = "";
+    document.getElementById(`info${Cap}`).style.display = "none";
+    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
+    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
+    document.getElementById(`btnLimpiar${Cap}`).classList.remove("visible");
+    actualizarBtnLanzar(V);
+  };
+
+  // ── Guardar jornada en Firestore ──────────────────────────
   async function guardarJornada(V) {
     const pedidos = state[V].pedidos;
     const batch = writeBatch(db);
-
     for (const p of pedidos) {
       const ref = doc(collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos"));
       batch.set(ref, {
-        cliente:   p.cliente,
-        direccion: p.direccion,
-        producto:  p.producto || "",
-        nota:      p.nota || "",
-        lat:       p.lat || null,
-        lng:       p.lng || null,
-        orden:     p.orden,
-        vehiculo:  V,
-        estado:    "pendiente",
-        repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
+        cliente: p.cliente, direccion: p.direccion,
+        producto: p.producto||"", nota: p.nota||"",
+        lat: p.lat||null, lng: p.lng||null,
+        orden: p.orden, vehiculo: V,
+        estado: "pendiente",
+        repartidor_id: V==="moto"?"repartidor1":"repartidor2",
         creado_en: new Date().toISOString()
       });
     }
-
-    // Metadata jornada
     const jornadaRef = doc(db, "empresas", usuario.empresa_id, "jornadas", fechaKey);
     batch.set(jornadaRef, {
-      fecha:    fechaKey,
-      estado:   "activa",
-      empresa:  usuario.empresa_id,
+      fecha: fechaKey, estado:"activa", empresa: usuario.empresa_id,
       [`lanzado_${V}`]: new Date().toISOString()
-    }, { merge: true });
-
+    }, { merge:true });
     await batch.commit();
   }
 
   // ── Modal WhatsApp ────────────────────────────────────────
   window.abrirModalWA = async (V) => {
     if (state[V].pedidos.length === 0) return;
-
     mostrarToast("Guardando jornada...", "ok");
-    try {
-      await guardarJornada(V);
-    } catch(e) {
-      mostrarToast("Error guardando jornada: " + e.message, "err");
-      return;
-    }
+    try { await guardarJornada(V); }
+    catch(e) { mostrarToast("Error: " + e.message, "err"); return; }
 
-    const repNombre = V === "moto" ? "Repartidor 1" : "Repartidor 2";
-    const vehiculo  = V === "moto" ? "Moto" : "Auto";
+    const repNombre = V==="moto"?"Repartidor 1":"Repartidor 2";
+    const veh       = V==="moto"?"Moto":"Auto";
     const cantidad  = state[V].pedidos.length;
     const fecha     = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
     const link      = `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}`;
+    const mensaje   = `Hola ${repNombre} 👋\n\nYa tienes tu ruta del día lista.\n\n📦 *${cantidad} pedidos* asignados — ${veh}\n📅 Jornada *${fecha}*\n\n👉 Ingresa aquí:\n${link}\n\n_El link es válido solo para hoy._`;
 
-    const mensaje = `Hola ${repNombre} 👋\n\nYa tienes tu ruta del día lista.\n\n📦 *${cantidad} pedidos* asignados — ${vehiculo}\n📅 Jornada *${fecha}*\n\n👉 Ingresa aquí:\n${link}\n\n_El link es válido solo para hoy._`;
-
-    document.getElementById("modalTitulo").textContent = `Lanzar ruta ${vehiculo}`;
-    document.getElementById("modalSub").textContent    = `${cantidad} pedidos · ${repNombre}`;
-    document.getElementById("waMensaje").innerHTML     = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
-
-    document.getElementById("btnAbrirWA").onclick = () => {
-      const encoded = encodeURIComponent(mensaje);
-      window.open(`https://wa.me/?text=${encoded}`, "_blank");
-      cerrarModal();
+    document.getElementById("waTitulo").textContent = `Lanzar ruta ${veh}`;
+    document.getElementById("waSub").textContent    = `${cantidad} pedidos · ${repNombre}`;
+    document.getElementById("waMensaje").innerHTML  = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+    document.getElementById("btnAbrirWA").onclick   = () => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`,"_blank");
+      document.getElementById("modalWA").classList.remove("show");
     };
-
-    document.getElementById("modalBg").classList.add("show");
-    mostrarToast(`Jornada de ${vehiculo} guardada ✓`, "ok");
-  };
-
-  window.cerrarModal = () => document.getElementById("modalBg").classList.remove("show");
-  document.getElementById("modalBg").addEventListener("click", e => {
-    if (e.target === document.getElementById("modalBg")) cerrarModal();
-  });
-
-  // ── Confirmar limpiar ruta ────────────────────────────────
-  let vehiculoALimpiar = null;
-
-  window.confirmarLimpiar = (V) => {
-    vehiculoALimpiar = V;
-    const veh = V === "moto" ? "Moto" : "Auto";
-    document.getElementById("confirmMsg").textContent =
-      `Se eliminarán todos los pedidos de la ruta de ${veh} del día de hoy, incluyendo los registros en el Dashboard. Esta acción no se puede deshacer.`;
-    document.getElementById("confirmBg").classList.add("show");
-    document.getElementById("btnConfirmDel").onclick = () => ejecutarLimpiar(vehiculoALimpiar);
-  };
-
-  window.cerrarConfirm = () => {
-    document.getElementById("confirmBg").classList.remove("show");
-    vehiculoALimpiar = null;
-  };
-
-  async function ejecutarLimpiar(V) {
-    cerrarConfirm();
-    mostrarToast("Eliminando registros...", "ok");
-
-    try {
-      // Borrar pedidos de Firestore para este vehículo
-      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
-      const snap = await getDocs(query(pedidosRef));
-      const batch = writeBatch(db);
-      let count = 0;
-      snap.docs.forEach(d => {
-        if (d.data().vehiculo === V) {
-          batch.delete(d.ref);
-          count++;
-        }
-      });
-      if (count > 0) await batch.commit();
-    } catch(e) {
-      console.warn("No se pudo borrar de Firestore:", e.message);
-    }
-
-    // Limpiar estado y sessionStorage
-    limpiarSession(V);
-
-    // Reset UI
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "";
-    document.getElementById(`info${Cap}`).style.display = "none";
-    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
-    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
-    document.getElementById(`btnLimpiar${Cap}`).style.display = "none";
-    const btn = document.getElementById(`btnLanzar${Cap}`);
-    btn.disabled = true;
-    btn.className = "launch-btn launch-dis";
-
-    mostrarToast(`Ruta de ${V === "moto" ? "Moto" : "Auto"} limpiada ✓`, "ok");
-  }
-
-  // ── Reset vehículo (cambiar archivo) ─────────────────────
-  window.resetVehiculo = (V) => {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    state[V] = { pedidos: [], criterio: "cercano", listo: false, fileName: "" };
-    guardarSession();
-    document.getElementById(`upload${Cap}`).style.display = "";
-    document.getElementById(`info${Cap}`).style.display = "none";
-    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
-    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
-    document.getElementById(`btnLimpiar${Cap}`).style.display = "none";
-    const btn = document.getElementById(`btnLanzar${Cap}`);
-    btn.disabled = true;
-    btn.className = "launch-btn launch-dis";
+    document.getElementById("modalWA").classList.add("show");
+    mostrarToast(`Jornada ${veh} guardada ✓`, "ok");
   };
 
   // ── Drag & drop zona upload ───────────────────────────────
-  window.dragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add("drag"); };
-  window.dragLeave = (e) => { e.currentTarget.classList.remove("drag"); };
-  window.dropFile = async (e, V) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove("drag");
+  window.dragOver  = e => { e.preventDefault(); e.currentTarget.classList.add("drag"); };
+  window.dragLeave = e => { e.currentTarget.classList.remove("drag"); };
+  window.dropFile  = async (e, V) => {
+    e.preventDefault(); e.currentTarget.classList.remove("drag");
     const file = e.dataTransfer.files[0];
     if (file) await procesarArchivo(file, V);
   };
 
-  // ── Helpers ───────────────────────────────────────────────
-  function mostrarGeo(V, show, txt) {
-    const el = document.getElementById(`geoProc${V === "moto" ? "Moto" : "Auto"}`);
-    el.classList.toggle("show", show);
-    if (txt) document.getElementById(`geoTxt${V === "moto" ? "Moto" : "Auto"}`).textContent = txt;
-  }
+  // ── Cerrar modales al click fuera ─────────────────────────
+  ["modalWA","modalDetalle","modalConfirmCliente","modalConfirmLimpiar"].forEach(id => {
+    document.getElementById(id).addEventListener("click", e => {
+      if (e.target === document.getElementById(id))
+        document.getElementById(id).classList.remove("show");
+    });
+  });
 
+  // ── Helpers ───────────────────────────────────────────────
   let toastTimer;
-  function mostrarToast(msg, tipo = "ok") {
+  window.mostrarToast = function(msg, tipo="ok") {
     const el = document.getElementById("toast");
     el.textContent = msg;
     el.className = `toast show ${tipo}`;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
-  }
-
+  };
+  function mostrarToast(msg, tipo) { window.mostrarToast(msg, tipo); }
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-  // Exponer para uso global
-  window.mostrarToast = mostrarToast;
 </script>
 
 </body>
