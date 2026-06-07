@@ -573,14 +573,58 @@
   }
 
   // ── Geocoding (Nominatim, gratis) ─────────────────────────
+  // ── Configuración geocoding ──────────────────────────────
+  // Para activar Google Maps: reemplaza "" con tu API Key
+  // Obtén una en: console.cloud.google.com → APIs → Geocoding API
+  const GOOGLE_MAPS_KEY = "";
+
   async function geocodificar(dir) {
+    const dirCompleta = dir + ", Lima, Peru";
+
+    // Proveedor 1: Google Maps Geocoding API (si hay API key configurada)
+    if (GOOGLE_MAPS_KEY) {
+      try {
+        const q = encodeURIComponent(dirCompleta);
+        const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${q}&key=${GOOGLE_MAPS_KEY}&region=pe&language=es`);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.status === "OK" && d.results.length > 0) {
+            const loc = d.results[0].geometry.location;
+            return { lat: loc.lat, lng: loc.lng };
+          }
+        }
+      } catch(e) { console.warn("Google Geocoding falló:", e.message); }
+    }
+
+    // Proveedor 2: Photon (sin API key, sin CORS, cobertura Lima buena)
     try {
-      const q = encodeURIComponent(dir + ", Lima, Peru");
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
-        { headers:{"Accept-Language":"es","User-Agent":"VrutaApp/1.0"} });
-      const d = await r.json();
-      if (d.length > 0) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
-    } catch(e){}
+      const q = encodeURIComponent(dirCompleta);
+      // bbox limita resultados a Lima Metropolitana
+      const r = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=1&lang=es&bbox=-77.2,-12.5,-76.7,-11.8`);
+      if (r.ok) {
+        const d = await r.json();
+        if (d.features && d.features.length > 0) {
+          const [lng, lat] = d.features[0].geometry.coordinates;
+          // Validar que esté dentro de Lima (lat -11.8 a -12.5, lng -76.7 a -77.2)
+          if (lat >= -12.6 && lat <= -11.7 && lng >= -77.3 && lng <= -76.6) {
+            return { lat, lng };
+          }
+        }
+      }
+    } catch(e) { console.warn("Photon falló:", e.message); }
+
+    // Proveedor 3: LocationIQ (requiere key gratuita en locationiq.com)
+    // Descomenta y agrega tu key si Photon falla
+    // try {
+    //   const LOCATIONIQ_KEY = "pk.TU_KEY_AQUI";
+    //   const q = encodeURIComponent(dirCompleta);
+    //   const r = await fetch(`https://us1.locationiq.com/v1/search?key=${LOCATIONIQ_KEY}&q=${q}&format=json&limit=1&countrycodes=pe`);
+    //   if (r.ok) {
+    //     const d = await r.json();
+    //     if (d.length > 0) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+    //   }
+    // } catch(e) {}
+
     return null;
   }
 
