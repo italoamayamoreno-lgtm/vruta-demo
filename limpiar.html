@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vruta · Limpieza Total</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--mid:#0B1120;--mid2:#131d30;--copper:#B87333;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--red:#ef4444;--amber:#D97706;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+    .card{background:var(--mid2);border:0.5px solid rgba(184,115,51,0.2);border-radius:16px;padding:2rem;width:100%;max-width:520px;}
+    .logo{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+    .logo-main{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
+    .logo-sub{font-size:9px;color:var(--copper);}
+    h2{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:700;color:var(--ice);margin-bottom:6px;}
+    .subtitle{font-size:12px;color:var(--graph);margin-bottom:1.5rem;line-height:1.6;}
+    .warning{background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.25);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--red);margin-bottom:1.5rem;line-height:1.6;}
+    .warning b{font-weight:600;}
+    .opciones{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem;}
+    .opcion{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all 0.15s;}
+    .opcion:hover{border-color:rgba(184,115,51,0.3);background:rgba(184,115,51,0.04);}
+    .opcion input[type=checkbox]{width:16px;height:16px;accent-color:var(--copper);flex-shrink:0;}
+    .opcion-info{}
+    .opcion-title{font-size:13px;font-weight:500;color:var(--ice);}
+    .opcion-desc{font-size:11px;color:var(--graph);margin-top:2px;}
+    .btn-limpiar{width:100%;background:var(--red);border:none;border-radius:10px;padding:13px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;margin-bottom:8px;}
+    .btn-limpiar:hover{opacity:0.88;}
+    .btn-limpiar:disabled{opacity:0.4;cursor:not-allowed;}
+    .btn-volver{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px;font-size:13px;color:var(--graph);cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+    .btn-volver:hover{border-color:rgba(184,115,51,0.3);color:var(--copper);}
+    .logs{margin-top:1.5rem;background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;display:none;max-height:260px;overflow-y:auto;}
+    .logs.visible{display:block;}
+    .log{font-size:12px;padding:3px 0;font-family:monospace;line-height:1.5;}
+    .log.ok{color:var(--green);}
+    .log.err{color:var(--red);}
+    .log.inf{color:var(--graph);}
+    .log.warn{color:var(--amber);}
+    .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .done-banner{background:rgba(34,197,94,0.1);border:0.5px solid rgba(34,197,94,0.3);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--green);display:none;align-items:center;gap:8px;margin-top:12px;font-weight:500;}
+    .done-banner.visible{display:flex;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
+      <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
+    </svg>
+    <div><div class="logo-main">VRUTA</div><div class="logo-sub">powered by Etrazia</div></div>
+  </div>
+
+  <h2>Limpieza total del sistema</h2>
+  <p class="subtitle">Selecciona qué datos quieres eliminar de Firestore. Úsalo para reiniciar el demo o limpiar datos de prueba antes de una presentación.</p>
+
+  <div class="warning">
+    <b>⚠ Atención:</b> Esta acción es irreversible. Los datos eliminados no se pueden recuperar. Asegúrate de estar en el entorno correcto antes de continuar.
+  </div>
+
+  <div class="opciones">
+    <label class="opcion">
+      <input type="checkbox" id="chkJornadas" checked/>
+      <div class="opcion-info">
+        <div class="opcion-title">Jornadas y pedidos del día</div>
+        <div class="opcion-desc">Elimina todas las jornadas y sus pedidos (todos los días registrados)</div>
+      </div>
+    </label>
+    <label class="opcion">
+      <input type="checkbox" id="chkReagendados" checked/>
+      <div class="opcion-info">
+        <div class="opcion-title">Pedidos reagendados</div>
+        <div class="opcion-desc">Elimina todos los pedidos que fueron reagendados para días futuros</div>
+      </div>
+    </label>
+    <label class="opcion">
+      <input type="checkbox" id="chkLocalStorage"/>
+      <div class="opcion-info">
+        <div class="opcion-title">Caché local del navegador</div>
+        <div class="opcion-desc">Limpia las rutas guardadas en este navegador (localStorage)</div>
+      </div>
+    </label>
+  </div>
+
+  <button class="btn-limpiar" id="btnLimpiar" onclick="ejecutarLimpieza()">
+    🗑 Ejecutar limpieza
+  </button>
+  <a class="btn-volver" href="dashboard.html">← Volver al Dashboard</a>
+
+  <div class="logs" id="logs"></div>
+  <div class="done-banner" id="doneBanner">
+    ✓ Limpieza completada. El sistema está listo para empezar de cero.
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, deleteDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzX3QK3cm9UZ46GMZ7lbNZ58ShRDr3qFc",
+    authDomain: "vruta-demo.firebaseapp.com",
+    projectId: "vruta-demo",
+    storageBucket: "vruta-demo.firebasestorage.app",
+    messagingSenderId: "752394046683",
+    appId: "1:752394046683:web:a80cde825fb6d4c99590fe"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const db   = getFirestore(app);
+  const auth = getAuth(app);
+
+  // Login como operador para tener permisos
+  try {
+    await signInWithEmailAndPassword(auth, "operador@vruta-demo.com", "Vruta2026#");
+  } catch(e) {}
+
+  const EMPRESA_ID = "demo";
+
+  function log(msg, tipo = "inf") {
+    const logs = document.getElementById("logs");
+    logs.classList.add("visible");
+    const el = document.createElement("div");
+    el.className = `log ${tipo}`;
+    el.textContent = msg;
+    logs.appendChild(el);
+    logs.scrollTop = logs.scrollHeight;
+  }
+
+  // Borrar subcolección completa
+  async function borrarSubcoleccion(ref) {
+    const snap = await getDocs(ref);
+    if (snap.empty) return 0;
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    return snap.size;
+  }
+
+  window.ejecutarLimpieza = async () => {
+    const btn = document.getElementById("btnLimpiar");
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spin"></div>Limpiando...`;
+    document.getElementById("doneBanner").classList.remove("visible");
+
+    const limpiarJornadas    = document.getElementById("chkJornadas").checked;
+    const limpiarReagendados = document.getElementById("chkReagendados").checked;
+    const limpiarLS          = document.getElementById("chkLocalStorage").checked;
+
+    let totalBorrados = 0;
+
+    // ── 1. Jornadas y pedidos ──────────────────────────────
+    if (limpiarJornadas) {
+      log("→ Buscando jornadas...", "inf");
+      try {
+        const jornadasRef = collection(db, "empresas", EMPRESA_ID, "jornadas");
+        const jornadasSnap = await getDocs(jornadasRef);
+
+        if (jornadasSnap.empty) {
+          log("  Sin jornadas registradas.", "warn");
+        } else {
+          for (const jornadaDoc of jornadasSnap.docs) {
+            const fecha = jornadaDoc.id;
+            const pedidosRef = collection(db, "empresas", EMPRESA_ID, "jornadas", fecha, "pedidos");
+            const n = await borrarSubcoleccion(pedidosRef);
+            log(`  ✓ Jornada ${fecha}: ${n} pedidos eliminados`, "ok");
+            totalBorrados += n;
+            await deleteDoc(jornadaDoc.ref);
+          }
+          log(`✓ ${jornadasSnap.size} jornada(s) eliminadas`, "ok");
+        }
+      } catch(e) {
+        log("✗ Error en jornadas: " + e.message, "err");
+      }
+    }
+
+    // ── 2. Reagendados ────────────────────────────────────
+    if (limpiarReagendados) {
+      log("→ Buscando pedidos reagendados...", "inf");
+      try {
+        const reagRef = collection(db, "empresas", EMPRESA_ID, "reagendados");
+        const n = await borrarSubcoleccion(reagRef);
+        if (n > 0) log(`✓ ${n} pedido(s) reagendado(s) eliminados`, "ok");
+        else log("  Sin pedidos reagendados.", "warn");
+        totalBorrados += n;
+      } catch(e) {
+        log("✗ Error en reagendados: " + e.message, "err");
+      }
+    }
+
+    // ── 3. localStorage ───────────────────────────────────
+    if (limpiarLS) {
+      log("→ Limpiando caché local...", "inf");
+      try {
+        const keysToDelete = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("vruta_")) keysToDelete.push(key);
+        }
+        keysToDelete.forEach(k => localStorage.removeItem(k));
+        log(`✓ ${keysToDelete.length} clave(s) de caché eliminadas`, "ok");
+      } catch(e) {
+        log("✗ Error limpiando localStorage: " + e.message, "err");
+      }
+    }
+
+    log("", "inf");
+    log(`━━━ Limpieza completada · ${totalBorrados} registros eliminados ━━━`, "ok");
+
+    btn.innerHTML = "✓ Limpieza completada";
+    btn.style.background = "rgba(34,197,94,0.2)";
+    btn.style.border = "0.5px solid rgba(34,197,94,0.4)";
+    btn.style.color = "var(--green)";
+    document.getElementById("doneBanner").classList.add("visible");
+  };
+</script>
+</body>
+</html>
