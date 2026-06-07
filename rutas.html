@@ -861,42 +861,81 @@
 
   // ── Guardar jornada en Firestore ──────────────────────────
   async function guardarJornada(V, prioridad = null) {
-    const pedidos = state[V].pedidos;
+    const pedidos    = state[V].pedidos;
     const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
+    const batchAdd   = writeBatch(db);
 
-    // 1. Borrar pedidos existentes de este vehiculo para evitar duplicados
-    const snapExistente = await getDocs(pedidosRef);
-    const batchDel = writeBatch(db);
-    let hayQueEliminar = false;
-    snapExistente.docs.forEach(d => {
-      if (d.data().vehiculo === V) {
-        batchDel.delete(d.ref);
-        hayQueEliminar = true;
-      }
-    });
-    if (hayQueEliminar) await batchDel.commit();
-
-    // 2. Guardar los pedidos actuales limpios
-    const batchAdd = writeBatch(db);
-    for (const p of pedidos) {
-      const ref = doc(pedidosRef);
-      batchAdd.set(ref, {
-        cliente:       p.cliente,
-        direccion:     p.direccion,
-        producto:      p.producto || "",
-        nota:          p.nota || "",
-        lat:           p.lat || null,
-        lng:           p.lng || null,
-        orden:         p.orden,
-        vehiculo:      V,
-        estado:        "pendiente",
-        prioridad:     prioridad || "normal",
-        repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
-        creado_en:     new Date().toISOString()
+    if (!prioridad) {
+      // ── Primera carga del día: borrar pedidos previos del vehículo ──
+      const snapExistente = await getDocs(pedidosRef);
+      const batchDel = writeBatch(db);
+      let hayQueEliminar = false;
+      snapExistente.docs.forEach(d => {
+        if (d.data().vehiculo === V) {
+          batchDel.delete(d.ref);
+          hayQueEliminar = true;
+        }
       });
+      if (hayQueEliminar) await batchDel.commit();
+
+      // Guardar pedidos nuevos con orden normal
+      for (const p of pedidos) {
+        batchAdd.set(doc(pedidosRef), {
+          cliente:       p.cliente,
+          direccion:     p.direccion,
+          producto:      p.producto || "",
+          nota:          p.nota || "",
+          lat:           p.lat || null,
+          lng:           p.lng || null,
+          orden:         p.orden,
+          vehiculo:      V,
+          estado:        "pendiente",
+          prioridad:     "normal",
+          repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
+          creado_en:     new Date().toISOString()
+        });
+      }
+
+    } else {
+      // ── Pedidos adicionales: solo AGREGAR, nunca borrar ──────────
+      // Obtener el orden máximo actual para insertar después
+      const snapActual = await getDocs(pedidosRef);
+      const pedidosActuales = snapActual.docs
+        .filter(d => d.data().vehiculo === V)
+        .map(d => d.data().orden || 0);
+
+      let ordenBase = pedidosActuales.length > 0 ? Math.max(...pedidosActuales) : 0;
+
+      if (prioridad === "urgente") {
+        // Insertar justo después del pedido actual en curso
+        // Buscamos el pendiente con menor orden
+        const ordenesPendientes = snapActual.docs
+          .filter(d => d.data().vehiculo === V && d.data().estado === "pendiente")
+          .map(d => d.data().orden || 999);
+        const ordenActual = ordenesPendientes.length > 0 ? Math.min(...ordenesPendientes) : 1;
+        ordenBase = ordenActual; // Se insertan justo después del actual
+      }
+
+      for (let i = 0; i < pedidos.length; i++) {
+        const p = pedidos[i];
+        batchAdd.set(doc(pedidosRef), {
+          cliente:       p.cliente,
+          direccion:     p.direccion,
+          producto:      p.producto || "",
+          nota:          p.nota ? `[${prioridad === "urgente" ? "⚡ URGENTE" : "➕ Adicional"}] ${p.nota}` : (prioridad === "urgente" ? "⚡ URGENTE" : "➕ Adicional"),
+          lat:           p.lat || null,
+          lng:           p.lng || null,
+          orden:         ordenBase + i + 1,
+          vehiculo:      V,
+          estado:        "pendiente",
+          prioridad:     prioridad,
+          repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
+          creado_en:     new Date().toISOString()
+        });
+      }
     }
 
-    // 3. Metadata de jornada
+    // Metadata de jornada
     const jornadaRef = doc(db, "empresas", usuario.empresa_id, "jornadas", fechaKey);
     batchAdd.set(jornadaRef, {
       fecha:   fechaKey,
@@ -941,20 +980,21 @@
 
   // ── Función central de lanzamiento ───────────────────────
   async function lanzarRuta(V, prioridad) {
+    // Declarar rep primero para evitar ReferenceError
+    const rep      = getRepartidor(V);
+    const repId    = rep ? rep.id : V;
+    const repNombre= rep ? rep.nombre.split(" ")[0] : (V==="moto" ? "Repartidor 1" : "Repartidor 2");
+    const veh      = V==="moto" ? "Moto" : "Auto";
+    const cantidad = state[V].pedidos.length;
+    const fecha    = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
+    const token    = generarToken(repId, fechaKey, usuario.empresa_id);
+    const link     = rep
+      ? `${window.location.origin}/repartidor.html?rep=${repId}&fecha=${fechaKey}&e=${usuario.empresa_id}&token=${token}`
+      : `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}&e=${usuario.empresa_id}`;
+
     mostrarToast("Guardando jornada...", "ok");
     try { await guardarJornada(V, prioridad); }
     catch(e) { mostrarToast("Error: " + e.message, "err"); return; }
-
-    const repNombre = rep ? rep.nombre.split(" ")[0] : (V==="moto" ? "Repartidor 1" : "Repartidor 2");
-    const veh       = V==="moto" ? "Moto" : "Auto";
-    const cantidad  = state[V].pedidos.length;
-    const fecha     = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
-    const rep    = getRepartidor(V);
-    const repId  = rep ? rep.id : V;
-    const token  = generarToken(repId, fechaKey, usuario.empresa_id);
-    const link   = rep
-      ? `${window.location.origin}/repartidor.html?rep=${repId}&fecha=${fechaKey}&e=${usuario.empresa_id}&token=${token}`
-      : `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}&e=${usuario.empresa_id}`;
 
     let mensaje;
     if (prioridad === "urgente") {
