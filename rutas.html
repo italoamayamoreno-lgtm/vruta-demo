@@ -279,6 +279,45 @@
   </main>
 </div>
 
+<!-- Modal ruta adicional -->
+<div class="modal-bg" id="modalAdicional">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalAdicionalTitulo"></div>
+        <div class="modal-sub" id="modalAdicionalSub"></div>
+      </div>
+      <div class="close-btn" onclick="document.getElementById('modalAdicional').classList.remove('show')"><i class="ti ti-x"></i></div>
+    </div>
+    <div style="background:rgba(217,119,6,0.08);border:0.5px solid rgba(217,119,6,0.2);border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--graph);line-height:1.6;">
+      <i class="ti ti-info-circle" style="color:var(--amber);margin-right:5px;"></i>
+      El repartidor ya tiene pedidos en camino. ¿Deseas agregar estos pedidos adicionales a su ruta?
+    </div>
+    <div style="font-size:11px;color:var(--graph);margin-bottom:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">Tipo de prioridad</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;cursor:pointer;transition:all 0.15s;" onclick="seleccionarPrioridad('urgente')">
+        <input type="radio" name="prioridad" id="radioUrgente" style="width:16px;height:16px;accent-color:var(--red);margin-top:1px;flex-shrink:0;"/>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--ice);display:flex;align-items:center;gap:6px;"><i class="ti ti-bolt" style="color:var(--red)"></i>Urgente</div>
+          <div style="font-size:11px;color:var(--graph);margin-top:2px;">El repartidor debe atenderlo luego del pedido actual en curso</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;cursor:pointer;transition:all 0.15s;" onclick="seleccionarPrioridad('final')">
+        <input type="radio" name="prioridad" id="radioFinal" style="width:16px;height:16px;accent-color:var(--copper);margin-top:1px;flex-shrink:0;"/>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--ice);display:flex;align-items:center;gap:6px;"><i class="ti ti-list-end" style="color:var(--copper)"></i>Agregar al final de la lista</div>
+          <div style="font-size:11px;color:var(--graph);margin-top:2px;">Se suma al final de la jornada sin alterar el orden actual</div>
+        </div>
+      </label>
+    </div>
+    <div id="previewMensaje" style="display:none;background:rgba(37,211,102,0.06);border:0.5px solid rgba(37,211,102,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--ice);line-height:1.6;margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button style="flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;" onclick="document.getElementById('modalAdicional').classList.remove('show')">Cancelar</button>
+      <button id="btnConfirmarAdicional" style="flex:2;background:var(--copper);border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--ice);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;" disabled onclick="confirmarAdicional()"><i class="ti ti-brand-whatsapp"></i>Confirmar y lanzar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal WhatsApp -->
 <div class="modal-bg" id="modalWA">
   <div class="modal">
@@ -792,7 +831,7 @@
   };
 
   // ── Guardar jornada en Firestore ──────────────────────────
-  async function guardarJornada(V) {
+  async function guardarJornada(V, prioridad = null) {
     const pedidos = state[V].pedidos;
     const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
 
@@ -822,6 +861,7 @@
         orden:         p.orden,
         vehiculo:      V,
         estado:        "pendiente",
+        prioridad:     prioridad || "normal",
         repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
         creado_en:     new Date().toISOString()
       });
@@ -839,29 +879,128 @@
     await batchAdd.commit();
   }
 
-  // ── Modal WhatsApp ────────────────────────────────────────
+  // ── Modal WhatsApp con lógica de ruta adicional ───────────
   window.abrirModalWA = async (V) => {
     if (state[V].pedidos.length === 0) return;
+    mostrarToast("Verificando jornada...", "ok");
+
+    // Verificar si ya hay ruta activa para este vehículo
+    const hayRutaActiva = await tieneRutaActiva(V);
+
+    if (hayRutaActiva) {
+      // Mostrar modal de ruta adicional
+      abrirModalAdicional(V);
+      return;
+    }
+
+    // Primera vez del día — flujo normal
+    await lanzarRuta(V, null);
+  };
+
+  // ── Verificar si vehículo ya tiene ruta activa ───────────
+  async function tieneRutaActiva(V) {
+    try {
+      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
+      const snap = await getDocs(pedidosRef);
+      return snap.docs.some(d => d.data().vehiculo === V);
+    } catch(e) { return false; }
+  }
+
+  // ── Función central de lanzamiento ───────────────────────
+  async function lanzarRuta(V, prioridad) {
     mostrarToast("Guardando jornada...", "ok");
-    try { await guardarJornada(V); }
+    try { await guardarJornada(V, prioridad); }
     catch(e) { mostrarToast("Error: " + e.message, "err"); return; }
 
-    const repNombre = V==="moto"?"Repartidor 1":"Repartidor 2";
-    const veh       = V==="moto"?"Moto":"Auto";
+    const repNombre = V==="moto" ? "Repartidor 1" : "Repartidor 2";
+    const veh       = V==="moto" ? "Moto" : "Auto";
     const cantidad  = state[V].pedidos.length;
     const fecha     = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
     const link      = `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}`;
-    const mensaje   = `Hola ${repNombre} 👋\n\nYa tienes tu ruta del día lista.\n\n📦 *${cantidad} pedidos* asignados — ${veh}\n📅 Jornada *${fecha}*\n\n👉 Ingresa aquí:\n${link}\n\n_El link es válido solo para hoy._`;
 
-    document.getElementById("waTitulo").textContent = `Lanzar ruta ${veh}`;
-    document.getElementById("waSub").textContent    = `${cantidad} pedidos · ${repNombre}`;
-    document.getElementById("waMensaje").innerHTML  = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
-    document.getElementById("btnAbrirWA").onclick   = () => {
+    let mensaje;
+    if (prioridad === "urgente") {
+      mensaje = `Hola ${repNombre} 👋
+
+⚡ *Se te asignó un pedido URGENTE* que debes atender luego del que tienes en ruta ahora mismo.
+
+📦 *${cantidad} pedido(s) nuevo(s)* — ${veh}
+📅 ${fecha}
+
+👉 Revisa tu lista actualizada:
+${link}`;
+    } else if (prioridad === "final") {
+      mensaje = `Hola ${repNombre} 👋
+
+📋 Se agregó(aron) *${cantidad} pedido(s) nuevo(s)* a tu lista. Deberá(n) atenderse al *final de tu jornada de hoy*.
+
+📅 ${fecha}
+
+👉 Revisa tu lista actualizada:
+${link}`;
+    } else {
+      mensaje = `Hola ${repNombre} 👋
+
+Ya tienes tu ruta del día lista.
+
+📦 *${cantidad} pedidos* asignados — ${veh}
+📅 Jornada *${fecha}*
+
+👉 Ingresa aquí:
+${link}
+
+_El link es válido solo para hoy._`;
+    }
+
+    document.getElementById("waTitulo").textContent = prioridad ? `Pedidos adicionales — ${veh}` : `Lanzar ruta ${veh}`;
+    document.getElementById("waSub").textContent    = `${cantidad} pedido(s) · ${repNombre}`;
+    document.getElementById("waMensaje").innerHTML  = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/
+/g,"<br>");
+
+    document.getElementById("btnAbrirWA").onclick = () => {
       window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`,"_blank");
       document.getElementById("modalWA").classList.remove("show");
+      // Limpiar pantalla DESPUÉS de confirmar envío
+      resetVehiculo(V);
+      mostrarToast(`Ruta ${veh} lanzada ✓`, "ok");
     };
     document.getElementById("modalWA").classList.add("show");
-    mostrarToast(`Jornada ${veh} guardada ✓`, "ok");
+  }
+
+  // ── Modal ruta adicional ──────────────────────────────────
+  function abrirModalAdicional(V) {
+    const veh       = V==="moto" ? "Moto" : "Auto";
+    const repNombre = V==="moto" ? "Repartidor 1" : "Repartidor 2";
+    document.getElementById("modalAdicionalTitulo").textContent = `${repNombre} ya tiene una ruta activa`;
+    document.getElementById("modalAdicionalSub").textContent    = `${state[V].pedidos.length} pedidos nuevos · ${veh}`;
+    document.getElementById("radioUrgente").checked  = false;
+    document.getElementById("radioFinal").checked    = false;
+    document.getElementById("previewMensaje").style.display = "none";
+    document.getElementById("btnConfirmarAdicional").disabled = true;
+    window._vehiculoAdicional  = V;
+    window._prioridadAdicional = null;
+    document.getElementById("modalAdicional").classList.add("show");
+  }
+
+  window.seleccionarPrioridad = (prioridad) => {
+    window._prioridadAdicional = prioridad;
+    document.getElementById("btnConfirmarAdicional").disabled = false;
+    const V   = window._vehiculoAdicional;
+    const rep = V==="moto" ? "Repartidor 1" : "Repartidor 2";
+    const n   = state[V].pedidos.length;
+    const preview = prioridad === "urgente"
+      ? `⚡ Hola ${rep}, se te asignó un pedido URGENTE que debes atender luego del que tienes en ruta.`
+      : `📋 Hola ${rep}, se agregó(aron) ${n} pedido(s) a tu lista para atenderse al final de la jornada.`;
+    const el = document.getElementById("previewMensaje");
+    el.textContent    = preview;
+    el.style.display  = "";
+  };
+
+  window.confirmarAdicional = async () => {
+    const V         = window._vehiculoAdicional;
+    const prioridad = window._prioridadAdicional;
+    document.getElementById("modalAdicional").classList.remove("show");
+    await lanzarRuta(V, prioridad);
   };
 
   // ── Drag & drop zona upload ───────────────────────────────
@@ -874,7 +1013,7 @@
   };
 
   // ── Cerrar modales al click fuera ─────────────────────────
-  ["modalWA","modalDetalle","modalConfirmCliente","modalConfirmLimpiar"].forEach(id => {
+  ["modalWA","modalDetalle","modalConfirmCliente","modalConfirmLimpiar","modalAdicional"].forEach(id => {
     document.getElementById(id).addEventListener("click", e => {
       if (e.target === document.getElementById(id))
         document.getElementById(id).classList.remove("show");
