@@ -8,22 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
   <style>
-    :root {
-      --mid:    #0B1120;
-      --mid2:   #131d30;
-      --mid3:   #1a2640;
-      --copper: #B87333;
-      --amber:  #D97706;
-      --ice:    #F8FAFC;
-      --graph:  #94A3B8;
-      --green:  #22c55e;
-      --red:    #ef4444;
-      --yellow: #f59e0b;
-    }
+    :root{--mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;--copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;}
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;}
-
-    /* ── Topbar ── */
     .topbar{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:100;}
     .logo-area{display:flex;align-items:center;gap:10px;}
     .logo-text{display:flex;flex-direction:column;line-height:1.1;}
@@ -31,33 +18,42 @@
     .logo-sub{font-size:9px;color:var(--copper);letter-spacing:0.07em;font-weight:500;}
     .topbar-right{display:flex;align-items:center;gap:12px;}
     .client-chip{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:999px;padding:4px 14px;font-size:11px;color:var(--copper);font-weight:500;}
-    .user-info{display:flex;align-items:center;gap:8px;}
-    .user-name{font-size:12px;color:var(--graph);}
     .user-dot{width:30px;height:30px;border-radius:50%;background:rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--copper);}
-    .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;transition:border-color 0.2s;}
+    .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;}
     .btn-logout:hover{border-color:rgba(239,68,68,0.4);color:var(--red);}
-
-    /* ── Layout ── */
     .app-body{display:flex;flex:1;}
     .sidebar{background:var(--mid2);width:56px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);}
-    .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;transition:all 0.15s;text-decoration:none;}
+    .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;text-decoration:none;transition:all 0.15s;}
     .sib:hover{background:rgba(255,255,255,0.05);color:var(--ice);}
     .sib.active{background:rgba(184,115,51,0.15);color:var(--copper);}
     .sib-spacer{flex:1;}
-
-    /* ── Main ── */
     .main{flex:1;padding:24px;overflow:auto;}
-    .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:18px;}
-    .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
-    .page-title{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ice);}
-    .page-sub{font-size:12px;color:var(--graph);margin-top:2px;}
+    .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:16px;}
+
+    /* ── Header con selector de fecha ── */
+    .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+    .dash-title-block{}
+    .dash-title{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ice);}
+    .dash-sub{font-size:12px;color:var(--graph);margin-top:2px;}
+    .date-nav{display:flex;align-items:center;gap:8px;}
+    .date-btn{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--graph);cursor:pointer;transition:all 0.15s;}
+    .date-btn:hover{border-color:rgba(184,115,51,0.4);color:var(--copper);}
+    .date-select{background:var(--mid2);border:0.5px solid rgba(184,115,51,0.3);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--ice);font-family:'Inter',sans-serif;cursor:pointer;outline:none;}
+    .date-today{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:7px;padding:5px 12px;font-size:11px;color:var(--copper);cursor:pointer;font-weight:500;}
+    .date-today:hover{background:rgba(184,115,51,0.2);}
+
+    /* ── Badge jornada ── */
+    .jornada-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:999px;margin-bottom:16px;}
+    .jb-activa{background:rgba(34,197,94,0.12);color:var(--green);}
+    .jb-cerrada{background:rgba(148,163,184,0.1);color:var(--graph);}
+    .jb-vacia{background:rgba(217,119,6,0.1);color:var(--amber);}
 
     /* ── KPIs ── */
     .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
     .kpi{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;}
     .kpi-lbl{font-size:10px;color:var(--graph);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
     .kpi-val{font-size:28px;font-weight:700;font-family:'Montserrat',sans-serif;line-height:1;}
-    .kpi-sub{font-size:11px;margin-top:5px;display:flex;align-items:center;gap:4px;}
+    .kpi-sub{font-size:11px;margin-top:5px;}
 
     /* ── Grid ── */
     .grid-main{display:grid;grid-template-columns:1fr 300px;gap:14px;}
@@ -69,28 +65,28 @@
     .fb.on{background:rgba(184,115,51,0.15);border-color:rgba(184,115,51,0.4);color:var(--copper);}
 
     /* ── Tabla pedidos ── */
-    .pedidos-table{width:100%;}
-    .pt-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.05);}
+    .pt-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.05);cursor:pointer;transition:background 0.1s;border-radius:6px;padding-left:4px;}
     .pt-row:last-child{border-bottom:none;}
+    .pt-row:hover{background:rgba(255,255,255,0.03);}
     .pt-num{font-size:11px;color:var(--graph);min-width:22px;font-weight:500;}
     .pt-info{flex:1;min-width:0;}
     .pt-name{font-size:12px;font-weight:500;color:var(--ice);}
-    .pt-dir{font-size:11px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+    .pt-dir{font-size:11px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
     .pt-prod{font-size:10px;color:rgba(148,163,184,0.6);}
-    .pt-rep{display:flex;align-items:center;gap:5px;}
+    .pt-rep{display:flex;align-items:center;gap:5px;flex-shrink:0;}
     .rep-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
     .rep-lbl{font-size:10px;color:var(--graph);}
     .pill{font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap;}
-    .p-ok    {background:rgba(34,197,94,0.12);color:var(--green);}
+    .p-ok{background:rgba(34,197,94,0.12);color:var(--green);}
     .p-camino{background:rgba(217,119,6,0.15);color:var(--amber);}
-    .p-pend  {background:rgba(148,163,184,0.1);color:var(--graph);}
-    .p-inc   {background:rgba(239,68,68,0.12);color:var(--red);}
+    .p-pend{background:rgba(148,163,184,0.1);color:var(--graph);}
+    .p-inc{background:rgba(239,68,68,0.12);color:var(--red);}
     .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;border:0.5px solid transparent;cursor:pointer;flex-shrink:0;transition:all 0.15s;}
-    .ico-foto-ok {background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.25);color:var(--green);}
-    .ico-foto-ok:hover{background:rgba(34,197,94,0.2);}
-    .ico-foto-inc{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2);color:var(--red);}
-    .ico-foto-inc:hover{background:rgba(239,68,68,0.2);}
+    .ico-ok{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.25);color:var(--green);}
+    .ico-inc{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2);color:var(--red);}
     .ico-dis{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.07);color:rgba(148,163,184,0.25);cursor:default;}
+    .ico-reag{background:rgba(217,119,6,0.1);border-color:rgba(217,119,6,0.25);color:var(--amber);}
+    .ico-reag:hover{background:rgba(217,119,6,0.2);}
 
     /* ── Flota ── */
     .fleet-block{margin-bottom:14px;}
@@ -99,63 +95,67 @@
     .fc-name{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--ice);}
     .fc-pct{font-size:12px;font-weight:600;}
     .prog-bar{height:5px;background:rgba(255,255,255,0.07);border-radius:999px;overflow:hidden;margin-bottom:8px;}
-    .prog-fill{height:100%;border-radius:999px;transition:width 0.5s ease;}
+    .prog-fill{height:100%;border-radius:999px;}
     .fc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
     .fc-stat{background:rgba(255,255,255,0.03);border-radius:6px;padding:6px;text-align:center;}
     .fc-sl{font-size:9px;color:var(--graph);margin-bottom:2px;}
     .fc-sv{font-size:14px;font-weight:600;color:var(--ice);}
     .fleet-divider{border:none;border-top:0.5px solid rgba(255,255,255,0.06);margin:14px 0;}
-
-    /* ── Estado vacío ── */
     .empty{text-align:center;padding:40px 20px;color:var(--graph);}
-    .empty i{font-size:32px;margin-bottom:10px;opacity:0.4;}
+    .empty i{font-size:32px;margin-bottom:10px;opacity:0.4;display:block;}
     .empty p{font-size:13px;opacity:0.6;}
 
-    /* ── Modal evidencia ── */
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+    /* ── Modales ── */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
     .modal-bg.show{opacity:1;pointer-events:all;}
-    .modal{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:20px;width:100%;max-width:400px;transform:translateY(10px);transition:transform 0.2s;}
+    .modal{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px;width:100%;max-width:440px;transform:translateY(10px);transition:transform 0.2s;}
     .modal-bg.show .modal{transform:translateY(0);}
     .modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
     .modal-title{font-size:15px;font-weight:600;color:var(--ice);}
     .modal-sub{font-size:11px;color:var(--graph);margin-top:2px;}
     .close-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--graph);cursor:pointer;flex-shrink:0;}
-    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;}
-    .info-cell{background:rgba(255,255,255,0.04);border-radius:8px;padding:9px 11px;}
-    .ic-lbl{font-size:10px;color:var(--graph);margin-bottom:3px;}
-    .ic-val{font-size:12px;font-weight:500;color:var(--ice);}
-    .foto-card{background:rgba(34,197,94,0.06);border:0.5px solid rgba(34,197,94,0.2);border-radius:9px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-    .foto-card.inc{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);}
-    .foto-thumb{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;}
-    .foto-thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
+    .ic{background:rgba(255,255,255,0.04);border-radius:8px;padding:9px 11px;}
+    .ic.full{grid-column:1/-1;}
+    .ic.nota{background:rgba(184,115,51,0.06);border:0.5px solid rgba(184,115,51,0.15);}
+    .ic.inc-box{background:rgba(239,68,68,0.06);border:0.5px solid rgba(239,68,68,0.15);}
+    .ic-lbl{font-size:10px;color:var(--graph);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
+    .ic-val{font-size:12px;font-weight:500;color:var(--ice);line-height:1.4;}
+    .foto-card{border-radius:9px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+    .foto-ok{background:rgba(34,197,94,0.06);border:0.5px solid rgba(34,197,94,0.2);}
+    .foto-inc{background:rgba(239,68,68,0.06);border:0.5px solid rgba(239,68,68,0.2);}
+    .foto-thumb{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;}
     .foto-meta{flex:1;}
     .foto-rep{font-size:12px;font-weight:500;color:var(--ice);}
     .foto-time{font-size:10px;color:var(--graph);margin-top:2px;}
     .foto-nota{font-size:10px;color:var(--graph);margin-top:3px;font-style:italic;}
-    .ver-btn{font-size:10px;padding:4px 10px;border-radius:999px;background:rgba(34,197,94,0.12);border:0.5px solid rgba(34,197,94,0.25);color:var(--green);cursor:pointer;white-space:nowrap;text-decoration:none;}
-    .ver-btn.inc{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.25);color:var(--red);}
-    .inc-motivo-box{background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
-    .inc-mot-lbl{font-size:10px;color:var(--red);margin-bottom:3px;font-weight:500;}
-    .inc-mot-val{font-size:13px;color:var(--ice);}
+    .btn-dl{font-size:10px;padding:4px 10px;border-radius:999px;background:rgba(34,197,94,0.12);border:0.5px solid rgba(34,197,94,0.25);color:var(--green);cursor:pointer;white-space:nowrap;text-decoration:none;}
     .modal-actions{display:flex;gap:6px;}
-    .btn-action{flex:1;background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:8px;padding:9px;font-size:11px;color:var(--copper);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:500;}
-    .btn-action.sec{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);color:var(--graph);}
+    .btn-action{flex:1;border-radius:8px;padding:9px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:500;font-family:'Inter',sans-serif;}
+    .btn-reag-confirm{background:rgba(217,119,6,0.15);border:0.5px solid rgba(217,119,6,0.35);color:var(--amber);}
+    .btn-reag-confirm:hover{background:rgba(217,119,6,0.25);}
+    .btn-sec{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);color:var(--graph);}
 
-    /* ── Responsive ── */
-    @media(max-width:900px){
-      .kpi-row{grid-template-columns:repeat(2,1fr);}
-      .grid-main{grid-template-columns:1fr;}
-    }
-    @media(max-width:600px){
-      .kpi-row{grid-template-columns:repeat(2,1fr);}
-      .main{padding:16px;}
-      .pt-dir{max-width:120px;}
-    }
+    /* ── Modal reagendar ── */
+    .reag-field{margin-bottom:12px;}
+    .reag-field label{font-size:11px;color:var(--graph);display:block;margin-bottom:5px;}
+    .reag-field input,.reag-field select{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--ice);font-family:'Inter',sans-serif;outline:none;}
+    .reag-field input:focus,.reag-field select:focus{border-color:rgba(184,115,51,0.5);}
+    .reag-field select option{background:var(--mid2);}
+    .reag-preview{background:rgba(217,119,6,0.06);border:0.5px solid rgba(217,119,6,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--graph);margin-bottom:14px;line-height:1.6;}
+    .reag-preview b{color:var(--amber);}
+
+    /* ── Toast ── */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:300;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;max-width:320px;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.ok{border-color:rgba(34,197,94,0.3);}
+    .toast.err{border-color:rgba(239,68,68,0.3);}
+
+    @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}.grid-main{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
 
-<!-- Topbar -->
 <div class="topbar">
   <div class="logo-area">
     <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
@@ -163,224 +163,279 @@
       <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
       <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
     </svg>
-    <div class="logo-text">
-      <span class="logo-main">VRUTA</span>
-      <span class="logo-sub">powered by Etrazia</span>
-    </div>
+    <div class="logo-text"><span class="logo-main">VRUTA</span><span class="logo-sub">powered by Etrazia</span></div>
   </div>
   <div class="topbar-right">
     <span class="client-chip" id="clienteNombre">Cargando...</span>
-    <div class="user-info">
-      <span class="user-name" id="usuarioNombre"></span>
-      <div class="user-dot" id="usuarioAvatar">OP</div>
-    </div>
+    <div class="user-dot" id="usuarioAvatar">OP</div>
     <button class="btn-logout" id="btnLogout"><i class="ti ti-logout"></i>Salir</button>
   </div>
 </div>
 
 <div class="app-body">
-  <!-- Sidebar -->
   <nav class="sidebar">
-    <a class="sib active" href="dashboard.html" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
-    <a class="sib" href="rutas.html" title="Planificador de rutas"><i class="ti ti-route"></i></a>
-    <a class="sib" href="flota.html" title="Flota"><i class="ti ti-motorbike"></i></a>
-    <a class="sib" href="historial.html" title="Historial"><i class="ti ti-history"></i></a>
+    <a class="sib active" href="dashboard.html"><i class="ti ti-layout-dashboard"></i></a>
+    <a class="sib" href="rutas.html"><i class="ti ti-route"></i></a>
+    <a class="sib" href="flota.html"><i class="ti ti-motorbike"></i></a>
+    <a class="sib" href="historial.html"><i class="ti ti-history"></i></a>
     <div class="sib-spacer"></div>
-    <a class="sib" href="configuracion.html" title="Configuración"><i class="ti ti-settings"></i></a>
+    <a class="sib" href="configuracion.html"><i class="ti ti-settings"></i></a>
   </nav>
 
-  <!-- Main -->
   <main class="main">
-    <div class="mod-label">Jornada activa</div>
+    <div class="mod-label">Dashboard</div>
 
-    <div class="page-header">
-      <div>
-        <div class="page-title">Dashboard</div>
-        <div class="page-sub" id="fechaHoy">Cargando fecha...</div>
+    <div class="dash-header">
+      <div class="dash-title-block">
+        <div class="dash-title">Jornada del día</div>
+        <div class="dash-sub" id="fechaTexto"></div>
+      </div>
+      <div class="date-nav">
+        <div class="date-btn" onclick="cambiarFecha(-1)" title="Día anterior"><i class="ti ti-chevron-left"></i></div>
+        <select class="date-select" id="selectFecha" onchange="seleccionarFecha(this.value)"></select>
+        <div class="date-btn" onclick="cambiarFecha(1)" title="Día siguiente"><i class="ti ti-chevron-right"></i></div>
+        <div class="date-today" onclick="irAHoy()">Hoy</div>
       </div>
     </div>
 
-    <!-- KPIs -->
+    <div id="jornadaBadge"></div>
+
     <div class="kpi-row">
-      <div class="kpi">
-        <div class="kpi-lbl">Total pedidos</div>
-        <div class="kpi-val" id="kpiTotal">—</div>
-        <div class="kpi-sub" style="color:var(--graph);">del día</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-lbl">Entregados</div>
-        <div class="kpi-val" id="kpiEntregados" style="color:var(--green);">—</div>
-        <div class="kpi-sub" style="color:var(--green);" id="kpiPct">—</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-lbl">Pendientes</div>
-        <div class="kpi-val" id="kpiPendientes" style="color:var(--amber);">—</div>
-        <div class="kpi-sub" style="color:var(--graph);">por entregar</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-lbl">Incidencias</div>
-        <div class="kpi-val" id="kpiIncidencias" style="color:var(--red);">—</div>
-        <div class="kpi-sub" style="color:var(--red);" id="kpiIncSub">—</div>
-      </div>
+      <div class="kpi"><div class="kpi-lbl">Total pedidos</div><div class="kpi-val" id="kpiTotal">—</div><div class="kpi-sub" style="color:var(--graph)">del día</div></div>
+      <div class="kpi"><div class="kpi-lbl">Entregados</div><div class="kpi-val" id="kpiEntregados" style="color:var(--green)">—</div><div class="kpi-sub" style="color:var(--green)" id="kpiPct">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Pendientes</div><div class="kpi-val" id="kpiPendientes" style="color:var(--amber)">—</div><div class="kpi-sub" style="color:var(--graph)">por entregar</div></div>
+      <div class="kpi"><div class="kpi-lbl">Incidencias</div><div class="kpi-val" id="kpiIncidencias" style="color:var(--red)">—</div><div class="kpi-sub" style="color:var(--red)" id="kpiIncSub">—</div></div>
     </div>
 
-    <!-- Grid principal -->
     <div class="grid-main">
-      <!-- Panel pedidos -->
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Pedidos del día</div>
+          <div class="panel-title">Pedidos</div>
           <div class="filter-row">
-            <div class="fb on" data-filter="todos" onclick="setFiltro('todos',this)">Todos</div>
-            <div class="fb" data-filter="entregado" onclick="setFiltro('entregado',this)">Entregados</div>
-            <div class="fb" data-filter="incidencia" onclick="setFiltro('incidencia',this)">Incidencias</div>
+            <div class="fb on" onclick="setFiltro('todos',this)">Todos</div>
+            <div class="fb" onclick="setFiltro('entregado',this)">Entregados</div>
+            <div class="fb" onclick="setFiltro('incidencia',this)">Incidencias</div>
+            <div class="fb" onclick="setFiltro('pendiente',this)">Pendientes</div>
           </div>
         </div>
-        <div class="pedidos-table" id="pedidosLista">
-          <div class="empty"><i class="ti ti-package"></i><p>No hay pedidos para hoy.<br>Ve a Rutas para cargar la jornada.</p></div>
-        </div>
+        <div id="pedidosLista"><div class="empty"><i class="ti ti-package"></i><p>Sin pedidos para esta fecha.</p></div></div>
       </div>
-
-      <!-- Panel flota -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Estado de flota</div>
-        </div>
-        <div id="flotaPanel">
-          <div class="empty"><i class="ti ti-motorbike"></i><p>Sin jornada activa</p></div>
-        </div>
+        <div class="panel-header"><div class="panel-title">Estado de flota</div></div>
+        <div id="flotaPanel"><div class="empty"><i class="ti ti-motorbike"></i><p>Sin jornada activa</p></div></div>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Modal evidencia -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal" id="modalContent">
+<!-- Modal detalle pedido -->
+<div class="modal-bg" id="modalDetalle">
+  <div class="modal">
     <div class="modal-header">
-      <div>
-        <div class="modal-title" id="modalTitulo">Evidencia</div>
-        <div class="modal-sub" id="modalSub"></div>
-      </div>
-      <div class="close-btn" onclick="cerrarModal()"><i class="ti ti-x"></i></div>
+      <div><div class="modal-title" id="detalleTitulo"></div><div class="modal-sub" id="detalleSub"></div></div>
+      <div class="close-btn" onclick="cerrarModal('modalDetalle')"><i class="ti ti-x"></i></div>
     </div>
-    <div id="modalBody"></div>
+    <div id="detalleBody"></div>
+    <div class="modal-actions" id="detalleActions"></div>
+  </div>
+</div>
+
+<!-- Modal reagendar -->
+<div class="modal-bg" id="modalReagendar">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title">Reagendar entrega</div><div class="modal-sub" id="reagSub"></div></div>
+      <div class="close-btn" onclick="cerrarModal('modalReagendar')"><i class="ti ti-x"></i></div>
+    </div>
+    <div class="reag-preview" id="reagPreview"></div>
+    <div class="reag-field">
+      <label>Nueva fecha de entrega</label>
+      <input type="date" id="reagFecha"/>
+    </div>
+    <div class="reag-field">
+      <label>Asignar a vehículo</label>
+      <select id="reagVehiculo">
+        <option value="moto">Repartidor 1 — Moto</option>
+        <option value="auto">Repartidor 2 — Auto</option>
+      </select>
+    </div>
+    <div class="reag-field">
+      <label>Nota adicional (opcional)</label>
+      <input type="text" id="reagNota" placeholder="Ej: El cliente confirmó que estará a las 3pm"/>
+    </div>
     <div class="modal-actions">
-      <button class="btn-action sec" onclick="cerrarModal()"><i class="ti ti-x"></i>Cerrar</button>
+      <button class="btn-action btn-sec" onclick="cerrarModal('modalReagendar')">Cancelar</button>
+      <button class="btn-action btn-reag-confirm" onclick="confirmarReagendar()"><i class="ti ti-calendar-plus"></i>Confirmar reagenda</button>
     </div>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script type="module">
   import { requireAuth, logout } from "./assets/js/auth.js";
   import { db } from "./assets/js/firebase-config.js";
   import {
-    collection, query, where, onSnapshot, orderBy, doc, getDoc
+    collection, query, orderBy, onSnapshot, getDocs,
+    doc, getDoc, setDoc, updateDoc, addDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ── Auth guard ───────────────────────────────────────────
   const usuario = requireAuth("operador");
   if (!usuario) throw new Error("No autorizado");
-
-  // ── UI usuario ───────────────────────────────────────────
-  document.getElementById("usuarioNombre").textContent = usuario.nombre;
   document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
   document.getElementById("btnLogout").addEventListener("click", logout);
 
-  // ── Fecha ────────────────────────────────────────────────
-  const hoy = new Date();
-  const fechaStr = hoy.toLocaleDateString("es-PE", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
-  document.getElementById("fechaHoy").textContent = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1);
-
-  const fechaKey = hoy.toISOString().split("T")[0]; // YYYY-MM-DD
-
-  // ── Empresa ──────────────────────────────────────────────
   const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
-  if (empresaSnap.exists()) {
-    document.getElementById("clienteNombre").textContent = empresaSnap.data().nombre;
-  }
+  document.getElementById("clienteNombre").textContent = empresaSnap.data().nombre;
 
-  // ── Escuchar pedidos en tiempo real ──────────────────────
+  // ── Estado ───────────────────────────────────────────────
+  let fechaActual = new Date().toISOString().split("T")[0];
   let todosPedidos = [];
   let filtroActivo = "todos";
+  let unsubscribe = null;
+  let pedidoReagendar = null;
 
-  const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
-  const q = query(pedidosRef, orderBy("orden", "asc"));
+  // ── Selector de fechas ────────────────────────────────────
+  async function cargarFechasDisponibles() {
+    const jornadasRef = collection(db, "empresas", usuario.empresa_id, "jornadas");
+    const snap = await getDocs(jornadasRef);
+    const fechas = new Set();
+    snap.docs.forEach(d => fechas.add(d.id));
+    // Siempre incluir hoy
+    fechas.add(new Date().toISOString().split("T")[0]);
 
-  onSnapshot(q, (snap) => {
-    todosPedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    actualizarUI();
-  });
+    const select = document.getElementById("selectFecha");
+    const sorted = [...fechas].sort((a,b) => b.localeCompare(a));
+    select.innerHTML = sorted.map(f => {
+      const d = new Date(f + "T00:00:00");
+      const label = d.toLocaleDateString("es-PE",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+      return `<option value="${f}" ${f===fechaActual?"selected":""}>${label}</option>`;
+    }).join("");
+  }
+
+  window.seleccionarFecha = (f) => { fechaActual = f; cargarJornada(); };
+  window.cambiarFecha = (delta) => {
+    const opts = [...document.getElementById("selectFecha").options];
+    const idx = opts.findIndex(o => o.value === fechaActual);
+    const newIdx = idx - delta; // sorted desc, así que -delta va hacia adelante en tiempo
+    if (newIdx >= 0 && newIdx < opts.length) {
+      fechaActual = opts[newIdx].value;
+      document.getElementById("selectFecha").value = fechaActual;
+      cargarJornada();
+    }
+  };
+  window.irAHoy = () => {
+    fechaActual = new Date().toISOString().split("T")[0];
+    document.getElementById("selectFecha").value = fechaActual;
+    cargarJornada();
+  };
+
+  // ── Cargar jornada ────────────────────────────────────────
+  function cargarJornada() {
+    if (unsubscribe) unsubscribe();
+    todosPedidos = [];
+
+    // Actualizar texto fecha
+    const d = new Date(fechaActual + "T00:00:00");
+    const hoy = new Date().toISOString().split("T")[0];
+    const esHoy = fechaActual === hoy;
+    document.getElementById("fechaTexto").textContent =
+      esHoy ? "Hoy · " + d.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long"})
+             : d.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+    const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaActual, "pedidos");
+    const q = query(pedidosRef, orderBy("orden","asc"));
+
+    unsubscribe = onSnapshot(q, snap => {
+      todosPedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      actualizarUI();
+    });
+  }
 
   function actualizarUI() {
+    actualizarBadge();
     actualizarKPIs();
     renderPedidos();
     renderFlota();
   }
 
-  // ── KPIs ─────────────────────────────────────────────────
-  function actualizarKPIs() {
-    const total      = todosPedidos.length;
-    const entregados = todosPedidos.filter(p => p.estado === "entregado").length;
-    const pendientes = todosPedidos.filter(p => p.estado === "pendiente").length;
-    const incidencias= todosPedidos.filter(p => p.estado === "incidencia").length;
-    const pct        = total > 0 ? Math.round((entregados/total)*100) : 0;
+  function actualizarBadge() {
+    const hoy = new Date().toISOString().split("T")[0];
+    const esHoy = fechaActual === hoy;
+    const total = todosPedidos.length;
+    let html = "";
+    if (total === 0) {
+      html = `<div class="jornada-badge jb-vacia"><i class="ti ti-calendar-off"></i>Sin jornada registrada</div>`;
+    } else if (esHoy) {
+      html = `<div class="jornada-badge jb-activa"><i class="ti ti-circle-dot"></i>Jornada activa</div>`;
+    } else {
+      html = `<div class="jornada-badge jb-cerrada"><i class="ti ti-circle-check"></i>Jornada cerrada</div>`;
+    }
+    document.getElementById("jornadaBadge").innerHTML = html;
+  }
 
-    document.getElementById("kpiTotal").textContent      = total || "—";
-    document.getElementById("kpiEntregados").textContent = entregados || "0";
-    document.getElementById("kpiPendientes").textContent = pendientes || "0";
-    document.getElementById("kpiIncidencias").textContent= incidencias || "0";
-    document.getElementById("kpiPct").textContent        = total > 0 ? `↑ ${pct}% completado` : "Sin jornada activa";
-    document.getElementById("kpiIncSub").textContent     = incidencias > 0 ? "Requieren atención" : "Sin incidencias";
+  function actualizarKPIs() {
+    const total       = todosPedidos.length;
+    const entregados  = todosPedidos.filter(p => p.estado==="entregado").length;
+    const pendientes  = todosPedidos.filter(p => p.estado==="pendiente").length;
+    const incidencias = todosPedidos.filter(p => p.estado==="incidencia").length;
+    const pct         = total>0 ? Math.round(entregados/total*100) : 0;
+    document.getElementById("kpiTotal").textContent       = total||"—";
+    document.getElementById("kpiEntregados").textContent  = entregados||"0";
+    document.getElementById("kpiPendientes").textContent  = pendientes||"0";
+    document.getElementById("kpiIncidencias").textContent = incidencias||"0";
+    document.getElementById("kpiPct").textContent         = total>0 ? `↑ ${pct}% completado` : "Sin jornada";
+    document.getElementById("kpiIncSub").textContent      = incidencias>0 ? "Requieren atención" : "Sin incidencias";
   }
 
   // ── Render pedidos ────────────────────────────────────────
   function renderPedidos() {
     const lista = document.getElementById("pedidosLista");
-    const filtrados = filtroActivo === "todos"
-      ? todosPedidos
-      : todosPedidos.filter(p => p.estado === filtroActivo);
+    const hoy = new Date().toISOString().split("T")[0];
+    const esHoy = fechaActual === hoy;
 
-    if (filtrados.length === 0) {
-      lista.innerHTML = `<div class="empty"><i class="ti ti-package"></i><p>${
-        filtroActivo === "todos"
-          ? "No hay pedidos hoy.<br>Ve a Rutas para cargar la jornada."
-          : "Sin pedidos en esta categoría."
-      }</p></div>`;
+    const filtrados = filtroActivo==="todos"
+      ? todosPedidos
+      : todosPedidos.filter(p => p.estado===filtroActivo);
+
+    if (filtrados.length===0) {
+      lista.innerHTML = `<div class="empty"><i class="ti ti-package"></i><p>Sin pedidos en esta categoría.</p></div>`;
       return;
     }
 
-    lista.innerHTML = filtrados.map((p, i) => {
-      const repColor = p.vehiculo === "moto" ? "var(--green)" : "var(--amber)";
-      const repLabel = p.vehiculo === "moto" ? "Moto 1" : "Auto 1";
-
+    lista.innerHTML = filtrados.map((p,i) => {
+      const repColor = p.vehiculo==="moto" ? "var(--green)" : "var(--amber)";
+      const repLabel = p.vehiculo==="moto" ? "Moto" : "Auto";
       let pillClass, pillTxt;
-      if      (p.estado === "entregado")  { pillClass = "p-ok";     pillTxt = "Entregado"; }
-      else if (p.estado === "incidencia") { pillClass = "p-inc";    pillTxt = "Incidencia"; }
-      else if (p.estado === "pendiente")  { pillClass = "p-pend";   pillTxt = "Pendiente"; }
-      else                                { pillClass = "p-camino"; pillTxt = "En camino"; }
+      if      (p.estado==="entregado")  {pillClass="p-ok";     pillTxt="Entregado";}
+      else if (p.estado==="incidencia") {pillClass="p-inc";    pillTxt="Incidencia";}
+      else if (p.estado==="pendiente")  {pillClass="p-pend";   pillTxt="Pendiente";}
+      else                              {pillClass="p-camino"; pillTxt="En camino";}
 
-      let icoBtn = `<div class="ico-btn ico-dis"><i class="ti ti-camera"></i></div>`;
-      if (p.estado === "entregado") {
-        icoBtn = `<div class="ico-btn ico-foto-ok" onclick="verEvidencia('${p.id}','entregado')" title="Ver evidencia"><i class="ti ti-camera"></i></div>`;
-      } else if (p.estado === "incidencia") {
-        icoBtn = `<div class="ico-btn ico-foto-inc" onclick="verEvidencia('${p.id}','incidencia')" title="Ver incidencia"><i class="ti ti-alert-triangle"></i></div>`;
-      }
+      // Ícono evidencia
+      let icoFoto = `<div class="ico-btn ico-dis"><i class="ti ti-camera"></i></div>`;
+      if (p.estado==="entregado")
+        icoFoto = `<div class="ico-btn ico-ok" onclick="event.stopPropagation();verDetalle('${p.id}')" title="Ver evidencia"><i class="ti ti-camera"></i></div>`;
+      else if (p.estado==="incidencia")
+        icoFoto = `<div class="ico-btn ico-inc" onclick="event.stopPropagation();verDetalle('${p.id}')" title="Ver incidencia"><i class="ti ti-alert-triangle"></i></div>`;
+
+      // Botón reagendar (solo para incidencias y pendientes en jornadas activas/pasadas)
+      let icoReag = "";
+      if (p.estado==="incidencia" || p.estado==="pendiente")
+        icoReag = `<div class="ico-btn ico-reag" onclick="event.stopPropagation();abrirReagendar('${p.id}')" title="Reagendar entrega"><i class="ti ti-calendar-plus"></i></div>`;
 
       return `
-        <div class="pt-row">
+        <div class="pt-row" onclick="verDetalle('${p.id}')">
           <div class="pt-num">${String(i+1).padStart(2,"0")}</div>
           <div class="pt-info">
             <div class="pt-name">${p.cliente}</div>
             <div class="pt-dir">${p.direccion}</div>
             ${p.producto ? `<div class="pt-prod">${p.producto}</div>` : ""}
           </div>
-          <div class="pt-rep">
-            <div class="rep-dot" style="background:${repColor}"></div>
-            <div class="rep-lbl">${repLabel}</div>
-          </div>
+          <div class="pt-rep"><div class="rep-dot" style="background:${repColor}"></div><div class="rep-lbl">${repLabel}</div></div>
           <span class="pill ${pillClass}">${pillTxt}</span>
-          ${icoBtn}
+          ${icoFoto}
+          ${icoReag}
         </div>`;
     }).join("");
   }
@@ -388,121 +443,195 @@
   // ── Render flota ──────────────────────────────────────────
   function renderFlota() {
     const panel = document.getElementById("flotaPanel");
-    const moto  = todosPedidos.filter(p => p.vehiculo === "moto");
-    const auto  = todosPedidos.filter(p => p.vehiculo === "auto");
-
-    if (moto.length === 0 && auto.length === 0) {
-      panel.innerHTML = `<div class="empty"><i class="ti ti-motorbike"></i><p>Sin jornada activa</p></div>`;
+    const moto = todosPedidos.filter(p=>p.vehiculo==="moto");
+    const auto = todosPedidos.filter(p=>p.vehiculo==="auto");
+    if (moto.length===0 && auto.length===0) {
+      panel.innerHTML=`<div class="empty"><i class="ti ti-motorbike"></i><p>Sin jornada registrada</p></div>`;
       return;
     }
-
-    const bloqueFlota = (vehiculo, pedidos, color, icon) => {
-      const entregados  = pedidos.filter(p => p.estado === "entregado").length;
-      const pendientes  = pedidos.filter(p => p.estado === "pendiente").length;
-      const incidencias = pedidos.filter(p => p.estado === "incidencia").length;
-      const total       = pedidos.length;
-      const pct         = total > 0 ? Math.round((entregados/total)*100) : 0;
-      const repNombre   = vehiculo === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
-
+    const bloque = (V, pedidos, color, icon) => {
+      const ent = pedidos.filter(p=>p.estado==="entregado").length;
+      const pen = pedidos.filter(p=>p.estado==="pendiente").length;
+      const inc = pedidos.filter(p=>p.estado==="incidencia").length;
+      const tot = pedidos.length;
+      const pct = tot>0 ? Math.round(ent/tot*100) : 0;
       return `
         <div class="fleet-block">
           <div class="fc-header">
-            <div class="fc-name">
-              <i class="ti ${icon}" style="font-size:16px;color:${color}"></i>
-              ${repNombre}
-            </div>
+            <div class="fc-name"><i class="ti ${icon}" style="font-size:16px;color:${color}"></i>${V==="moto"?"Repartidor 1 · Moto":"Repartidor 2 · Auto"}</div>
             <span class="fc-pct" style="color:${color}">${pct}%</span>
           </div>
-          <div class="prog-bar">
-            <div class="prog-fill" style="width:${pct}%;background:${color}"></div>
-          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
           <div class="fc-stats">
-            <div class="fc-stat"><div class="fc-sl">Entregados</div><div class="fc-sv" style="color:var(--green)">${entregados}</div></div>
-            <div class="fc-stat"><div class="fc-sl">Pendientes</div><div class="fc-sv">${pendientes}</div></div>
-            <div class="fc-stat"><div class="fc-sl">Incidencias</div><div class="fc-sv" style="color:var(--red)">${incidencias}</div></div>
+            <div class="fc-stat"><div class="fc-sl">Entregados</div><div class="fc-sv" style="color:var(--green)">${ent}</div></div>
+            <div class="fc-stat"><div class="fc-sl">Pendientes</div><div class="fc-sv">${pen}</div></div>
+            <div class="fc-stat"><div class="fc-sl">Incidencias</div><div class="fc-sv" style="color:var(--red)">${inc}</div></div>
           </div>
         </div>`;
     };
-
     let html = "";
-    if (moto.length > 0) html += bloqueFlota("moto", moto, "var(--green)", "ti-motorbike");
-    if (moto.length > 0 && auto.length > 0) html += `<hr class="fleet-divider">`;
-    if (auto.length > 0) html += bloqueFlota("auto", auto, "var(--amber)", "ti-car");
-
+    if (moto.length>0) html += bloque("moto",moto,"var(--green)","ti-motorbike");
+    if (moto.length>0&&auto.length>0) html += `<hr class="fleet-divider">`;
+    if (auto.length>0) html += bloque("auto",auto,"var(--amber)","ti-car");
     panel.innerHTML = html;
   }
 
   // ── Filtros ───────────────────────────────────────────────
-  window.setFiltro = (filtro, el) => {
-    document.querySelectorAll(".fb").forEach(b => b.classList.remove("on"));
+  window.setFiltro = (f, el) => {
+    document.querySelectorAll(".fb").forEach(b=>b.classList.remove("on"));
     el.classList.add("on");
-    filtroActivo = filtro;
+    filtroActivo = f;
     renderPedidos();
   };
 
-  // ── Modal evidencia ───────────────────────────────────────
-  window.verEvidencia = async (pedidoId, tipo) => {
-    const pedido = todosPedidos.find(p => p.id === pedidoId);
-    if (!pedido) return;
+  // ── Modal detalle completo ────────────────────────────────
+  window.verDetalle = (id) => {
+    const p = todosPedidos.find(x=>x.id===id);
+    if (!p) return;
+    const repLabel = p.vehiculo==="moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
 
-    const repLabel = pedido.vehiculo === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+    document.getElementById("detalleTitulo").textContent = p.cliente;
+    document.getElementById("detalleSub").textContent    = `${repLabel} · ${fechaActual}`;
 
-    document.getElementById("modalTitulo").textContent =
-      tipo === "entregado" ? "Evidencia de entrega" : "Incidencia registrada";
-    document.getElementById("modalTitulo").style.color =
-      tipo === "entregado" ? "var(--ice)" : "var(--red)";
-    document.getElementById("modalSub").textContent =
-      `${pedido.cliente} · ${pedido.direccion}`;
-
-    let bodyHTML = `
+    let body = `
       <div class="info-grid">
-        <div class="info-cell"><div class="ic-lbl">Repartidor</div><div class="ic-val">${repLabel}</div></div>
-        <div class="info-cell"><div class="ic-lbl">Hora</div><div class="ic-val">${pedido.hora_entrega || pedido.hora_incidencia || "—"}</div></div>
-        <div class="info-cell"><div class="ic-lbl">Producto</div><div class="ic-val">${pedido.producto || "—"}</div></div>
-        <div class="info-cell"><div class="ic-lbl">Estado</div><div class="ic-val" style="color:${tipo==='entregado'?'var(--green)':'var(--red)'}">
-          ${tipo==='entregado'?'✓ Entregado':'✗ No entregado'}
-        </div></div>
+        <div class="ic full"><div class="ic-lbl">Dirección</div><div class="ic-val">${p.direccion}</div></div>
+        <div class="ic"><div class="ic-lbl">Producto</div><div class="ic-val">${p.producto||"—"}</div></div>
+        <div class="ic"><div class="ic-lbl">Estado</div>
+          <div class="ic-val" style="color:${p.estado==='entregado'?'var(--green)':p.estado==='incidencia'?'var(--red)':'var(--amber)'}">
+            ${p.estado==='entregado'?'✓ Entregado':p.estado==='incidencia'?'✗ Incidencia':'⏳ Pendiente'}
+          </div>
+        </div>
+        ${p.nota ? `<div class="ic full nota"><div class="ic-lbl">Nota</div><div class="ic-val">${p.nota}</div></div>` : ""}
       </div>`;
 
-    if (tipo === "incidencia" && pedido.incidencia_motivo) {
-      bodyHTML += `
-        <div class="inc-motivo-box">
-          <div class="inc-mot-lbl">Motivo reportado</div>
-          <div class="inc-mot-val">${pedido.incidencia_motivo}</div>
+    // Incidencia
+    if (p.estado==="incidencia" && p.incidencia_motivo) {
+      body += `<div class="ic inc-box" style="margin-bottom:12px;display:block;">
+        <div class="ic-lbl">Motivo de incidencia</div>
+        <div class="ic-val" style="color:var(--red)">${p.incidencia_motivo}</div>
+      </div>`;
+    }
+
+    // Foto evidencia
+    if (p.estado==="entregado" || p.estado==="incidencia") {
+      const fotoB64 = p.estado==="entregado" ? p.foto_entrega : p.foto_incidencia;
+      const esOk    = p.estado==="entregado";
+      const hora    = p.hora_entrega || p.hora_incidencia || "—";
+      body += `
+        <div class="foto-card ${esOk?"foto-ok":"foto-inc"}">
+          <div class="foto-thumb" style="background:rgba(${esOk?"34,197,94":"239,68,68"},0.1);">
+            ${fotoB64 ? `<img src="${fotoB64}" style="width:100%;height:100%;object-fit:cover;border-radius:8px"/>` : `<i class="ti ti-camera" style="font-size:22px;color:${esOk?"var(--green)":"var(--red)"}"></i>`}
+          </div>
+          <div class="foto-meta">
+            <div class="foto-rep">Foto de ${repLabel}</div>
+            <div class="foto-time">${hora}</div>
+            ${p.nota_entrega ? `<div class="foto-nota">"${p.nota_entrega}"</div>` : ""}
+          </div>
+          ${fotoB64 ? `<a href="${fotoB64}" download="evidencia.jpg" class="btn-dl"><i class="ti ti-download" style="font-size:11px"></i></a>` : ""}
         </div>`;
     }
 
-    // Foto
-    const fotoB64 = tipo === "entregado" ? pedido.foto_entrega : pedido.foto_incidencia;
-    const cardClass = tipo === "entregado" ? "" : "inc";
-    const thumbContent = fotoB64
-      ? `<img src="${fotoB64}" alt="Evidencia"/>`
-      : `<i class="ti ti-camera" style="font-size:22px;color:${tipo==='entregado'?'var(--green)':'var(--red)'}"></i>`;
-    const thumbBg = fotoB64 ? "" : `background:rgba(${tipo==='entregado'?'34,197,94':'239,68,68'},0.1);`;
-
-    bodyHTML += `
-      <div class="foto-card ${cardClass}">
-        <div class="foto-thumb" style="${thumbBg}">${thumbContent}</div>
-        <div class="foto-meta">
-          <div class="foto-rep">Foto de ${repLabel}</div>
-          <div class="foto-time">${pedido.hora_entrega || pedido.hora_incidencia || "Sin hora"}</div>
-          ${pedido.nota ? `<div class="foto-nota">"${pedido.nota}"</div>` : ""}
-        </div>
-        ${fotoB64 ? `<a href="${fotoB64}" download="evidencia-${pedidoId}.jpg" class="ver-btn ${cardClass}"><i class="ti ti-download" style="font-size:11px"></i> Descargar</a>` : ""}
+    // Reagenda previa
+    if (p.reagendado_para) {
+      body += `<div class="ic" style="background:rgba(217,119,6,0.08);border:0.5px solid rgba(217,119,6,0.2);margin-bottom:12px;display:block;">
+        <div class="ic-lbl">Reagendado para</div>
+        <div class="ic-val" style="color:var(--amber)">${p.reagendado_para} · ${p.reagendado_vehiculo==="moto"?"Moto":"Auto"}</div>
       </div>`;
+    }
 
-    document.getElementById("modalBody").innerHTML = bodyHTML;
-    document.getElementById("modalBg").classList.add("show");
+    document.getElementById("detalleBody").innerHTML = body;
+
+    // Acciones
+    let actions = `<button class="btn-action btn-sec" onclick="cerrarModal('modalDetalle')">Cerrar</button>`;
+    if (p.estado==="incidencia"||p.estado==="pendiente")
+      actions = `<button class="btn-action btn-sec" onclick="cerrarModal('modalDetalle')">Cerrar</button>
+                 <button class="btn-action btn-reag-confirm" onclick="cerrarModal('modalDetalle');abrirReagendar('${p.id}')"><i class="ti ti-calendar-plus"></i>Reagendar</button>`;
+    document.getElementById("detalleActions").innerHTML = actions;
+    document.getElementById("modalDetalle").classList.add("show");
   };
 
-  window.cerrarModal = () => {
-    document.getElementById("modalBg").classList.remove("show");
+  // ── Reagendar ────────────────────────────────────────────
+  window.abrirReagendar = (id) => {
+    pedidoReagendar = todosPedidos.find(x=>x.id===id);
+    if (!pedidoReagendar) return;
+    const manana = new Date();
+    manana.setDate(manana.getDate()+1);
+    document.getElementById("reagFecha").value = manana.toISOString().split("T")[0];
+    document.getElementById("reagFecha").min   = new Date().toISOString().split("T")[0];
+    document.getElementById("reagVehiculo").value = pedidoReagendar.vehiculo || "moto";
+    document.getElementById("reagNota").value = "";
+    document.getElementById("reagSub").textContent = pedidoReagendar.cliente + " · " + pedidoReagendar.direccion;
+    document.getElementById("reagPreview").innerHTML =
+      `<b>Pedido:</b> ${pedidoReagendar.producto||"—"}<br>
+       <b>Motivo:</b> ${pedidoReagendar.incidencia_motivo||"Pendiente no entregado"}<br>
+       Selecciona la nueva fecha y el vehículo asignado.`;
+    document.getElementById("modalReagendar").classList.add("show");
   };
 
-  document.getElementById("modalBg").addEventListener("click", (e) => {
-    if (e.target === document.getElementById("modalBg")) cerrarModal();
+  window.confirmarReagendar = async () => {
+    if (!pedidoReagendar) return;
+    const nuevaFecha = document.getElementById("reagFecha").value;
+    const vehiculo   = document.getElementById("reagVehiculo").value;
+    const nota       = document.getElementById("reagNota").value.trim();
+
+    if (!nuevaFecha) { mostrarToast("Selecciona una fecha", "err"); return; }
+
+    try {
+      // 1. Marcar pedido original como reagendado
+      const pedidoRef = doc(db, "empresas", usuario.empresa_id, "jornadas", fechaActual, "pedidos", pedidoReagendar.id);
+      await updateDoc(pedidoRef, {
+        reagendado_para:      nuevaFecha,
+        reagendado_vehiculo:  vehiculo,
+        reagendado_en:        new Date().toISOString()
+      });
+
+      // 2. Crear pedido pendiente en la nueva fecha
+      const nuevosRef = collection(db, "empresas", usuario.empresa_id, "reagendados");
+      await addDoc(nuevosRef, {
+        cliente:         pedidoReagendar.cliente,
+        direccion:       pedidoReagendar.direccion,
+        producto:        pedidoReagendar.producto || "",
+        nota:            nota || pedidoReagendar.nota || "",
+        lat:             pedidoReagendar.lat || null,
+        lng:             pedidoReagendar.lng || null,
+        vehiculo:        vehiculo,
+        fecha_programada: nuevaFecha,
+        origen_fecha:    fechaActual,
+        origen_id:       pedidoReagendar.id,
+        motivo:          pedidoReagendar.incidencia_motivo || "Pendiente no entregado",
+        estado:          "programado",
+        creado_en:       new Date().toISOString()
+      });
+
+      cerrarModal("modalReagendar");
+      mostrarToast(`Reagendado para ${nuevaFecha} ✓`, "ok");
+      pedidoReagendar = null;
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+    }
+  };
+
+  // ── Helpers ───────────────────────────────────────────────
+  window.cerrarModal = (id) => document.getElementById(id).classList.remove("show");
+  ["modalDetalle","modalReagendar"].forEach(id => {
+    document.getElementById(id).addEventListener("click", e => {
+      if (e.target===document.getElementById(id)) cerrarModal(id);
+    });
   });
-</script>
 
+  let toastTimer;
+  function mostrarToast(msg, tipo="ok") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = `toast show ${tipo}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove("show"),3500);
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  await cargarFechasDisponibles();
+  cargarJornada();
+</script>
 </body>
 </html>
