@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Vruta · Mi Ruta</title>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <style>
+    :root{
+      --mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;
+      --copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;
+      --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+    /* ── Header ── */
+    .header{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.2);padding:14px 16px 0;flex-shrink:0;position:sticky;top:0;z-index:100;}
+    .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .logo-row{display:flex;align-items:center;gap:8px;}
+    .logo-main{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
+    .logo-sub{font-size:9px;color:var(--copper);}
+    .rep-chip{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--copper);font-weight:500;}
+    .header-info{margin-bottom:10px;}
+    .header-title{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;color:var(--ice);}
+    .header-sub{font-size:11px;color:var(--graph);margin-top:1px;}
+    .progress-wrap{margin-bottom:10px;}
+    .progress-bar{height:5px;background:rgba(255,255,255,0.07);border-radius:999px;overflow:hidden;}
+    .progress-fill{height:100%;border-radius:999px;background:var(--green);transition:width 0.4s ease;}
+    .progress-labels{display:flex;justify-content:space-between;font-size:10px;margin-top:4px;}
+    .progress-labels .done{color:var(--green);font-weight:600;}
+    .progress-labels .total{color:var(--graph);}
+
+    /* ── Tabs ── */
+    .tabs{display:flex;border-top:0.5px solid rgba(255,255,255,0.06);}
+    .tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:500;color:var(--graph);border-bottom:2px solid transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all 0.15s;user-select:none;}
+    .tab.active-pend{color:var(--ice);border-bottom-color:var(--copper);}
+    .tab.active-ok{color:var(--green);border-bottom-color:var(--green);}
+    .tab.active-inc{color:var(--red);border-bottom-color:var(--red);}
+    .tab-count{font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;}
+    .tc-pend{background:rgba(184,115,51,0.2);color:var(--copper);}
+    .tc-ok{background:rgba(34,197,94,0.15);color:var(--green);}
+    .tc-inc{background:rgba(239,68,68,0.15);color:var(--red);}
+
+    /* ── Contenido ── */
+    .content{flex:1;padding:12px;overflow-y:auto;padding-bottom:80px;}
+
+    /* ── Cards pedido ── */
+    .pcard{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;margin-bottom:8px;}
+    .pcard.next-card{border-color:rgba(184,115,51,0.4);background:rgba(184,115,51,0.05);}
+    .pcard.done-card{border-color:rgba(34,197,94,0.2);background:rgba(34,197,94,0.03);}
+    .pcard.inc-card{border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.03);}
+    .pc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+    .pc-badge{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:1px;}
+    .pb-next{background:rgba(184,115,51,0.2);color:var(--copper);}
+    .pb-pend{background:rgba(255,255,255,0.06);color:var(--graph);}
+    .pb-ok{background:rgba(34,197,94,0.15);color:var(--green);}
+    .pb-inc{background:rgba(239,68,68,0.12);color:var(--red);}
+    .pc-info{flex:1;min-width:0;}
+    .pc-name{font-size:14px;font-weight:600;color:var(--ice);margin-bottom:2px;}
+    .pc-dir{font-size:12px;color:var(--graph);line-height:1.4;}
+    .pc-prod{font-size:11px;color:rgba(148,163,184,0.7);margin-top:3px;}
+    .pc-nota{font-size:11px;color:var(--copper);margin-top:4px;display:flex;align-items:center;gap:4px;}
+    .pc-status{font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap;flex-shrink:0;}
+    .s-next{background:rgba(184,115,51,0.15);color:var(--copper);}
+    .s-pend{background:rgba(148,163,184,0.1);color:var(--graph);}
+    .s-ok{background:rgba(34,197,94,0.12);color:var(--green);}
+    .s-inc{background:rgba(239,68,68,0.12);color:var(--red);}
+
+    /* ── Acciones ── */
+    .pc-actions{display:flex;gap:6px;margin-top:8px;}
+    .btn-maps{flex:1;background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:8px;padding:10px;font-size:11px;font-weight:600;color:var(--copper);display:flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;transition:background 0.15s;}
+    .btn-maps:active{background:rgba(184,115,51,0.22);}
+    .btn-entregar{flex:1;background:rgba(34,197,94,0.15);border:0.5px solid rgba(34,197,94,0.35);border-radius:8px;padding:10px;font-size:11px;font-weight:600;color:var(--green);display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:background 0.15s;font-family:'Inter',sans-serif;}
+    .btn-entregar:active{background:rgba(34,197,94,0.25);}
+    .btn-incidencia{background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;font-family:'Inter',sans-serif;}
+    .btn-incidencia:active{background:rgba(239,68,68,0.18);}
+
+    /* ── Done card ── */
+    .done-info{display:flex;align-items:center;gap:8px;margin-top:4px;}
+    .done-thumb{width:36px;height:36px;border-radius:7px;background:rgba(34,197,94,0.1);border:0.5px solid rgba(34,197,94,0.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--green);flex-shrink:0;}
+    .done-thumb img{width:100%;height:100%;object-fit:cover;}
+    .done-meta{font-size:11px;color:var(--graph);}
+    .done-meta b{color:var(--green);}
+
+    /* ── Inc card ── */
+    .inc-info{margin-top:4px;}
+    .inc-motivo{font-size:11px;color:var(--red);display:flex;align-items:center;gap:4px;}
+    .inc-hora{font-size:10px;color:var(--graph);margin-top:2px;}
+
+    /* ── Empty ── */
+    .empty{text-align:center;padding:50px 20px;color:var(--graph);}
+    .empty i{font-size:36px;margin-bottom:12px;opacity:0.3;display:block;}
+    .empty p{font-size:13px;opacity:0.5;line-height:1.5;}
+
+    /* ── Loading ── */
+    .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;}
+    .spin{width:32px;height:32px;border:3px solid rgba(184,115,51,0.2);border-top-color:var(--copper);border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading p{font-size:13px;color:var(--graph);}
+
+    /* ── Bottom FAB (solo pestaña pendientes) ── */
+    .fab-area{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px;background:linear-gradient(to top, var(--mid) 70%, transparent);z-index:50;}
+
+    /* ── Sheet (bottom modal) ── */
+    .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+    .sheet-bg.show{opacity:1;pointer-events:all;}
+    .sheet{background:var(--mid2);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);}
+    .sheet-bg.show .sheet{transform:translateY(0);}
+    .sheet-handle{width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:999px;margin:0 auto 16px;}
+    .sheet-title{font-size:15px;font-weight:600;color:var(--ice);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+    .sheet-sub{font-size:11px;color:var(--graph);margin-bottom:16px;}
+
+    /* Sheet entregar */
+    .foto-zone{border:1.5px dashed rgba(184,115,51,0.35);border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;margin-bottom:14px;}
+    .foto-zone:hover,.foto-zone:active{border-color:rgba(184,115,51,0.6);background:rgba(184,115,51,0.04);}
+    .foto-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .fz-icon{font-size:28px;color:var(--copper);margin-bottom:6px;}
+    .fz-txt{font-size:13px;color:var(--ice);font-weight:500;margin-bottom:2px;}
+    .fz-sub{font-size:11px;color:var(--graph);}
+    .foto-preview{width:100%;max-height:200px;border-radius:10px;object-fit:cover;display:none;margin-bottom:14px;}
+    .nota-field{margin-bottom:16px;}
+    .nota-field label{font-size:11px;color:var(--graph);display:block;margin-bottom:5px;}
+    .nota-field textarea{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:13px;color:var(--ice);resize:none;height:70px;font-family:'Inter',sans-serif;outline:none;}
+    .nota-field textarea:focus{border-color:rgba(184,115,51,0.4);}
+    .btn-confirmar{width:100%;background:var(--green);border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;color:var(--mid);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;}
+    .btn-confirmar:disabled{opacity:0.4;cursor:not-allowed;}
+    .btn-confirmar:not(:disabled):active{opacity:0.85;}
+
+    /* Sheet incidencia */
+    .inc-options{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+    .inc-opt{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;font-size:13px;color:var(--ice);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.15s;user-select:none;}
+    .inc-opt.selected{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.35);color:var(--red);}
+    .inc-dot{width:8px;height:8px;border-radius:50%;background:rgba(148,163,184,0.3);flex-shrink:0;}
+    .inc-dot.sel{background:var(--red);}
+    .btn-reportar{width:100%;background:var(--red);border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;}
+    .btn-reportar:disabled{opacity:0.4;cursor:not-allowed;}
+    .btn-reportar:not(:disabled):active{opacity:0.85;}
+
+    /* Toast */
+    .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 16px;font-size:12px;color:var(--ice);z-index:300;opacity:0;transition:all 0.3s;white-space:nowrap;pointer-events:none;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.ok{border-color:rgba(34,197,94,0.4);color:var(--green);}
+    .toast.err{border-color:rgba(239,68,68,0.4);color:var(--red);}
+
+    /* Error/acceso inválido */
+    .error-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;gap:12px;}
+    .error-screen i{font-size:40px;color:var(--red);opacity:0.6;}
+    .error-screen h2{font-size:16px;color:var(--ice);}
+    .error-screen p{font-size:13px;color:var(--graph);line-height:1.5;}
+  </style>
+</head>
+<body>
+
+<div id="appShell" style="display:none;flex-direction:column;min-height:100vh;">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo-row">
+        <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
+          <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
+          <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
+        </svg>
+        <div>
+          <div class="logo-main">VRUTA</div>
+          <div class="logo-sub">powered by Etrazia</div>
+        </div>
+      </div>
+      <div class="rep-chip" id="repChip">Cargando...</div>
+    </div>
+    <div class="header-info">
+      <div class="header-title">Tu ruta de hoy</div>
+      <div class="header-sub" id="headerSub"></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-labels">
+        <span class="done" id="progDone">0 entregados</span>
+        <span class="total" id="progTotal">0 total</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active-pend" id="tabPend" onclick="setTab('pendiente')">
+        Pendientes<span class="tab-count tc-pend" id="cntPend">0</span>
+      </div>
+      <div class="tab" id="tabOk" onclick="setTab('entregado')">
+        Entregados<span class="tab-count tc-ok" id="cntOk">0</span>
+      </div>
+      <div class="tab" id="tabInc" onclick="setTab('incidencia')">
+        Incidencias<span class="tab-count tc-inc" id="cntInc">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="content" id="content">
+    <div class="loading"><div class="spin"></div><p>Cargando tus pedidos...</p></div>
+  </div>
+</div>
+
+<!-- Error screen -->
+<div id="errorScreen" style="display:none">
+  <div class="error-screen">
+    <i class="ti ti-link-off"></i>
+    <h2>Link inválido o expirado</h2>
+    <p>Este link de ruta no es válido o ya expiró.<br>Solicita un nuevo link a tu operador.</p>
+  </div>
+</div>
+
+<!-- Sheet: confirmar entrega -->
+<div class="sheet-bg" id="sheetEntrega">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><i class="ti ti-camera" style="color:var(--copper)"></i>Confirmar entrega</div>
+    <div class="sheet-sub" id="sheetEntregaSub">Toma la foto de evidencia para continuar</div>
+    <img id="fotoPreview" class="foto-preview" alt="Foto de evidencia"/>
+    <div class="foto-zone" id="fotoZone">
+      <input type="file" accept="image/*" capture="environment" id="fotoInput" onchange="previsualizarFoto(event)"/>
+      <div class="fz-icon"><i class="ti ti-camera"></i></div>
+      <div class="fz-txt" id="fotoZoneTxt">Tomar foto de evidencia</div>
+      <div class="fz-sub">Obligatoria para confirmar la entrega</div>
+    </div>
+    <div class="nota-field">
+      <label>Nota (opcional)</label>
+      <textarea id="notaEntrega" placeholder="Ej: Entregué al portero, dejé en recepción..."></textarea>
+    </div>
+    <button class="btn-confirmar" id="btnConfirmar" disabled onclick="confirmarEntrega()">
+      <i class="ti ti-check"></i>Confirmar entrega
+    </button>
+  </div>
+</div>
+
+<!-- Sheet: reportar incidencia -->
+<div class="sheet-bg" id="sheetIncidencia">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="color:var(--red)"><i class="ti ti-alert-triangle"></i>Reportar incidencia</div>
+    <div class="sheet-sub">¿Por qué no se pudo entregar?</div>
+    <div class="inc-options" id="incOpciones">
+      <div class="inc-opt" onclick="seleccionarMotivo(this,'Cliente ausente')"><div class="inc-dot"></div>Cliente ausente</div>
+      <div class="inc-opt" onclick="seleccionarMotivo(this,'Dirección incorrecta')"><div class="inc-dot"></div>Dirección incorrecta</div>
+      <div class="inc-opt" onclick="seleccionarMotivo(this,'Cliente rechazó el paquete')"><div class="inc-dot"></div>Cliente rechazó el paquete</div>
+      <div class="inc-opt" onclick="seleccionarMotivo(this,'Zona de difícil acceso')"><div class="inc-dot"></div>Zona de difícil acceso</div>
+      <div class="inc-opt" onclick="seleccionarMotivo(this,'Otro motivo')"><div class="inc-dot"></div>Otro motivo</div>
+    </div>
+    <div class="nota-field">
+      <label>Detalle adicional (opcional)</label>
+      <textarea id="notaIncidencia" placeholder="Describe lo que ocurrió..."></textarea>
+    </div>
+    <button class="btn-reportar" id="btnReportar" disabled onclick="reportarIncidencia()">
+      <i class="ti ti-send"></i>Reportar incidencia
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { db } from "./assets/js/firebase-config.js";
+  import {
+    collection, query, orderBy, onSnapshot,
+    doc, updateDoc, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // ── Leer parámetros URL ───────────────────────────────────
+  const params    = new URLSearchParams(window.location.search);
+  const vehiculo  = params.get("v");     // "moto" | "auto"
+  const fechaKey  = params.get("fecha"); // YYYY-MM-DD
+  const empresaId = params.get("e") || "demo";
+
+  // Validar parámetros básicos
+  if (!vehiculo || !fechaKey || !["moto","auto"].includes(vehiculo)) {
+    document.getElementById("errorScreen").style.display = "";
+    throw new Error("Parámetros inválidos");
+  }
+
+  // ── Auto-login del repartidor ─────────────────────────────
+  const auth = getAuth();
+  const repEmail = vehiculo === "moto"
+    ? "repartidor1@vruta-demo.com"
+    : "repartidor2@vruta-demo.com";
+
+  try {
+    await signInWithEmailAndPassword(auth, repEmail, "Vruta2026#");
+  } catch(e) {
+    // Si ya hay sesión activa, continúa
+  }
+
+  // ── Empresa ───────────────────────────────────────────────
+  const empresaSnap = await getDoc(doc(db, "empresas", empresaId));
+  const empresa = empresaSnap.exists() ? empresaSnap.data() : { nombre: "Demo" };
+
+  // ── UI inicial ────────────────────────────────────────────
+  const repNombre = vehiculo === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+  const fechaDisplay = new Date(fechaKey+"T00:00:00")
+    .toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long"});
+
+  document.getElementById("repChip").textContent   = repNombre;
+  document.getElementById("headerSub").textContent = `${fechaDisplay} · ${empresa.nombre}`;
+  document.getElementById("appShell").style.display = "flex";
+
+  // ── Estado ───────────────────────────────────────────────
+  let todosPedidos = [];
+  let tabActiva    = "pendiente";
+  let pedidoActivo = null;
+  let fotoBase64   = null;
+  let motivoInc    = null;
+
+  // ── Escuchar pedidos en tiempo real ──────────────────────
+  const pedidosRef = collection(db, "empresas", empresaId, "jornadas", fechaKey, "pedidos");
+  const q = query(pedidosRef, orderBy("orden","asc"));
+
+  onSnapshot(q, snap => {
+    todosPedidos = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => p.vehiculo === vehiculo);
+    actualizarUI();
+  });
+
+  // ── Actualizar UI ─────────────────────────────────────────
+  function actualizarUI() {
+    const entregados  = todosPedidos.filter(p=>p.estado==="entregado").length;
+    const pendientes  = todosPedidos.filter(p=>p.estado==="pendiente").length;
+    const incidencias = todosPedidos.filter(p=>p.estado==="incidencia").length;
+    const total       = todosPedidos.length;
+    const pct         = total > 0 ? Math.round(entregados/total*100) : 0;
+
+    // Progreso
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progDone").textContent  = `${entregados} entregado${entregados!==1?"s":""}`;
+    document.getElementById("progTotal").textContent  = `${total} total`;
+
+    // Contadores tabs
+    document.getElementById("cntPend").textContent = pendientes;
+    document.getElementById("cntOk").textContent   = entregados;
+    document.getElementById("cntInc").textContent  = incidencias;
+
+    renderContent();
+  }
+
+  // ── Tabs ─────────────────────────────────────────────────
+  window.setTab = (tab) => {
+    tabActiva = tab;
+    document.getElementById("tabPend").className = "tab" + (tab==="pendiente"?" active-pend":"");
+    document.getElementById("tabOk").className   = "tab" + (tab==="entregado"?" active-ok":"");
+    document.getElementById("tabInc").className  = "tab" + (tab==="incidencia"?" active-inc":"");
+    renderContent();
+  };
+
+  // ── Render content ────────────────────────────────────────
+  function renderContent() {
+    const content = document.getElementById("content");
+    const filtrados = todosPedidos.filter(p => p.estado === tabActiva);
+
+    if (filtrados.length === 0) {
+      const msgs = {
+        pendiente: { icon:"ti-check-all", txt:"¡Todo al día!<br>No quedan pedidos pendientes." },
+        entregado: { icon:"ti-package",   txt:"Aún no hay entregas confirmadas." },
+        incidencia:{ icon:"ti-mood-happy",txt:"Sin incidencias registradas. ¡Excelente!" }
+      };
+      const m = msgs[tabActiva];
+      content.innerHTML = `<div class="empty"><i class="ti ${m.icon}"></i><p>${m.txt}</p></div>`;
+      return;
+    }
+
+    content.innerHTML = filtrados.map((p, i) => renderCard(p, i)).join("");
+  }
+
+  function renderCard(p, i) {
+    const esNext = tabActiva==="pendiente" && i===0;
+
+    if (tabActiva === "entregado") {
+      return `
+        <div class="pcard done-card">
+          <div class="pc-top">
+            <div class="pc-badge pb-ok"><i class="ti ti-check" style="font-size:12px"></i></div>
+            <div class="pc-info">
+              <div class="pc-name">${p.cliente}</div>
+              <div class="pc-dir">${p.direccion}</div>
+              ${p.producto?`<div class="pc-prod">${p.producto}</div>`:""}
+            </div>
+            <span class="pc-status s-ok">Entregado</span>
+          </div>
+          <div class="done-info">
+            <div class="done-thumb">
+              ${p.foto_entrega?`<img src="${p.foto_entrega}" alt="foto"/>`:`<i class="ti ti-camera"></i>`}
+            </div>
+            <div class="done-meta">
+              <b>${p.hora_entrega||"—"}</b><br>
+              ${p.nota_entrega?`"${p.nota_entrega}"`:"Sin nota"}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    if (tabActiva === "incidencia") {
+      return `
+        <div class="pcard inc-card">
+          <div class="pc-top">
+            <div class="pc-badge pb-inc"><i class="ti ti-alert-triangle" style="font-size:12px"></i></div>
+            <div class="pc-info">
+              <div class="pc-name">${p.cliente}</div>
+              <div class="pc-dir">${p.direccion}</div>
+              ${p.producto?`<div class="pc-prod">${p.producto}</div>`:""}
+            </div>
+            <span class="pc-status s-inc">Incidencia</span>
+          </div>
+          <div class="inc-info">
+            <div class="inc-motivo"><i class="ti ti-point" style="font-size:10px"></i>${p.incidencia_motivo||"—"}</div>
+            <div class="inc-hora">${p.hora_incidencia||""}</div>
+          </div>
+        </div>`;
+    }
+
+    // Pendiente
+    const mapsUrl = p.lat
+      ? `https://maps.google.com/?q=${p.lat},${p.lng}`
+      : `https://maps.google.com/?q=${encodeURIComponent(p.direccion+", Lima, Peru")}`;
+
+    return `
+      <div class="pcard ${esNext?"next-card":""}">
+        <div class="pc-top">
+          <div class="pc-badge ${esNext?"pb-next":"pb-pend"}">${esNext?"→":i+1}</div>
+          <div class="pc-info">
+            <div class="pc-name">${p.cliente}</div>
+            <div class="pc-dir">${p.direccion}</div>
+            ${p.producto?`<div class="pc-prod">${p.producto}</div>`:""}
+            ${p.nota?`<div class="pc-nota"><i class="ti ti-info-circle" style="font-size:12px"></i>${p.nota}</div>`:""}
+          </div>
+          <span class="pc-status ${esNext?"s-next":"s-pend"}">${esNext?"Siguiente":"Pendiente"}</span>
+        </div>
+        <div class="pc-actions">
+          <a class="btn-maps" href="${mapsUrl}" target="_blank" onclick="event.stopPropagation()">
+            <i class="ti ti-map-pin" style="font-size:14px"></i>Abrir Maps
+          </a>
+          <div class="btn-entregar" onclick="abrirEntrega('${p.id}')">
+            <i class="ti ti-camera" style="font-size:14px"></i>Entregado
+          </div>
+          <div class="btn-incidencia" onclick="abrirIncidencia('${p.id}')">
+            <i class="ti ti-alert-triangle" style="font-size:14px"></i>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Sheet Entrega ─────────────────────────────────────────
+  window.abrirEntrega = (id) => {
+    pedidoActivo = todosPedidos.find(p=>p.id===id);
+    if (!pedidoActivo) return;
+    fotoBase64 = null;
+    document.getElementById("fotoPreview").style.display = "none";
+    document.getElementById("fotoZone").style.display    = "";
+    document.getElementById("fotoZoneTxt").textContent   = "Tomar foto de evidencia";
+    document.getElementById("notaEntrega").value         = "";
+    document.getElementById("btnConfirmar").disabled     = true;
+    document.getElementById("sheetEntregaSub").textContent = `${pedidoActivo.cliente} · ${pedidoActivo.direccion}`;
+    document.getElementById("sheetEntrega").classList.add("show");
+  };
+
+  window.previsualizarFoto = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Comprimir imagen antes de guardar
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX/w); w = MAX; }
+          else        { w = Math.round(w * MAX/h); h = MAX; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        fotoBase64 = canvas.toDataURL("image/jpeg", 0.72);
+
+        // Mostrar preview
+        const preview = document.getElementById("fotoPreview");
+        preview.src = fotoBase64;
+        preview.style.display = "block";
+        document.getElementById("fotoZone").style.display = "none";
+        document.getElementById("btnConfirmar").disabled = false;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.confirmarEntrega = async () => {
+    if (!pedidoActivo || !fotoBase64) return;
+    const btn = document.getElementById("btnConfirmar");
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spin" style="width:18px;height:18px;border-width:2px"></div>Guardando...`;
+
+    const hora = new Date().toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"});
+    try {
+      const pedidoRef = doc(db, "empresas", empresaId, "jornadas", fechaKey, "pedidos", pedidoActivo.id);
+      await updateDoc(pedidoRef, {
+        estado:        "entregado",
+        foto_entrega:  fotoBase64,
+        hora_entrega:  hora,
+        nota_entrega:  document.getElementById("notaEntrega").value.trim(),
+        entregado_en:  new Date().toISOString()
+      });
+
+      document.getElementById("sheetEntrega").classList.remove("show");
+      mostrarToast("✓ Entrega confirmada", "ok");
+      pedidoActivo = null;
+      fotoBase64   = null;
+
+      // Reset input file
+      document.getElementById("fotoInput").value = "";
+    } catch(e) {
+      mostrarToast("Error al guardar: " + e.message, "err");
+      btn.disabled = false;
+      btn.innerHTML = `<i class="ti ti-check"></i>Confirmar entrega`;
+    }
+  };
+
+  // ── Sheet Incidencia ──────────────────────────────────────
+  window.abrirIncidencia = (id) => {
+    pedidoActivo = todosPedidos.find(p=>p.id===id);
+    if (!pedidoActivo) return;
+    motivoInc = null;
+    document.querySelectorAll(".inc-opt").forEach(o => {
+      o.classList.remove("selected");
+      o.querySelector(".inc-dot").classList.remove("sel");
+    });
+    document.getElementById("notaIncidencia").value = "";
+    document.getElementById("btnReportar").disabled  = true;
+    document.getElementById("sheetIncidencia").classList.add("show");
+  };
+
+  window.seleccionarMotivo = (el, motivo) => {
+    document.querySelectorAll(".inc-opt").forEach(o => {
+      o.classList.remove("selected");
+      o.querySelector(".inc-dot").classList.remove("sel");
+    });
+    el.classList.add("selected");
+    el.querySelector(".inc-dot").classList.add("sel");
+    motivoInc = motivo;
+    document.getElementById("btnReportar").disabled = false;
+  };
+
+  window.reportarIncidencia = async () => {
+    if (!pedidoActivo || !motivoInc) return;
+    const btn = document.getElementById("btnReportar");
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spin" style="width:18px;height:18px;border-width:2px;border-top-color:white"></div>Guardando...`;
+
+    const hora = new Date().toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"});
+    try {
+      const pedidoRef = doc(db, "empresas", empresaId, "jornadas", fechaKey, "pedidos", pedidoActivo.id);
+      await updateDoc(pedidoRef, {
+        estado:             "incidencia",
+        incidencia_motivo:  motivoInc,
+        incidencia_detalle: document.getElementById("notaIncidencia").value.trim(),
+        hora_incidencia:    hora,
+        incidencia_en:      new Date().toISOString()
+      });
+
+      document.getElementById("sheetIncidencia").classList.remove("show");
+      mostrarToast("Incidencia registrada", "ok");
+      pedidoActivo = null;
+      motivoInc    = null;
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+      btn.disabled = false;
+      btn.innerHTML = `<i class="ti ti-send"></i>Reportar incidencia`;
+    }
+  };
+
+  // ── Cerrar sheets al tocar fondo ──────────────────────────
+  document.getElementById("sheetEntrega").addEventListener("click", e => {
+    if (e.target === document.getElementById("sheetEntrega"))
+      document.getElementById("sheetEntrega").classList.remove("show");
+  });
+  document.getElementById("sheetIncidencia").addEventListener("click", e => {
+    if (e.target === document.getElementById("sheetIncidencia"))
+      document.getElementById("sheetIncidencia").classList.remove("show");
+  });
+
+  // ── Toast ─────────────────────────────────────────────────
+  let toastTimer;
+  function mostrarToast(msg, tipo="ok") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = `toast show ${tipo}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove("show"), 3000);
+  }
+</script>
+
+</body>
+</html>
