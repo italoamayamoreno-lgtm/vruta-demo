@@ -682,6 +682,11 @@
   //   2. Desde ahí, siempre va al punto más cercano a la posición actual
   //   3. Resultado: espiral natural alejándose del almacén
   //
+  // ── Nearest Neighbor desde punto extremo ─────────────────
+  // Lejano→Cercano: empieza en el MÁS LEJANO, siempre elige
+  //   el más cercano al punto anterior. Termina naturalmente cerca.
+  // Cercano→Lejano: empieza en el MÁS CERCANO, mismo proceso.
+  //   Termina naturalmente lejos.
   function nearestNeighbor(pedidos, almacen, criterio) {
     const conCoords = pedidos.filter(p => p.lat && p.lng);
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
@@ -692,38 +697,23 @@
       dAlm: distancia(almacen, p)
     }));
 
-    // Punto de inicio: el MÁS LEJANO (lejano→cercano) o MÁS CERCANO (cercano→lejano)
+    // Ordenar para identificar el punto de inicio
     puntos.sort((a, b) =>
-      criterio === "lejano" ? b.dAlm - a.dAlm : a.dAlm - b.dAlm
+      criterio === "lejano"
+        ? b.dAlm - a.dAlm   // más lejano al inicio
+        : a.dAlm - b.dAlm   // más cercano al inicio
     );
 
-    const ruta   = [];
+    const ruta = [];
     let pendientes = [...puntos];
-    let actual     = pendientes.shift(); // punto extremo según criterio
+    let actual = pendientes.shift(); // punto extremo
     ruta.push(actual);
 
+    // Nearest Neighbor puro: siempre el más cercano al punto anterior
     while (pendientes.length > 0) {
-      const dActualAlm = distancia(almacen, actual);
-
-      // Filtrar candidatos en la dirección correcta:
-      // lejano→cercano: solo puntos MÁS CERCA del almacén que la posición actual
-      // cercano→lejano: solo puntos MÁS LEJOS del almacén que la posición actual
-      let candidatos = pendientes.filter(p =>
-        criterio === "lejano"
-          ? p.dAlm < dActualAlm   // acercándose al almacén
-          : p.dAlm > dActualAlm   // alejándose del almacén
-      );
-
-      // Si no hay candidatos en la dirección correcta, usar todos los pendientes
-      if (candidatos.length === 0) candidatos = [...pendientes];
-
-      // De los candidatos, elegir el más cercano a la posición actual
-      candidatos.sort((a, b) => distancia(actual, a) - distancia(actual, b));
-      const siguiente = candidatos[0];
-
-      ruta.push(siguiente);
-      actual = siguiente;
-      pendientes = pendientes.filter(p => p !== siguiente);
+      pendientes.sort((a, b) => distancia(actual, a) - distancia(actual, b));
+      actual = pendientes.shift();
+      ruta.push(actual);
     }
 
     return [...ruta, ...sinCoords];
