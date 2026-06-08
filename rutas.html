@@ -737,22 +737,27 @@
     }
   }
 
-  // Cercano → Lejano: Nearest Neighbor clásico
-  function rutaCercanoLejano(conCoords, sinCoords, inicio) {
-    let pendientes = [...conCoords];
-    const ruta = [];
-    let actual = inicio;
-    while (pendientes.length > 0) {
-      let idx = 0, bestDist = Infinity;
-      for (let i = 0; i < pendientes.length; i++) {
-        const d = distancia(actual, pendientes[i]);
-        if (d < bestDist) { bestDist = d; idx = i; }
-      }
-      ruta.push(pendientes[idx]);
-      actual = pendientes[idx];
-      pendientes.splice(idx, 1);
-    }
-    return [...ruta, ...sinCoords];
+  // Cercano → Lejano: zonas por distancia al almacén, empieza cerca y termina lejos
+  function rutaCercanoLejano(conCoords, sinCoords, almacen) {
+    const conDistancia = conCoords.map(p => ({
+      ...p,
+      distAlmacen: distancia(almacen, p)
+    }));
+
+    // Ordenar de más cercano a más lejano
+    conDistancia.sort((a, b) => a.distAlmacen - b.distAlmacen);
+
+    const n = conDistancia.length;
+    const zonaCercana = conDistancia.slice(0, Math.ceil(n/3));
+    const zonaMedia   = conDistancia.slice(Math.ceil(n/3), Math.ceil(2*n/3));
+    const zonaLejana  = conDistancia.slice(Math.ceil(2*n/3));
+
+    // Nearest Neighbor dentro de cada zona, encadenadas
+    const rutaCercana = nnDentroDeZona(zonaCercana, almacen);
+    const rutaMedia   = nnDentroDeZona(zonaMedia,   rutaCercana[rutaCercana.length-1] || almacen);
+    const rutaLejana  = nnDentroDeZona(zonaLejana,  rutaMedia[rutaMedia.length-1]     || almacen);
+
+    return [...rutaCercana, ...rutaMedia, ...rutaLejana, ...sinCoords];
   }
 
   // Lejano → Cercano: agrupa por distancia al almacén y optimiza por zona
