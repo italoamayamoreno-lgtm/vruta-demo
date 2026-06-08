@@ -335,6 +335,7 @@
     deleteDoc, where
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  console.log("[Vruta] SCRIPT INICIADO - post imports");
   // ── Configuración visual por tipo de vehículo (global) ──────
   const VEH_CONFIG = {
     moto:      { icon:"ti-motorbike", color:"var(--green)",  bg:"rgba(34,197,94,0.12)",  label:"Moto",      mapColor:"#22c55e" },
@@ -346,12 +347,14 @@
   // ── Auth ─────────────────────────────────────────────────
   const usuario = requireAuth("operador");
   if (!usuario) throw new Error("No autorizado");
+  console.log("[Vruta] Auth OK - usuario:", usuario.nombre);
   document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
   document.getElementById("btnLogout").addEventListener("click", logout);
 
   const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
   const empresa = empresaSnap.data();
   document.getElementById("clienteNombre").textContent = empresa.nombre;
+  console.log("[Vruta] Empresa OK:", empresa.nombre);
   const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
   const fechaKey = new Date().toISOString().split("T")[0];
 
