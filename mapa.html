@@ -377,10 +377,17 @@
         .filter(r => r.activo !== false);
     } catch(e) { console.warn("Error cargando repartidores:", e.message); }
   }
+  console.log("[Vruta] Cargando repartidores...");
   await cargarRepartidores();
+  console.log("[Vruta] Repartidores activos:", repartidoresActivos.length, repartidoresActivos.map(r=>r.nombre));
 
   // Generar columnas dinámicamente según repartidores activos en Flota
-  generarColumnas();
+  try {
+    generarColumnas();
+    console.log("[Vruta] generarColumnas() completada");
+  } catch(e) {
+    console.error("[Vruta] Error en generarColumnas:", e);
+  }
 
   // Obtener repartidor activo por tipo de vehículo
   function getRepartidor(vehiculo) {
