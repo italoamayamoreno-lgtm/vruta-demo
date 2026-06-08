@@ -1166,7 +1166,8 @@ _El link es válido solo para hoy._`;
     setTimeout(() => {
       if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
 
-      mapaLeaflet = L.map("mapaContainer");
+      mapaLeaflet = L.map("mapaContainer", { zoomControl: true });
+      mapaLeaflet.invalidateSize();
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors"
       }).addTo(mapaLeaflet);
@@ -1208,7 +1209,8 @@ _El link es válido solo para hoy._`;
       // Ajustar vista para mostrar todos los puntos
       const bounds = L.latLngBounds(puntos);
       mapaLeaflet.fitBounds(bounds, { padding: [30, 30] });
-    }, 100);
+      setTimeout(() => mapaLeaflet.invalidateSize(), 100);
+    }, 350);
   };
 
   window.cerrarMapa = () => {
