@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vruta · Configuración</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <style>
+    :root{--mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;--copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--red:#ef4444;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;}
+    .topbar{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+    .logo-area{display:flex;align-items:center;gap:10px;}
+    .logo-text{display:flex;flex-direction:column;line-height:1.1;}
+    .logo-main{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
+    .logo-sub{font-size:9px;color:var(--copper);letter-spacing:0.07em;}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .client-chip{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:999px;padding:4px 14px;font-size:11px;color:var(--copper);font-weight:500;}
+    .user-dot{width:30px;height:30px;border-radius:50%;background:rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--copper);}
+    .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;}
+    .btn-logout:hover{border-color:rgba(239,68,68,0.4);color:var(--red);}
+    .app-body{display:flex;flex:1;}
+    .sidebar{background:var(--mid2);width:56px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);}
+    .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+    .sib:hover{background:rgba(255,255,255,0.05);color:var(--ice);}
+    .sib.active{background:rgba(184,115,51,0.15);color:var(--copper);}
+    .sib-spacer{flex:1;}
+    .main{flex:1;padding:24px;overflow:auto;max-width:800px;}
+    .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:20px;}
+    .page-title{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ice);margin-bottom:24px;}
+    .section{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px;margin-bottom:16px;}
+    .section-title{font-size:13px;font-weight:600;color:var(--ice);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+    .section-sub{font-size:11px;color:var(--graph);margin-bottom:16px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .form-grid.full{grid-template-columns:1fr;}
+    .field{display:flex;flex-direction:column;gap:5px;}
+    .field label{font-size:11px;color:var(--graph);font-weight:500;}
+    .field input,.field select,.field textarea{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ice);font-family:'Inter',sans-serif;outline:none;transition:border-color 0.15s;width:100%;}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(184,115,51,0.5);background:rgba(184,115,51,0.04);}
+    .field input::placeholder{color:rgba(148,163,184,0.4);}
+    .field select option{background:var(--mid2);}
+    .coords-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .geocode-btn{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:7px;padding:8px 14px;font-size:11px;color:var(--copper);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;transition:all 0.15s;white-space:nowrap;}
+    .geocode-btn:hover{background:rgba(184,115,51,0.2);}
+    .coords-preview{background:rgba(34,197,94,0.06);border:0.5px solid rgba(34,197,94,0.2);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--green);display:none;align-items:center;gap:6px;}
+    .coords-preview.show{display:flex;}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.05);}
+    .toggle-row:last-child{border-bottom:none;}
+    .toggle-info{}
+    .toggle-lbl{font-size:13px;color:var(--ice);}
+    .toggle-desc{font-size:11px;color:var(--graph);margin-top:2px;}
+    .toggle{width:40px;height:22px;border-radius:999px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+    .toggle.on{background:var(--copper);}
+    .toggle.off{background:rgba(255,255,255,0.1);}
+    .toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:3px;transition:left 0.2s;}
+    .toggle.on::after{left:21px;}
+    .toggle.off::after{left:3px;}
+    .btn-save{background:var(--copper);border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--ice);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;gap:6px;transition:opacity 0.15s;}
+    .btn-save:hover{opacity:0.88;}
+    .btn-save:disabled{opacity:0.4;cursor:not-allowed;}
+    .save-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:16px;}
+    .save-msg{font-size:12px;color:var(--green);display:none;align-items:center;gap:5px;}
+    .save-msg.show{display:flex;}
+    .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:300;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.ok{border-color:rgba(34,197,94,0.3);}
+    .toast.err{border-color:rgba(239,68,68,0.3);}
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
+      <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
+    </svg>
+    <div class="logo-text"><span class="logo-main">VRUTA</span><span class="logo-sub">powered by Etrazia</span></div>
+  </div>
+  <div class="topbar-right">
+    <span class="client-chip" id="clienteNombre">Cargando...</span>
+    <div class="user-dot" id="usuarioAvatar">OP</div>
+    <button class="btn-logout" id="btnLogout"><i class="ti ti-logout"></i>Salir</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <nav class="sidebar">
+    <a class="sib" href="dashboard.html"><i class="ti ti-layout-dashboard"></i></a>
+    <a class="sib" href="rutas.html"><i class="ti ti-route"></i></a>
+    <a class="sib" href="flota.html"><i class="ti ti-motorbike"></i></a>
+    <a class="sib" href="historial.html"><i class="ti ti-history"></i></a>
+    <div class="sib-spacer"></div>
+    <a class="sib active" href="configuracion.html"><i class="ti ti-settings"></i></a>
+  </nav>
+
+  <main class="main">
+    <div class="mod-label">Configuración</div>
+    <div class="page-title">Ajustes del sistema</div>
+
+    <!-- Datos de la empresa -->
+    <div class="section">
+      <div class="section-title"><i class="ti ti-building-store" style="color:var(--copper)"></i>Datos de la empresa</div>
+      <div class="section-sub">Información general de tu negocio</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nombre de la empresa *</label>
+          <input type="text" id="cNombre" placeholder="Mi Empresa SAC"/>
+        </div>
+        <div class="field">
+          <label>RUC</label>
+          <input type="text" id="cRuc" placeholder="20512345678"/>
+        </div>
+        <div class="field">
+          <label>Teléfono de contacto</label>
+          <input type="tel" id="cTelefono" placeholder="987 654 321"/>
+        </div>
+        <div class="field">
+          <label>Correo de contacto</label>
+          <input type="email" id="cEmail" placeholder="contacto@empresa.com"/>
+        </div>
+      </div>
+      <div class="save-row">
+        <div class="save-msg" id="msgEmpresa"><i class="ti ti-check"></i>Guardado</div>
+        <button class="btn-save" onclick="guardarSeccion('empresa')"><i class="ti ti-device-floppy"></i>Guardar</button>
+      </div>
+    </div>
+
+    <!-- Almacén base -->
+    <div class="section">
+      <div class="section-title"><i class="ti ti-map-pin" style="color:var(--copper)"></i>Almacén base</div>
+      <div class="section-sub">Punto de partida para el cálculo de rutas. Ingresa la dirección y obtén las coordenadas automáticamente.</div>
+      <div class="form-grid full" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Dirección del almacén *</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="cAlmacenDir" placeholder="Av. Javier Prado 1240, San Isidro, Lima" style="flex:1"/>
+            <button class="geocode-btn" onclick="geocodificarAlmacen()">
+              <i class="ti ti-map-search" style="font-size:13px"></i>Obtener GPS
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="coords-row" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Latitud</label>
+          <input type="number" id="cAlmacenLat" placeholder="-12.0933" step="0.000001"/>
+        </div>
+        <div class="field">
+          <label>Longitud</label>
+          <input type="number" id="cAlmacenLng" placeholder="-77.0272" step="0.000001"/>
+        </div>
+      </div>
+      <div class="coords-preview" id="coordsPreview">
+        <i class="ti ti-circle-check" style="font-size:14px"></i>
+        <span id="coordsTexto">Coordenadas obtenidas</span>
+      </div>
+      <div class="save-row">
+        <div class="save-msg" id="msgAlmacen"><i class="ti ti-check"></i>Guardado</div>
+        <button class="btn-save" onclick="guardarSeccion('almacen')"><i class="ti ti-device-floppy"></i>Guardar</button>
+      </div>
+    </div>
+
+    <!-- Preferencias de ruta -->
+    <div class="section">
+      <div class="section-title"><i class="ti ti-route" style="color:var(--copper)"></i>Preferencias de ruta</div>
+      <div class="section-sub">Configuración por defecto para el planificador</div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-lbl">Criterio de ruta por defecto</div>
+          <div class="toggle-desc">Define si la ruta empieza por el punto más cercano o más lejano al almacén</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:var(--graph)" id="criterioDireccion">Cercano → Lejano</span>
+          <div class="toggle on" id="toggleCriterio" onclick="toggleCriterioRuta()"></div>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-lbl">Foto obligatoria al entregar</div>
+          <div class="toggle-desc">El repartidor no puede marcar una entrega sin adjuntar foto</div>
+        </div>
+        <div class="toggle on" id="toggleFoto" onclick="toggleOpcion('foto')"></div>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-lbl">Exportar resumen al cerrar jornada</div>
+          <div class="toggle-desc">Genera automáticamente un PDF al finalizar el día</div>
+        </div>
+        <div class="toggle off" id="toggleExport" onclick="toggleOpcion('export')"></div>
+      </div>
+
+      <div class="save-row">
+        <div class="save-msg" id="msgRuta"><i class="ti ti-check"></i>Guardado</div>
+        <button class="btn-save" onclick="guardarSeccion('ruta')"><i class="ti ti-device-floppy"></i>Guardar</button>
+      </div>
+    </div>
+
+    <!-- Zona peligrosa -->
+    <div class="section" style="border-color:rgba(239,68,68,0.15);">
+      <div class="section-title" style="color:var(--red)"><i class="ti ti-alert-triangle"></i>Zona de administración</div>
+      <div class="section-sub">Acciones irreversibles — úsalas con cuidado</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="limpiar.html" style="background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.2);border-radius:8px;padding:9px 16px;font-size:12px;color:var(--red);text-decoration:none;display:flex;align-items:center;gap:6px;">
+          <i class="ti ti-trash"></i>Limpiar datos del sistema
+        </a>
+        <a href="setup.html" style="background:rgba(148,163,184,0.06);border:0.5px solid rgba(148,163,184,0.15);border-radius:8px;padding:9px 16px;font-size:12px;color:var(--graph);text-decoration:none;display:flex;align-items:center;gap:6px;">
+          <i class="ti ti-refresh"></i>Re-ejecutar setup inicial
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { requireAuth, logout } from "./assets/js/auth.js";
+  import { db } from "./assets/js/firebase-config.js";
+  import { doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const GEOCODING_WORKER = "https://vruta-geocoding.italoamaya-moreno.workers.dev";
+
+  // ── Auth ─────────────────────────────────────────────────
+  const usuario = requireAuth("operador");
+  if (!usuario) throw new Error("No autorizado");
+  document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
+  document.getElementById("btnLogout").addEventListener("click", logout);
+
+  const EMPRESA_ID = usuario.empresa_id;
+
+  // ── Cargar datos actuales ─────────────────────────────────
+  const empresaSnap = await getDoc(doc(db, "empresas", EMPRESA_ID));
+  const empresa = empresaSnap.exists() ? empresaSnap.data() : {};
+
+  document.getElementById("clienteNombre").textContent = empresa.nombre || "—";
+  document.getElementById("cNombre").value    = empresa.nombre    || "";
+  document.getElementById("cRuc").value       = empresa.ruc       || "";
+  document.getElementById("cTelefono").value  = empresa.telefono  || "";
+  document.getElementById("cEmail").value     = empresa.email     || "";
+  document.getElementById("cAlmacenDir").value= empresa.almacen_dir || "";
+  document.getElementById("cAlmacenLat").value= empresa.almacen_lat || "";
+  document.getElementById("cAlmacenLng").value= empresa.almacen_lng || "";
+
+  // Mostrar coords si ya existen
+  if (empresa.almacen_lat && empresa.almacen_lng) {
+    document.getElementById("coordsTexto").textContent =
+      `GPS: ${empresa.almacen_lat.toFixed(5)}, ${empresa.almacen_lng.toFixed(5)}`;
+    document.getElementById("coordsPreview").classList.add("show");
+  }
+
+  // Config preferencias
+  const cfg = empresa.config || {};
+  setToggle("toggleCriterio", cfg.criterio_ruta !== "lejano");
+  setToggle("toggleFoto",     cfg.foto_obligatoria !== false);
+  setToggle("toggleExport",   cfg.exportar_pdf === true);
+  actualizarTextoCriterio();
+
+  // ── Geocodificar almacén ──────────────────────────────────
+  window.geocodificarAlmacen = async () => {
+    const dir = document.getElementById("cAlmacenDir").value.trim();
+    if (!dir) { mostrarToast("Ingresa la dirección primero", "err"); return; }
+
+    const btn = document.querySelector(".geocode-btn");
+    btn.innerHTML = `<div class="spin"></div>Buscando...`;
+    btn.disabled = true;
+
+    try {
+      const q = encodeURIComponent(dir + ", Lima, Peru");
+      const r = await fetch(`${GEOCODING_WORKER}?address=${q}`);
+      const d = await r.json();
+
+      if (d.status === "OK" && d.results.length > 0) {
+        const loc = d.results[0].geometry.location;
+        document.getElementById("cAlmacenLat").value = loc.lat.toFixed(6);
+        document.getElementById("cAlmacenLng").value = loc.lng.toFixed(6);
+        document.getElementById("coordsTexto").textContent =
+          `GPS: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)} · ${d.results[0].formatted_address}`;
+        document.getElementById("coordsPreview").classList.add("show");
+        mostrarToast("Coordenadas obtenidas ✓", "ok");
+      } else {
+        mostrarToast("No se encontró la dirección. Intenta con una más específica.", "err");
+      }
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+    } finally {
+      btn.innerHTML = `<i class="ti ti-map-search" style="font-size:13px"></i>Obtener GPS`;
+      btn.disabled = false;
+    }
+  };
+
+  // ── Guardar sección ───────────────────────────────────────
+  window.guardarSeccion = async (seccion) => {
+    const btn = document.querySelector(`#msg${seccion.charAt(0).toUpperCase()+seccion.slice(1)}`).nextElementSibling;
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spin"></div>Guardando...`;
+
+    let data = {};
+
+    if (seccion === "empresa") {
+      data = {
+        nombre:   document.getElementById("cNombre").value.trim(),
+        ruc:      document.getElementById("cRuc").value.trim(),
+        telefono: document.getElementById("cTelefono").value.trim(),
+        email:    document.getElementById("cEmail").value.trim(),
+      };
+      if (!data.nombre) { mostrarToast("El nombre es obligatorio", "err"); return; }
+    }
+
+    if (seccion === "almacen") {
+      const lat = parseFloat(document.getElementById("cAlmacenLat").value);
+      const lng = parseFloat(document.getElementById("cAlmacenLng").value);
+      const dir = document.getElementById("cAlmacenDir").value.trim();
+      if (!dir || !lat || !lng) {
+        mostrarToast("Ingresa la dirección y obtén las coordenadas GPS", "err");
+        btn.disabled = false;
+        btn.innerHTML = `<i class="ti ti-device-floppy"></i>Guardar`;
+        return;
+      }
+      data = { almacen_dir: dir, almacen_lat: lat, almacen_lng: lng };
+    }
+
+    if (seccion === "ruta") {
+      data = {
+        config: {
+          criterio_ruta:    document.getElementById("toggleCriterio").classList.contains("on") ? "cercano" : "lejano",
+          foto_obligatoria: document.getElementById("toggleFoto").classList.contains("on"),
+          exportar_pdf:     document.getElementById("toggleExport").classList.contains("on"),
+        }
+      };
+    }
+
+    try {
+      await setDoc(doc(db, "empresas", EMPRESA_ID), data, { merge: true });
+      const msgId = `msg${seccion.charAt(0).toUpperCase()+seccion.slice(1)}`;
+      document.getElementById(msgId).classList.add("show");
+      setTimeout(() => document.getElementById(msgId).classList.remove("show"), 2500);
+      mostrarToast("Configuración guardada ✓", "ok");
+
+      // Actualizar chip del nombre si cambió
+      if (seccion === "empresa" && data.nombre) {
+        document.getElementById("clienteNombre").textContent = data.nombre;
+      }
+    } catch(e) {
+      mostrarToast("Error: " + e.message, "err");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="ti ti-device-floppy"></i>Guardar`;
+    }
+  };
+
+  // ── Toggles ───────────────────────────────────────────────
+  function setToggle(id, estado) {
+    const el = document.getElementById(id);
+    el.classList.toggle("on",  estado);
+    el.classList.toggle("off", !estado);
+  }
+
+  window.toggleCriterioRuta = () => {
+    const el = document.getElementById("toggleCriterio");
+    el.classList.toggle("on");
+    el.classList.toggle("off");
+    actualizarTextoCriterio();
+  };
+
+  function actualizarTextoCriterio() {
+    const esCercano = document.getElementById("toggleCriterio").classList.contains("on");
+    document.getElementById("criterioDireccion").textContent =
+      esCercano ? "Cercano → Lejano" : "Lejano → Cercano";
+  }
+
+  window.toggleOpcion = (tipo) => {
+    const ids = { foto: "toggleFoto", export: "toggleExport" };
+    const el = document.getElementById(ids[tipo]);
+    el.classList.toggle("on");
+    el.classList.toggle("off");
+  };
+
+  // ── Toast ─────────────────────────────────────────────────
+  let toastTimer;
+  function mostrarToast(msg, tipo = "ok") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = `toast show ${tipo}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
+  }
+</script>
+</body>
+</html>
