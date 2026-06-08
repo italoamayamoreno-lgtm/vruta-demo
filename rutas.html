@@ -1150,6 +1150,7 @@ _El link es válido solo para hoy._`;
   let mapaLeaflet = null;
 
   window.verMapa = (V) => {
+    console.log("verMapa llamado con V=", V, "state:", state[V]?.pedidos?.length);
     const pedidos = state[V].pedidos;
     const conGPS  = pedidos.filter(p => p.lat && p.lng);
 
@@ -1175,6 +1176,7 @@ _El link es válido solo para hoy._`;
 
     // Inicializar Leaflet después de que el DOM esté visible
     setTimeout(() => {
+      console.log("Iniciando Leaflet...", typeof L, document.getElementById("mapaContainer"));
       try {
         window._mapa = L.map("mapaContainer");
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
