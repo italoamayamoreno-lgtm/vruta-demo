@@ -1149,85 +1149,23 @@ _El link es válido solo para hoy._`;
   // ── Mapa de ruta ─────────────────────────────────────────
   let mapaLeaflet = null;
 
+  // Abrir mapa en nueva página (evita problemas de Leaflet en modal)
   window.verMapa = (V) => {
-    console.log("verMapa llamado con V=", V, "state:", state[V]?.pedidos?.length);
     const pedidos = state[V].pedidos;
     const conGPS  = pedidos.filter(p => p.lat && p.lng);
-
     if (conGPS.length === 0) {
-      mostrarToast("No hay pedidos con GPS. Primero geocodifica las direcciones.", "err");
+      mostrarToast("No hay pedidos con GPS. Geocodifica primero.", "err");
       return;
     }
-
-    const veh   = V === "moto" ? "Moto" : "Auto";
-    const color = V === "moto" ? "#22c55e" : "#D97706";
-    const rep   = V === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
-
-    document.getElementById("mapaTitulo").innerHTML = `<i class="ti ti-map-2"></i>Ruta ${veh}`;
-    document.getElementById("mapaSub").textContent  = `${conGPS.length} puntos con GPS · ${rep}`;
-
-    // Mostrar modal con display:flex (no classList para evitar conflictos)
-    const bg = document.getElementById("modalMapaBg");
-    bg.style.display = "flex";
-
-    // Limpiar mapa anterior
-    document.getElementById("mapaContainer").innerHTML = "";
-    if (window._mapa) { try { window._mapa.remove(); } catch(e){} window._mapa = null; }
-
-    // Inicializar Leaflet después de que el DOM esté visible
-    setTimeout(() => {
-      console.log("Iniciando Leaflet...", typeof L, document.getElementById("mapaContainer"));
-      try {
-        window._mapa = L.map("mapaContainer");
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "© OpenStreetMap", maxZoom: 18
-        }).addTo(window._mapa);
-
-        const pts = [];
-
-        // Almacén
-        L.marker([ALMACEN.lat, ALMACEN.lng], {
-          icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5)"></div>`,
-            iconSize:[20,20], iconAnchor:[10,10], className:""
-          })
-        }).addTo(window._mapa).bindPopup("<b>📦 Almacén</b>");
-        pts.push([ALMACEN.lat, ALMACEN.lng]);
-
-        // Pedidos
-        pedidos.forEach((p, i) => {
-          if (!p.lat || !p.lng) return;
-          const n = i + 1;
-          L.marker([p.lat, p.lng], {
-            icon: L.divIcon({
-              html: `<div style="background:${color};color:#fff;width:28px;height:28px;border-radius:50%;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${n}</div>`,
-              iconSize:[28,28], iconAnchor:[14,14], className:""
-            })
-          }).addTo(window._mapa)
-            .bindPopup(`<b>${n}. ${p.cliente}</b><br>${p.direccion}`);
-          pts.push([p.lat, p.lng]);
-        });
-
-        // Línea
-        L.polyline(pts, { color, weight:2.5, opacity:0.8, dashArray:"6,4" })
-          .addTo(window._mapa);
-
-        window._mapa.fitBounds(L.latLngBounds(pts), { padding:[40,40] });
-        window._mapa.invalidateSize();
-      } catch(err) {
-        console.error("Error Leaflet:", err);
-      }
-    }, 300);
+    // Guardar ALMACEN en localStorage para que mapa.html lo lea
+    try {
+      localStorage.setItem(`vruta_config_${usuario.empresa_id}`, JSON.stringify({
+        almacen_lat: ALMACEN.lat,
+        almacen_lng: ALMACEN.lng
+      }));
+    } catch(e) {}
+    window.open(`mapa.html?v=${V}&e=${usuario.empresa_id}`, "_blank");
   };
-
-  window.cerrarMapa = () => {
-    document.getElementById("modalMapaBg").style.display = "none";
-    if (window._mapa) { try { window._mapa.remove(); } catch(e){} window._mapa = null; }
-  };
-
-  document.getElementById("modalMapaBg").addEventListener("click", e => {
-    if (e.target === document.getElementById("modalMapaBg")) cerrarMapa();
-  });
 
   // ── Drag & drop zona upload ───────────────────────────────
   window.dragOver  = e => { e.preventDefault(); e.currentTarget.classList.add("drag"); };
