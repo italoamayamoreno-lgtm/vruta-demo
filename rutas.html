@@ -531,7 +531,8 @@
     const btn = document.getElementById(`btnLanzar-${repId}`);
     const tiene = state[repId].pedidos.length > 0;
     btn.disabled = !tiene;
-    btn.className = `launch-btn ${tiene ? (V==="moto"?"launch-moto":"launch-auto") : "launch-dis"}`;
+    const vehiculo = state[repId]?.vehiculo || "moto";
+    btn.className = `launch-btn ${tiene ? `launch-${vehiculo}` : "launch-dis"}`;
   }
 
   // ── Geocoding (Nominatim, gratis) ─────────────────────────
@@ -653,8 +654,8 @@
     state[repId].fileName = file.name;
 
     document.getElementById(`geoProc-${repId}`).classList.remove("show");
-    mostrarVehiculo(V);
-    optimizar(V);
+    mostrarVehiculo(repId);
+    await optimizar(repId);
     mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
   }
 
@@ -755,12 +756,12 @@
         <div class="ri" data-id="${p.id}">
           <i class="ti ti-grip-vertical ri-grip"></i>
           <div class="ri-num">${String(i+1).padStart(2,"0")}</div>
-          <div class="ri-info" onclick="verDetalle('${V}','${p.id}')" title="Ver detalle del pedido">
+          <div class="ri-info" onclick="verDetalle('${repId}','${p.id}')" title="Ver detalle del pedido">
             <div class="ri-name">${p.cliente}</div>
             <div class="ri-addr">${p.direccion}</div>
           </div>
           <a class="ri-maps" href="${mapsUrl}" target="_blank" onclick="event.stopPropagation()" title="Ver en Google Maps"><i class="ti ti-map-pin"></i></a>
-          <div class="ri-del" onclick="pedirConfirmEliminar('${V}','${p.id}')" title="Eliminar de la ruta"><i class="ti ti-x"></i></div>
+          <div class="ri-del" onclick="pedirConfirmEliminar('${repId}','${p.id}')" title="Eliminar de la ruta"><i class="ti ti-x"></i></div>
         </div>`;
     }).join("");
 
@@ -787,7 +788,7 @@
   }
 
   // ── Ver detalle del pedido ────────────────────────────────
-  window.verDetalle = (V, id) => {
+  window.verDetalle = (repId, id) => {
     const p = state[repId].pedidos.find(x => x.id === id);
     if (!p) return;
     const veh = V === "moto" ? "Moto" : "Auto";
@@ -815,7 +816,7 @@
   };
 
   // ── Confirmar eliminar cliente ────────────────────────────
-  window.pedirConfirmEliminar = (V, id) => {
+  window.pedirConfirmEliminar = (repId, id) => {
     const p = state[repId].pedidos.find(x => x.id === id);
     if (!p) return;
     document.getElementById("confirmClienteMsg").textContent =
