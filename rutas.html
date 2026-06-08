@@ -687,34 +687,43 @@
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
     if (conCoords.length === 0) return [...sinCoords];
 
-    // Calcular distancia de cada punto al almacén
     const puntos = conCoords.map(p => ({
       ...p,
       dAlm: distancia(almacen, p)
     }));
 
-    // Elegir punto de inicio según criterio
+    // Punto de inicio: el MÁS LEJANO (lejano→cercano) o MÁS CERCANO (cercano→lejano)
     puntos.sort((a, b) =>
-      criterio === "lejano"
-        ? b.dAlm - a.dAlm   // Más lejano primero
-        : a.dAlm - b.dAlm   // Más cercano primero
+      criterio === "lejano" ? b.dAlm - a.dAlm : a.dAlm - b.dAlm
     );
 
-    const ruta = [];
+    const ruta   = [];
     let pendientes = [...puntos];
-
-    // Punto inicial = el extremo según criterio
-    let actual = pendientes[0];
+    let actual     = pendientes.shift(); // punto extremo según criterio
     ruta.push(actual);
-    pendientes.splice(0, 1);
 
-    // Nearest Neighbor puro: siempre el más cercano a la posición actual
     while (pendientes.length > 0) {
-      pendientes.sort((a, b) => distancia(actual, a) - distancia(actual, b));
-      const siguiente = pendientes[0];
+      const dActualAlm = distancia(almacen, actual);
+
+      // Filtrar candidatos en la dirección correcta:
+      // lejano→cercano: solo puntos MÁS CERCA del almacén que la posición actual
+      // cercano→lejano: solo puntos MÁS LEJOS del almacén que la posición actual
+      let candidatos = pendientes.filter(p =>
+        criterio === "lejano"
+          ? p.dAlm < dActualAlm   // acercándose al almacén
+          : p.dAlm > dActualAlm   // alejándose del almacén
+      );
+
+      // Si no hay candidatos en la dirección correcta, usar todos los pendientes
+      if (candidatos.length === 0) candidatos = [...pendientes];
+
+      // De los candidatos, elegir el más cercano a la posición actual
+      candidatos.sort((a, b) => distancia(actual, a) - distancia(actual, b));
+      const siguiente = candidatos[0];
+
       ruta.push(siguiente);
       actual = siguiente;
-      pendientes.splice(0, 1);
+      pendientes = pendientes.filter(p => p !== siguiente);
     }
 
     return [...ruta, ...sinCoords];
