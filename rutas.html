@@ -579,7 +579,7 @@
     if (document.getElementById(`geoProc-${repId}`)) document.getElementById(`geoProc-${repId}`).classList.remove("show");
     document.getElementById(`statGeo-${repId}`).textContent = state[repId].pedidos.filter(p=>p.lat).length;
     guardarLS();
-    optimizar(V);
+    await optimizar(repId);
     mostrarToast(`${geocoded} direcciones geocodificadas ✓`, "ok");
   };
 
@@ -740,7 +740,7 @@
     document.getElementById(`toggleTxt-${repId}`).textContent =
       state[repId].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
     document.getElementById(`toggle-${repId}`).classList.toggle("active", state[repId].criterio === "lejano");
-    optimizar(V);
+    await optimizar(repId);
   };
 
   // ── Render lista ──────────────────────────────────────────
@@ -784,7 +784,7 @@
     document.getElementById(`statPed-${repId}`).textContent = pedidos.length;
     document.getElementById(`statGeo-${repId}`).textContent = pedidos.filter(p=>p.lat).length;
     document.getElementById(`statZon-${repId}`).textContent = zonas.size || "—";
-    actualizarBtnLanzar(V);
+    actualizarBtnLanzar(repId);
   }
 
   // ── Ver detalle del pedido ────────────────────────────────
@@ -822,14 +822,14 @@
     if (!p) return;
     document.getElementById("confirmClienteMsg").textContent =
       `¿Estás seguro de eliminar a "${p.cliente}" de la ruta? También se eliminará del Dashboard si ya fue lanzada.`;
-    document.getElementById("btnConfirmEliminar").onclick = () => ejecutarEliminarCliente(V, id);
+    document.getElementById("btnConfirmEliminar").onclick = () => ejecutarEliminarCliente(repId, id);
     document.getElementById("modalConfirmCliente").classList.add("show");
   };
 
   async function ejecutarEliminarCliente(repId, id) {
     document.getElementById("modalConfirmCliente").classList.remove("show");
     state[repId].pedidos = state[repId].pedidos.filter(p => p.id !== id);
-    renderLista(V);
+    renderLista(repId);
     guardarLS();
 
     // Intentar borrar de Firestore si ya fue guardado
@@ -850,16 +850,16 @@
   }
 
   // ── Confirmar limpiar ruta completa ───────────────────────
-  window.confirmarLimpiar = (V) => {
+  window.confirmarLimpiar = (repId) => {
     const vehiculo = state[repId]?.vehiculo || "moto";
     const veh = VEH_CONFIG[vehiculo]?.label || vehiculo;
     document.getElementById("confirmLimpiarMsg").textContent =
       `Se eliminarán todos los pedidos de la ruta ${veh} del día de hoy, incluyendo los registros en el Dashboard. Esta acción no se puede deshacer.`;
-    document.getElementById("btnConfirmLimpiar").onclick = () => ejecutarLimpiar(V);
+    document.getElementById("btnConfirmLimpiar").onclick = () => ejecutarLimpiar(repId);
     document.getElementById("modalConfirmLimpiar").classList.add("show");
   };
 
-  async function ejecutarLimpiar(V) {
+  async function ejecutarLimpiar(repId) {
     document.getElementById("modalConfirmLimpiar").classList.remove("show");
     mostrarToast("Eliminando registros...", "ok");
 
@@ -878,7 +878,7 @@
     document.getElementById(`tag-${repId}`).textContent = "Sin cargar";
     document.getElementById(`tag-${repId}`).className = "tag tag-empty";
     document.getElementById(`btnLimpiar-${repId}`).classList.remove("visible");
-    actualizarBtnLanzar(V);
+    actualizarBtnLanzar(repId);
     mostrarToast(`Ruta ${Cap} limpiada ✓`, "ok");
   }
 
@@ -891,7 +891,7 @@
     document.getElementById(`tag-${repId}`).textContent = "Sin cargar";
     document.getElementById(`tag-${repId}`).className = "tag tag-empty";
     document.getElementById(`btnLimpiar-${repId}`).classList.remove("visible");
-    actualizarBtnLanzar(V);
+    actualizarBtnLanzar(repId);
   };
 
   // ── Guardar jornada en Firestore ──────────────────────────
@@ -1240,10 +1240,10 @@ _El link es válido solo para hoy._`;
   // ── Drag & drop zona upload ───────────────────────────────
   window.dragOver  = e => { e.preventDefault(); e.currentTarget.classList.add("drag"); };
   window.dragLeave = e => { e.currentTarget.classList.remove("drag"); };
-  window.dropFile  = async (e, V) => {
+  window.dropFile  = async (e, repId) => {
     e.preventDefault(); e.currentTarget.classList.remove("drag");
     const file = e.dataTransfer.files[0];
-    if (file) await procesarArchivo(file, V);
+    if (file) await procesarArchivo(file, repId);
   };
 
   // ── Cerrar modales al click fuera ─────────────────────────
