@@ -56,7 +56,12 @@
     .tag-loaded{background:rgba(184,115,51,0.15);color:var(--copper);}
     .upload-zone{border:1px dashed rgba(148,163,184,0.2);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;}
     .upload-zone:hover,.upload-zone.drag{border-color:rgba(184,115,51,0.5);background:rgba(184,115,51,0.04);}
-    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .upload-zone.bloqueada{border-color:rgba(239,68,68,0.25);background:rgba(239,68,68,0.04);cursor:not-allowed;}
+    .upload-zone.bloqueada:hover{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.07);}
+    .upload-aviso{background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--red);display:none;align-items:center;gap:8px;line-height:1.5;}
+    .upload-aviso.show{display:flex;}
+    .upload-aviso a{color:var(--copper);text-decoration:underline;cursor:pointer;}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;pointer-events:none;}
     .upload-icon{font-size:26px;color:var(--graph);margin-bottom:8px;}
     .upload-txt{font-size:13px;color:var(--ice);margin-bottom:3px;font-weight:500;}
     .upload-sub{font-size:11px;color:var(--graph);}
@@ -206,12 +211,16 @@
             <button class="btn-limpiar" id="btnLimpiarMoto" onclick="confirmarLimpiar('moto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
           </div>
         </div>
-        <div class="upload-zone" id="uploadMoto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'moto')">
-          <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'moto')"/>
-          <div class="upload-icon"><i class="ti ti-file-spreadsheet"></i></div>
-          <div class="upload-txt">Cargar Excel de Moto</div>
-          <div class="upload-sub">Arrastra el archivo o haz clic</div>
-          <div class="upload-hint">Columnas: nombre · dirección · producto · nota</div>
+        <div class="upload-zone" id="uploadMoto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'moto')" onclick="validarAntesDeAbrir('moto', this)">
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'moto')" id="inputMoto" onclick="event.stopPropagation()"/>
+          <div class="upload-icon" id="iconUploadMoto"><i class="ti ti-file-spreadsheet"></i></div>
+          <div class="upload-txt" id="txtUploadMoto">Cargar Excel de Moto</div>
+          <div class="upload-sub" id="subUploadMoto">Arrastra el archivo o haz clic</div>
+          <div class="upload-hint" id="hintUploadMoto">Columnas: nombre · dirección · producto · nota</div>
+        </div>
+        <div class="upload-aviso" id="avisoConductorMoto">
+          <i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0"></i>
+          <span>No hay conductor activo para <b>Moto</b>. <a onclick="window.location.href='flota.html'">Ve a Flota</a> y registra un conductor antes de cargar esta ruta.</span>
         </div>
         <div class="geo-progress" id="geoProcMoto"><div class="geo-spin"></div><span id="geoTxtMoto">Geocodificando...</span></div>
         <div style="display:none;flex-direction:column;gap:10px;" id="infoMoto">
@@ -250,12 +259,16 @@
             <button class="btn-limpiar" id="btnLimpiarAuto" onclick="confirmarLimpiar('auto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
           </div>
         </div>
-        <div class="upload-zone" id="uploadAuto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'auto')">
-          <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'auto')"/>
-          <div class="upload-icon"><i class="ti ti-file-spreadsheet"></i></div>
-          <div class="upload-txt">Cargar Excel de Auto</div>
-          <div class="upload-sub">Arrastra el archivo o haz clic</div>
-          <div class="upload-hint">Columnas: nombre · dirección · producto · nota</div>
+        <div class="upload-zone" id="uploadAuto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'auto')" onclick="validarAntesDeAbrir('auto', this)">
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'auto')" id="inputAuto" onclick="event.stopPropagation()"/>
+          <div class="upload-icon" id="iconUploadAuto"><i class="ti ti-file-spreadsheet"></i></div>
+          <div class="upload-txt" id="txtUploadAuto">Cargar Excel de Auto</div>
+          <div class="upload-sub" id="subUploadAuto">Arrastra el archivo o haz clic</div>
+          <div class="upload-hint" id="hintUploadAuto">Columnas: nombre · dirección · producto · nota</div>
+        </div>
+        <div class="upload-aviso" id="avisoConductorAuto">
+          <i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0"></i>
+          <span>No hay conductor activo para <b>Auto</b>. <a onclick="window.location.href='flota.html'">Ve a Flota</a> y registra un conductor antes de cargar esta ruta.</span>
         </div>
         <div class="geo-progress" id="geoProcAuto"><div class="geo-spin"></div><span id="geoTxtAuto">Geocodificando...</span></div>
         <div style="display:none;flex-direction:column;gap:10px;" id="infoAuto">
@@ -558,11 +571,14 @@
   // Cargar desde localStorage al iniciar
   cargarLS();
 
-  // Restaurar UI si hay datos guardados
+  // Restaurar UI si hay datos válidos guardados
   for (const V of ["moto","auto"]) {
-    if (state[V].listo && state[V].pedidos.length > 0) {
+    if (state[V].listo && state[V].pedidos && state[V].pedidos.length > 0) {
       mostrarVehiculo(V);
       renderLista(V);
+    } else {
+      // Limpiar estado inválido para evitar que el upload quede bloqueado
+      state[V] = { pedidos: [], criterio: "cercano", listo: false, fileName: "" };
     }
   }
 
@@ -676,7 +692,19 @@
   // ── Cargar archivo ────────────────────────────────────────
   window.cargarArchivo = async (e, V) => {
     const file = e.target.files[0];
-    if (file) await procesarArchivo(file, V);
+    if (!file) return;
+
+    // Validar que existe repartidor activo para este vehículo
+    const rep = getRepartidor(V);
+    if (!rep) {
+      const veh = V === "moto" ? "Moto" : "Auto";
+      mostrarToast(`⚠ No hay conductor activo para ${veh}. Ve a Flota y registra uno antes de cargar la ruta.`, "err");
+      // Resetear el input para que pueda intentarlo de nuevo después
+      e.target.value = "";
+      return;
+    }
+
+    await procesarArchivo(file, V);
   };
 
   async function procesarArchivo(file, V) {
@@ -721,69 +749,91 @@
   }
 
   // ── Algoritmo de optimización de rutas ───────────────────
-  // Usa Nearest Neighbor con penalización por retroceso hacia el almacén
-  // Cercano → Lejano: favorece puntos que se alejan del almacén
-  // Lejano → Cercano: favorece puntos que se acercan al almacén
-  function nearestNeighbor(pedidos, inicio, criterio) {
+  // Estrategia: greedy con restricción direccional estricta
+  // Para lejano→cercano: siempre avanzar hacia el almacén
+  // Para cercano→lejano: siempre alejarse del almacén
+  function nearestNeighbor(pedidos, almacen, criterio) {
     const conCoords = pedidos.filter(p => p.lat && p.lng);
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
     if (conCoords.length === 0) return [...sinCoords];
 
-    // Calcular distancia de cada punto al almacén
-    const puntos = conCoords.map(p => ({
+    // Precalcular distancia de cada punto al almacén
+    let puntos = conCoords.map(p => ({
       ...p,
-      distAlmacen: distancia(inicio, p)
+      dAlm: distancia(almacen, p)
     }));
 
-    // Ordenar inicial: cercano empieza cerca, lejano empieza lejos
     if (criterio === "lejano") {
-      puntos.sort((a, b) => b.distAlmacen - a.distAlmacen);
+      return [...optimizarLejanoCercano(puntos, almacen), ...sinCoords];
     } else {
-      puntos.sort((a, b) => a.distAlmacen - b.distAlmacen);
+      return [...optimizarCercanoLejano(puntos, almacen), ...sinCoords];
     }
+  }
 
-    let pendientes = [...puntos];
+  // ── Lejano → Cercano ──────────────────────────────────────
+  // Empieza en el punto más lejano y progresivamente se acerca al almacén
+  function optimizarLejanoCercano(puntos, almacen) {
+    // Ordenar por distancia al almacén (lejano primero)
+    const ordenados = [...puntos].sort((a, b) => b.dAlm - a.dAlm);
     const ruta = [];
-    let actual = inicio;
-    const distMax = Math.max(...puntos.map(p => p.distAlmacen)) || 1;
+    let pendientes = [...ordenados];
+    let actual = almacen;
 
     while (pendientes.length > 0) {
-      let mejorIdx = 0;
-      let mejorScore = Infinity;
+      const dActualAlm = distancia(almacen, actual);
+      const TOLERANCIA = 0.15; // 15% de tolerancia para evitar rutas muy largas
 
-      for (let i = 0; i < pendientes.length; i++) {
-        const p = pendientes[i];
-        const distActual = distancia(actual, p); // distancia desde posición actual
+      // Candidatos: puntos que están más cerca del almacén que la posición actual
+      // Con tolerancia para no quedarnos atascados
+      let candidatos = pendientes.filter(p =>
+        p.dAlm <= dActualAlm * (1 + TOLERANCIA)
+      );
 
-        // Factor de dirección: cuánto se aleja o acerca al almacén
-        const distPuntoAlmacen = p.distAlmacen;
-        const distActualAlmacen = distancia(inicio, actual);
-        const delta = distActualAlmacen - distPuntoAlmacen; // positivo = se acerca al almacén
+      // Si no hay candidatos con la restricción, usar todos los pendientes
+      if (candidatos.length === 0) candidatos = pendientes;
 
-        // Score combinado: distancia real + penalización por ir en dirección incorrecta
-        let score;
-        if (criterio === "lejano") {
-          // Queremos acercarnos al almacén → penalizar si el punto está más lejos que el actual
-          const penalizacion = delta < 0 ? Math.abs(delta) * 0.5 : 0;
-          score = distActual + penalizacion;
-        } else {
-          // Queremos alejarnos del almacén → penalizar si el punto está más cerca que el actual
-          const penalizacion = delta > 0 ? Math.abs(delta) * 0.5 : 0;
-          score = distActual + penalizacion;
-        }
+      // De los candidatos, elegir el más cercano a la posición actual
+      candidatos.sort((a, b) => distancia(actual, a) - distancia(actual, b));
+      const siguiente = candidatos[0];
 
-        if (score < mejorScore) {
-          mejorScore = score;
-          mejorIdx = i;
-        }
-      }
-
-      ruta.push(pendientes[mejorIdx]);
-      actual = pendientes[mejorIdx];
-      pendientes.splice(mejorIdx, 1);
+      ruta.push(siguiente);
+      actual = siguiente;
+      pendientes = pendientes.filter(p => p !== siguiente);
     }
 
-    return [...ruta, ...sinCoords];
+    return ruta;
+  }
+
+  // ── Cercano → Lejano ──────────────────────────────────────
+  // Empieza cerca del almacén y progresivamente se aleja
+  function optimizarCercanoLejano(puntos, almacen) {
+    // Ordenar por distancia al almacén (cercano primero)
+    const ordenados = [...puntos].sort((a, b) => a.dAlm - b.dAlm);
+    const ruta = [];
+    let pendientes = [...ordenados];
+    let actual = almacen;
+
+    while (pendientes.length > 0) {
+      const dActualAlm = distancia(almacen, actual);
+      const TOLERANCIA = 0.15;
+
+      // Candidatos: puntos que están más lejos del almacén que la posición actual
+      let candidatos = pendientes.filter(p =>
+        p.dAlm >= dActualAlm * (1 - TOLERANCIA)
+      );
+
+      if (candidatos.length === 0) candidatos = pendientes;
+
+      // De los candidatos, elegir el más cercano a la posición actual
+      candidatos.sort((a, b) => distancia(actual, a) - distancia(actual, b));
+      const siguiente = candidatos[0];
+
+      ruta.push(siguiente);
+      actual = siguiente;
+      pendientes = pendientes.filter(p => p !== siguiente);
+    }
+
+    return ruta;
   }
 
   function distancia(a, b) {
@@ -1219,6 +1269,49 @@ _El link es válido solo para hoy._`;
       }));
     } catch(e) {}
     window.open(`mapa.html?v=${V}&e=${usuario.empresa_id}`, "_blank");
+  };
+
+  // ── Validación visual de conductores ─────────────────────
+  function verificarConductoresUI() {
+    for (const V of ["moto", "auto"]) {
+      const Cap    = V === "moto" ? "Moto" : "Auto";
+      const rep    = getRepartidor(V);
+      const zone   = document.getElementById(`upload${Cap}`);
+      const aviso  = document.getElementById(`avisoConductor${Cap}`);
+      const icono  = document.getElementById(`iconUpload${Cap}`);
+      const txt    = document.getElementById(`txtUpload${Cap}`);
+      const sub    = document.getElementById(`subUpload${Cap}`);
+
+      if (!rep) {
+        // Sin conductor — bloquear visualmente
+        zone.classList.add("bloqueada");
+        aviso.classList.add("show");
+        icono.innerHTML = `<i class="ti ti-user-off" style="color:var(--red)"></i>`;
+        txt.textContent = `Sin conductor asignado para ${Cap}`;
+        txt.style.color = "var(--red)";
+        sub.textContent = "Registra un conductor en Flota primero";
+      } else {
+        // Con conductor — mostrar nombre
+        zone.classList.remove("bloqueada");
+        aviso.classList.remove("show");
+        icono.innerHTML = `<i class="ti ti-file-spreadsheet"></i>`;
+        txt.textContent = `Cargar Excel de ${Cap}`;
+        txt.style.color = "";
+        sub.textContent = `Conductor: ${rep.nombre} · Arrastra o haz clic`;
+      }
+    }
+  }
+
+  // Validar antes de abrir el file picker
+  window.validarAntesDeAbrir = (V, zone) => {
+    const rep = getRepartidor(V);
+    if (!rep) {
+      const veh = V === "moto" ? "Moto" : "Auto";
+      mostrarToast(`Sin conductor para ${veh}. Ve a Flota primero.`, "err");
+      return false; // Prevenir apertura del input
+    }
+    // Si hay conductor, abrir el input manualmente
+    document.getElementById(`input${V === "moto" ? "Moto" : "Auto"}`).click();
   };
 
   // ── Drag & drop zona upload ───────────────────────────────
