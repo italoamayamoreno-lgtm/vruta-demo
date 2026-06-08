@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vruta · Historial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{--mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;--copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--red:#ef4444;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;}
+    .topbar{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+    .logo-area{display:flex;align-items:center;gap:10px;}
+    .logo-text{display:flex;flex-direction:column;line-height:1.1;}
+    .logo-main{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
+    .logo-sub{font-size:9px;color:var(--copper);letter-spacing:0.07em;}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .client-chip{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:999px;padding:4px 14px;font-size:11px;color:var(--copper);font-weight:500;}
+    .user-dot{width:30px;height:30px;border-radius:50%;background:rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--copper);}
+    .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;}
+    .btn-logout:hover{border-color:rgba(239,68,68,0.4);color:var(--red);}
+    .app-body{display:flex;flex:1;}
+    .sidebar{background:var(--mid2);width:56px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);}
+    .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+    .sib:hover{background:rgba(255,255,255,0.05);color:var(--ice);}
+    .sib.active{background:rgba(184,115,51,0.15);color:var(--copper);}
+    .sib-spacer{flex:1;}
+    .main{flex:1;padding:24px;overflow:auto;}
+    .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:16px;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+    .page-title{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ice);}
+    .page-sub{font-size:12px;color:var(--graph);margin-top:2px;}
+
+    /* ── Resumen stats ── */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+    .stat-card{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;}
+    .stat-lbl{font-size:10px;color:var(--graph);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+    .stat-val{font-size:26px;font-weight:700;font-family:'Montserrat',sans-serif;color:var(--ice);}
+    .stat-sub{font-size:11px;color:var(--graph);margin-top:4px;}
+
+    /* ── Lista jornadas ── */
+    .jornadas-list{display:flex;flex-direction:column;gap:10px;}
+    .jornada-card{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;cursor:pointer;transition:border-color 0.15s;}
+    .jornada-card:hover{border-color:rgba(184,115,51,0.3);}
+    .jornada-card.expandida{border-color:rgba(184,115,51,0.35);}
+    .jc-header{display:flex;align-items:center;gap:12px;}
+    .jc-fecha{font-size:15px;font-weight:600;color:var(--ice);min-width:140px;}
+    .jc-stats{display:flex;gap:16px;flex:1;}
+    .jc-stat{font-size:12px;color:var(--graph);display:flex;align-items:center;gap:4px;}
+    .jc-stat b{color:var(--ice);}
+    .jc-pct{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;}
+    .pct-high{background:rgba(34,197,94,0.12);color:var(--green);}
+    .pct-mid{background:rgba(217,119,6,0.12);color:var(--amber);}
+    .pct-low{background:rgba(239,68,68,0.12);color:var(--red);}
+    .jc-actions{display:flex;gap:6px;margin-left:auto;}
+    .jc-btn{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.09);border-radius:7px;padding:6px 12px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:all 0.15s;}
+    .jc-btn:hover{border-color:rgba(184,115,51,0.35);color:var(--copper);}
+    .jc-btn.csv{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.2);color:var(--green);}
+    .jc-btn.csv:hover{background:rgba(34,197,94,0.15);}
+
+    /* ── Detalle jornada ── */
+    .jc-detalle{margin-top:14px;border-top:0.5px solid rgba(255,255,255,0.06);padding-top:14px;display:none;}
+    .jc-detalle.show{display:block;}
+    .detalle-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .det-bloque{background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;}
+    .det-titulo{font-size:11px;font-weight:600;color:var(--graph);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .ped-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid rgba(255,255,255,0.04);}
+    .ped-row:last-child{border-bottom:none;}
+    .ped-num{font-size:10px;color:var(--graph);min-width:20px;}
+    .ped-info{flex:1;min-width:0;}
+    .ped-nombre{font-size:12px;color:var(--ice);}
+    .ped-dir{font-size:10px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ped-pill{font-size:9px;font-weight:500;padding:2px 6px;border-radius:999px;white-space:nowrap;}
+    .pp-ok{background:rgba(34,197,94,0.12);color:var(--green);}
+    .pp-inc{background:rgba(239,68,68,0.12);color:var(--red);}
+    .pp-pend{background:rgba(148,163,184,0.1);color:var(--graph);}
+    .ver-foto{width:24px;height:24px;border-radius:5px;background:rgba(34,197,94,0.1);border:0.5px solid rgba(34,197,94,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);cursor:pointer;flex-shrink:0;}
+    .prog-bar-sm{height:4px;background:rgba(255,255,255,0.07);border-radius:999px;overflow:hidden;margin-top:8px;}
+    .prog-fill-sm{height:100%;border-radius:999px;}
+
+    /* ── Empty ── */
+    .empty{text-align:center;padding:60px 20px;color:var(--graph);}
+    .empty i{font-size:40px;margin-bottom:14px;opacity:0.3;display:block;}
+    .empty p{font-size:13px;opacity:0.6;}
+
+    /* ── Modal foto ── */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
+    .modal-bg.show{display:flex;}
+    .modal-foto{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:20px;max-width:400px;width:100%;}
+    .mf-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+    .mf-title{font-size:14px;font-weight:600;color:var(--ice);}
+    .mf-sub{font-size:11px;color:var(--graph);margin-top:2px;}
+    .close-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--graph);cursor:pointer;}
+    .foto-img{width:100%;border-radius:10px;max-height:280px;object-fit:cover;background:rgba(255,255,255,0.05);}
+    .foto-meta{font-size:11px;color:var(--graph);margin-top:8px;line-height:1.6;}
+    .btn-dl{width:100%;background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:8px;padding:9px;font-size:12px;color:var(--copper);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-family:'Inter',sans-serif;}
+
+    /* ── Spinner ── */
+    .spin{width:20px;height:20px;border:2.5px solid rgba(184,115,51,0.2);border-top-color:var(--copper);border-radius:50%;animation:spin 0.7s linear infinite;margin:40px auto;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── Toast ── */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:300;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.ok{border-color:rgba(34,197,94,0.3);}
+
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}.detalle-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
+      <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
+    </svg>
+    <div class="logo-text"><span class="logo-main">VRUTA</span><span class="logo-sub">powered by Etrazia</span></div>
+  </div>
+  <div class="topbar-right">
+    <span class="client-chip" id="clienteNombre">Cargando...</span>
+    <div class="user-dot" id="usuarioAvatar">OP</div>
+    <button class="btn-logout" id="btnLogout"><i class="ti ti-logout"></i>Salir</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <nav class="sidebar">
+    <a class="sib" href="dashboard.html"><i class="ti ti-layout-dashboard"></i></a>
+    <a class="sib" href="rutas.html"><i class="ti ti-route"></i></a>
+    <a class="sib" href="flota.html"><i class="ti ti-motorbike"></i></a>
+    <a class="sib active" href="historial.html"><i class="ti ti-history"></i></a>
+    <div class="sib-spacer"></div>
+    <a class="sib" href="configuracion.html"><i class="ti ti-settings"></i></a>
+  </nav>
+
+  <main class="main">
+    <div class="mod-label">Historial de jornadas</div>
+    <div class="page-header">
+      <div>
+        <div class="page-title">Historial</div>
+        <div class="page-sub" id="subtitulo">Cargando...</div>
+      </div>
+      <button class="jc-btn" onclick="exportarResumenGeneral()" style="padding:8px 16px;font-size:12px;">
+        <i class="ti ti-file-spreadsheet" style="font-size:14px"></i>Exportar todo a Excel
+      </button>
+    </div>
+
+    <!-- Stats globales -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-lbl">Total jornadas</div>
+        <div class="stat-val" id="stTotal">—</div>
+        <div class="stat-sub">registradas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Total pedidos</div>
+        <div class="stat-val" id="stPedidos">—</div>
+        <div class="stat-sub">en el historial</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Tasa de entrega</div>
+        <div class="stat-val" id="stTasa" style="color:var(--green)">—</div>
+        <div class="stat-sub">promedio global</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Incidencias</div>
+        <div class="stat-val" id="stIncidencias" style="color:var(--red)">—</div>
+        <div class="stat-sub">acumuladas</div>
+      </div>
+    </div>
+
+    <!-- Lista jornadas -->
+    <div id="jornadasContainer">
+      <div class="spin"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal foto evidencia -->
+<div class="modal-bg" id="modalFoto">
+  <div class="modal-foto">
+    <div class="mf-header">
+      <div>
+        <div class="mf-title" id="fotoTitulo">Evidencia de entrega</div>
+        <div class="mf-sub" id="fotoSub"></div>
+      </div>
+      <div class="close-btn" onclick="cerrarFoto()"><i class="ti ti-x"></i></div>
+    </div>
+    <img id="fotoImg" class="foto-img" alt="Evidencia"/>
+    <div class="foto-meta" id="fotoMeta"></div>
+    <button class="btn-dl" id="fotoDl"><i class="ti ti-download"></i>Descargar foto</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { requireAuth, logout } from "./assets/js/auth.js";
+  import { db } from "./assets/js/firebase-config.js";
+  import {
+    collection, getDocs, doc, getDoc, orderBy, query
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const usuario = requireAuth("operador");
+  if (!usuario) throw new Error("No autorizado");
+  document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
+  document.getElementById("btnLogout").addEventListener("click", logout);
+
+  const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
+  const empresa = empresaSnap.data();
+  document.getElementById("clienteNombre").textContent = empresa.nombre;
+
+  const EMPRESA_ID = usuario.empresa_id;
+
+  // ── Cargar todas las jornadas ─────────────────────────────
+  let todasJornadas = [];
+
+  async function cargarHistorial() {
+    const jornadasRef = collection(db, "empresas", EMPRESA_ID, "jornadas");
+    const snap = await getDocs(jornadasRef);
+
+    const jornadas = [];
+    for (const jornadaDoc of snap.docs) {
+      const fecha = jornadaDoc.id;
+      const pedidosSnap = await getDocs(
+        collection(db, "empresas", EMPRESA_ID, "jornadas", fecha, "pedidos")
+      );
+      const pedidos = pedidosSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (pedidos.length > 0) {
+        jornadas.push({ fecha, pedidos, ...jornadaDoc.data() });
+      }
+    }
+
+    // Ordenar por fecha descendente
+    jornadas.sort((a, b) => b.fecha.localeCompare(a.fecha));
+    todasJornadas = jornadas;
+    renderHistorial();
+  }
+
+  function renderHistorial() {
+    const container = document.getElementById("jornadasContainer");
+
+    if (todasJornadas.length === 0) {
+      container.innerHTML = `<div class="empty"><i class="ti ti-history"></i><p>No hay jornadas registradas aún.<br>Las jornadas aparecerán aquí cuando se lancen rutas.</p></div>`;
+      document.getElementById("subtitulo").textContent = "Sin jornadas registradas";
+      actualizarStats([]);
+      return;
+    }
+
+    document.getElementById("subtitulo").textContent =
+      `${todasJornadas.length} jornada${todasJornadas.length !== 1 ? "s" : ""} registradas`;
+
+    actualizarStats(todasJornadas);
+
+    container.innerHTML = `<div class="jornadas-list">${todasJornadas.map(j => renderJornada(j)).join("")}</div>`;
+  }
+
+  function renderJornada(j) {
+    const total      = j.pedidos.length;
+    const entregados = j.pedidos.filter(p => p.estado === "entregado").length;
+    const incidencias= j.pedidos.filter(p => p.estado === "incidencia").length;
+    const pendientes = j.pedidos.filter(p => p.estado === "pendiente").length;
+    const pct        = total > 0 ? Math.round(entregados / total * 100) : 0;
+    const moto       = j.pedidos.filter(p => p.vehiculo === "moto").length;
+    const auto       = j.pedidos.filter(p => p.vehiculo === "auto").length;
+
+    const fechaDisplay = new Date(j.fecha + "T00:00:00")
+      .toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const fechaCap = fechaDisplay.charAt(0).toUpperCase() + fechaDisplay.slice(1);
+
+    const pctClass = pct >= 90 ? "pct-high" : pct >= 70 ? "pct-mid" : "pct-low";
+
+    return `
+      <div class="jornada-card" id="jornada-${j.fecha}">
+        <div class="jc-header" onclick="toggleDetalle('${j.fecha}')">
+          <div class="jc-fecha">${fechaCap}</div>
+          <div class="jc-stats">
+            <div class="jc-stat"><i class="ti ti-package" style="font-size:13px"></i><b>${total}</b> pedidos</div>
+            <div class="jc-stat"><i class="ti ti-motorbike" style="font-size:13px;color:var(--green)"></i><b>${moto}</b> moto</div>
+            <div class="jc-stat"><i class="ti ti-car" style="font-size:13px;color:var(--amber)"></i><b>${auto}</b> auto</div>
+            <div class="jc-stat" style="color:var(--red)"><i class="ti ti-alert-triangle" style="font-size:13px"></i><b>${incidencias}</b> inc.</div>
+          </div>
+          <span class="jc-pct ${pctClass}">${pct}% entregado</span>
+          <div class="jc-actions" onclick="event.stopPropagation()">
+            <button class="jc-btn csv" onclick="exportarJornada('${j.fecha}')">
+              <i class="ti ti-file-spreadsheet" style="font-size:13px"></i>CSV
+            </button>
+            <button class="jc-btn" onclick="toggleDetalle('${j.fecha}')">
+              <i class="ti ti-chevron-down" style="font-size:13px" id="chevron-${j.fecha}"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="jc-detalle" id="detalle-${j.fecha}">
+          <div class="detalle-grid">
+            <div class="det-bloque">
+              <div class="det-titulo"><i class="ti ti-motorbike" style="color:var(--green)"></i>Repartidor 1 · Moto</div>
+              ${renderPedidosBloque(j.pedidos.filter(p=>p.vehiculo==="moto"))}
+            </div>
+            <div class="det-bloque">
+              <div class="det-titulo"><i class="ti ti-car" style="color:var(--amber)"></i>Repartidor 2 · Auto</div>
+              ${renderPedidosBloque(j.pedidos.filter(p=>p.vehiculo==="auto"))}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderPedidosBloque(pedidos) {
+    if (pedidos.length === 0) return `<div style="font-size:12px;color:var(--graph);padding:8px 0;">Sin pedidos asignados</div>`;
+
+    const ent = pedidos.filter(p=>p.estado==="entregado").length;
+    const tot = pedidos.length;
+    const pct = tot > 0 ? Math.round(ent/tot*100) : 0;
+
+    return `
+      <div class="prog-bar-sm" style="margin-bottom:10px;">
+        <div class="prog-fill-sm" style="width:${pct}%;background:var(--green)"></div>
+      </div>
+      <div style="font-size:10px;color:var(--graph);margin-bottom:8px;">${ent} de ${tot} entregados (${pct}%)</div>
+      ${pedidos.sort((a,b)=>(a.orden||0)-(b.orden||0)).map((p,i) => {
+        let pill, pillClass;
+        if (p.estado==="entregado")  { pill="Entregado"; pillClass="pp-ok"; }
+        else if (p.estado==="incidencia") { pill="Incidencia"; pillClass="pp-inc"; }
+        else { pill="Pendiente"; pillClass="pp-pend"; }
+
+        const tieneEvidencia = p.foto_entrega || p.foto_incidencia;
+        return `
+          <div class="ped-row">
+            <div class="ped-num">${String(i+1).padStart(2,"0")}</div>
+            <div class="ped-info">
+              <div class="ped-nombre">${p.cliente}</div>
+              <div class="ped-dir">${p.direccion}</div>
+            </div>
+            <span class="ped-pill ${pillClass}">${pill}</span>
+            ${tieneEvidencia
+              ? `<div class="ver-foto" onclick="verFoto('${p.id}','${p.estado}',${JSON.stringify(p).replace(/'/g,"&#39;")})" title="Ver evidencia"><i class="ti ti-camera"></i></div>`
+              : ""}
+          </div>`;
+      }).join("")}`;
+  }
+
+  // ── Toggle detalle jornada ────────────────────────────────
+  window.toggleDetalle = (fecha) => {
+    const det     = document.getElementById(`detalle-${fecha}`);
+    const card    = document.getElementById(`jornada-${fecha}`);
+    const chevron = document.getElementById(`chevron-${fecha}`);
+    const isOpen  = det.classList.contains("show");
+    det.classList.toggle("show", !isOpen);
+    card.classList.toggle("expandida", !isOpen);
+    chevron.style.transform = isOpen ? "" : "rotate(180deg)";
+  };
+
+  // ── Stats globales ────────────────────────────────────────
+  function actualizarStats(jornadas) {
+    const totalPedidos    = jornadas.reduce((s,j) => s + j.pedidos.length, 0);
+    const totalEntregados = jornadas.reduce((s,j) => s + j.pedidos.filter(p=>p.estado==="entregado").length, 0);
+    const totalInc        = jornadas.reduce((s,j) => s + j.pedidos.filter(p=>p.estado==="incidencia").length, 0);
+    const tasa            = totalPedidos > 0 ? Math.round(totalEntregados/totalPedidos*100) : 0;
+
+    document.getElementById("stTotal").textContent     = jornadas.length || "—";
+    document.getElementById("stPedidos").textContent   = totalPedidos || "—";
+    document.getElementById("stTasa").textContent      = totalPedidos > 0 ? `${tasa}%` : "—";
+    document.getElementById("stIncidencias").textContent = totalInc || "0";
+  }
+
+  // ── Ver foto evidencia ────────────────────────────────────
+  window.verFoto = (id, estado, pedido) => {
+    if (typeof pedido === "string") pedido = JSON.parse(pedido);
+    const esOk   = estado === "entregado";
+    const foto   = esOk ? pedido.foto_entrega : pedido.foto_incidencia;
+    const hora   = pedido.hora_entrega || pedido.hora_incidencia || "—";
+    const motivo = pedido.incidencia_motivo || "";
+
+    document.getElementById("fotoTitulo").textContent = esOk ? "Evidencia de entrega" : "Foto de incidencia";
+    document.getElementById("fotoSub").textContent    = `${pedido.cliente} · ${pedido.direccion}`;
+    document.getElementById("fotoImg").src            = foto || "";
+    document.getElementById("fotoImg").style.display  = foto ? "block" : "none";
+    document.getElementById("fotoMeta").innerHTML     = `
+      <b>Hora:</b> ${hora}<br>
+      ${pedido.producto ? `<b>Producto:</b> ${pedido.producto}<br>` : ""}
+      ${pedido.nota_entrega ? `<b>Nota:</b> ${pedido.nota_entrega}<br>` : ""}
+      ${motivo ? `<b>Motivo incidencia:</b> ${motivo}` : ""}`;
+
+    if (foto) {
+      document.getElementById("fotoDl").onclick = () => {
+        const a = document.createElement("a");
+        a.href = foto; a.download = `evidencia-${id}.jpg`; a.click();
+      };
+    }
+    document.getElementById("modalFoto").classList.add("show");
+  };
+
+  window.cerrarFoto = () => document.getElementById("modalFoto").classList.remove("show");
+  document.getElementById("modalFoto").addEventListener("click", e => {
+    if (e.target === document.getElementById("modalFoto")) cerrarFoto();
+  });
+
+  // ── Exportar jornada a CSV ────────────────────────────────
+  window.exportarJornada = (fecha) => {
+    const jornada = todasJornadas.find(j => j.fecha === fecha);
+    if (!jornada) return;
+
+    const rows = [
+      ["#", "Cliente", "Dirección", "Producto", "Nota", "Vehículo", "Estado", "Hora", "Motivo Incidencia"]
+    ];
+
+    jornada.pedidos.sort((a,b)=>(a.orden||0)-(b.orden||0)).forEach((p, i) => {
+      rows.push([
+        i+1, p.cliente, p.direccion, p.producto||"", p.nota||"",
+        p.vehiculo==="moto"?"Moto":"Auto",
+        p.estado==="entregado"?"Entregado":p.estado==="incidencia"?"Incidencia":"Pendiente",
+        p.hora_entrega||p.hora_incidencia||"—",
+        p.incidencia_motivo||""
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Jornada");
+    XLSX.writeFile(wb, `vruta-jornada-${fecha}.xlsx`);
+    mostrarToast("Excel descargado ✓", "ok");
+  };
+
+  // ── Exportar todo el historial ────────────────────────────
+  window.exportarResumenGeneral = () => {
+    if (todasJornadas.length === 0) { mostrarToast("No hay jornadas para exportar", "ok"); return; }
+
+    const rows = [["Fecha", "Total pedidos", "Entregados", "Incidencias", "Pendientes", "% Efectividad", "Moto", "Auto"]];
+
+    todasJornadas.forEach(j => {
+      const tot = j.pedidos.length;
+      const ent = j.pedidos.filter(p=>p.estado==="entregado").length;
+      const inc = j.pedidos.filter(p=>p.estado==="incidencia").length;
+      const pen = j.pedidos.filter(p=>p.estado==="pendiente").length;
+      const pct = tot > 0 ? Math.round(ent/tot*100) : 0;
+      const mot = j.pedidos.filter(p=>p.vehiculo==="moto").length;
+      const aut = j.pedidos.filter(p=>p.vehiculo==="auto").length;
+      rows.push([j.fecha, tot, ent, inc, pen, `${pct}%`, mot, aut]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Historial Vruta");
+    XLSX.writeFile(wb, `vruta-historial-${new Date().toISOString().split("T")[0]}.xlsx`);
+    mostrarToast("Historial exportado ✓", "ok");
+  };
+
+  // ── Toast ─────────────────────────────────────────────────
+  let toastTimer;
+  function mostrarToast(msg, tipo="ok") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = `toast show ${tipo}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove("show"), 3500);
+  }
+
+  // ── Init ──────────────────────────────────────────────────
+  await cargarHistorial();
+</script>
+</body>
+</html>
