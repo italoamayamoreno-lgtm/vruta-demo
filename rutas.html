@@ -338,8 +338,10 @@
     deleteDoc, where
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  console.log("[Vruta] SCRIPT INICIADO - post imports");
   document.getElementById("jsBanner").style.display = "none";
+  // ── Estado global (debe declararse antes de generarColumnas) ──
+  let state = {};
+
   // ── Configuración visual por tipo de vehículo (global) ──────
   const VEH_CONFIG = {
     moto:      { icon:"ti-motorbike", color:"var(--green)",  bg:"rgba(34,197,94,0.12)",  label:"Moto",      mapColor:"#22c55e" },
@@ -351,14 +353,12 @@
   // ── Auth ─────────────────────────────────────────────────
   const usuario = requireAuth("operador");
   if (!usuario) throw new Error("No autorizado");
-  console.log("[Vruta] Auth OK - usuario:", usuario.nombre);
   document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
   document.getElementById("btnLogout").addEventListener("click", logout);
 
   const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
   const empresa = empresaSnap.data();
   document.getElementById("clienteNombre").textContent = empresa.nombre;
-  console.log("[Vruta] Empresa OK:", empresa.nombre);
   const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
   const fechaKey = new Date().toISOString().split("T")[0];
 
@@ -384,17 +384,10 @@
         .filter(r => r.activo !== false);
     } catch(e) { console.warn("Error cargando repartidores:", e.message); }
   }
-  console.log("[Vruta] Cargando repartidores...");
   await cargarRepartidores();
-  console.log("[Vruta] Repartidores activos:", repartidoresActivos.length, repartidoresActivos.map(r=>r.nombre));
 
   // Generar columnas dinámicamente según repartidores activos en Flota
-  try {
-    generarColumnas();
-    console.log("[Vruta] generarColumnas() completada");
-  } catch(e) {
-    console.error("[Vruta] Error en generarColumnas:", e);
-  }
+  generarColumnas();
 
   // Obtener repartidor activo por tipo de vehículo
   function getRepartidor(vehiculo) {
@@ -500,11 +493,7 @@
     } catch(e) { return false; }
   }
 
-  // ── Estado ───────────────────────────────────────────────
-  const state = {
-    moto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" },
-    auto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" }
-  };
+  // state se declara al inicio del módulo
 
   // Cargar desde localStorage al iniciar
   cargarLS();
