@@ -1162,12 +1162,12 @@ _El link es válido solo para hoy._`;
     document.getElementById("mapaSub").textContent  = `${conGPS.length} puntos con GPS · ${repNom}`;
     document.getElementById("modalMapaBg").classList.add("show");
 
-    // Destruir mapa anterior si existe
-    setTimeout(() => {
-      if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
+    // Destruir mapa anterior si existe — esperar que el DOM sea visible
+    if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
+    document.getElementById("mapaContainer").innerHTML = "";
 
+    setTimeout(() => {
       mapaLeaflet = L.map("mapaContainer", { zoomControl: true });
-      mapaLeaflet.invalidateSize();
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors"
       }).addTo(mapaLeaflet);
