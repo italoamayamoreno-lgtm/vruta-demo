@@ -735,7 +735,7 @@
     guardarLS();
   };
 
-  window.toggleCriterio = (repId) => {
+  window.toggleCriterio = async (repId) => {
     state[repId].criterio = state[repId].criterio === "cercano" ? "lejano" : "cercano";
     document.getElementById(`toggleTxt-${repId}`).textContent =
       state[repId].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
