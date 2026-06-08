@@ -720,29 +720,82 @@
     mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
   }
 
-  // ── Algoritmo Nearest Neighbor ────────────────────────────
+  // ── Algoritmo de optimización de rutas ───────────────────
+  // Criterio CERCANO: Nearest Neighbor clásico desde el almacén
+  // Criterio LEJANO:  Va al más lejano primero, luego optimiza
+  //                  acercándose progresivamente al almacén
   function nearestNeighbor(pedidos, inicio, criterio) {
     const conCoords = pedidos.filter(p => p.lat && p.lng);
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
+
+    if (conCoords.length === 0) return [...sinCoords];
+
+    if (criterio === "lejano") {
+      return rutaLejanoCercano(conCoords, sinCoords, inicio);
+    } else {
+      return rutaCercanoLejano(conCoords, sinCoords, inicio);
+    }
+  }
+
+  // Cercano → Lejano: Nearest Neighbor clásico
+  function rutaCercanoLejano(conCoords, sinCoords, inicio) {
     let pendientes = [...conCoords];
     const ruta = [];
     let actual = inicio;
-
     while (pendientes.length > 0) {
       let idx = 0, bestDist = Infinity;
       for (let i = 0; i < pendientes.length; i++) {
         const d = distancia(actual, pendientes[i]);
-        if (criterio === "lejano" && ruta.length === 0) {
-          if (d > bestDist || bestDist === Infinity) { bestDist = d; idx = i; }
-        } else {
-          if (d < bestDist) { bestDist = d; idx = i; }
-        }
+        if (d < bestDist) { bestDist = d; idx = i; }
       }
       ruta.push(pendientes[idx]);
       actual = pendientes[idx];
       pendientes.splice(idx, 1);
     }
     return [...ruta, ...sinCoords];
+  }
+
+  // Lejano → Cercano: agrupa por distancia al almacén y optimiza por zona
+  function rutaLejanoCercano(conCoords, sinCoords, almacen) {
+    // 1. Calcular distancia de cada punto al almacén
+    const conDistancia = conCoords.map(p => ({
+      ...p,
+      distAlmacen: distancia(almacen, p)
+    }));
+
+    // 2. Ordenar de más lejano a más cercano al almacén
+    conDistancia.sort((a, b) => b.distAlmacen - a.distAlmacen);
+
+    // 3. Dividir en 3 zonas: lejana, media, cercana
+    const n = conDistancia.length;
+    const zonaLejana  = conDistancia.slice(0, Math.ceil(n/3));
+    const zonaMedia   = conDistancia.slice(Math.ceil(n/3), Math.ceil(2*n/3));
+    const zonaCercana = conDistancia.slice(Math.ceil(2*n/3));
+
+    // 4. Aplicar Nearest Neighbor dentro de cada zona
+    const rutaLejana  = nnDentroDeZona(zonaLejana,  zonaLejana[0]  || almacen);
+    const rutaMedia   = nnDentroDeZona(zonaMedia,   rutaLejana[rutaLejana.length-1]   || almacen);
+    const rutaCercana = nnDentroDeZona(zonaCercana, rutaMedia[rutaMedia.length-1] || almacen);
+
+    return [...rutaLejana, ...rutaMedia, ...rutaCercana, ...sinCoords];
+  }
+
+  function nnDentroDeZona(zona, inicio) {
+    if (zona.length === 0) return [];
+    let pendientes = [...zona];
+    const ruta = [];
+    let actual = inicio;
+    while (pendientes.length > 0) {
+      let idx = 0, bestDist = Infinity;
+      for (let i = 0; i < pendientes.length; i++) {
+        const d = distancia(actual, pendientes[i]);
+        if (d < bestDist) { bestDist = d; idx = i; }
+      }
+      ruta.push(pendientes[idx]);
+      actual = pendientes[idx];
+      pendientes.splice(idx, 1);
+    }
+    return ruta;
   }
 
   function distancia(a, b) {
