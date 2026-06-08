@@ -748,89 +748,91 @@
     mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
   }
 
-  // ── Algoritmo de optimización de rutas ───────────────────
-  // Estrategia: greedy con restricción direccional estricta
-  // Para lejano→cercano: siempre avanzar hacia el almacén
-  // Para cercano→lejano: siempre alejarse del almacén
+  // ── Algoritmo de optimización por sectores geográficos ───
+  // Divide Lima en 4 sectores desde el almacén (N, E, S, O)
+  // Visita todos los puntos de un sector antes de saltar al siguiente
+  // Esto evita zigzaguear entre el norte y el sur de Lima
   function nearestNeighbor(pedidos, almacen, criterio) {
     const conCoords = pedidos.filter(p => p.lat && p.lng);
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
     if (conCoords.length === 0) return [...sinCoords];
 
-    // Precalcular distancia de cada punto al almacén
-    let puntos = conCoords.map(p => ({
+    const puntos = conCoords.map(p => ({
       ...p,
-      dAlm: distancia(almacen, p)
+      dAlm:   distancia(almacen, p),
+      angulo: anguloDesdePunto(almacen, p)
     }));
 
-    if (criterio === "lejano") {
-      return [...optimizarLejanoCercano(puntos, almacen), ...sinCoords];
-    } else {
-      return [...optimizarCercanoLejano(puntos, almacen), ...sinCoords];
-    }
+    const ruta = criterio === "lejano"
+      ? optimizarPorSectores(puntos, almacen, "lejano")
+      : optimizarPorSectores(puntos, almacen, "cercano");
+
+    return [...ruta, ...sinCoords];
   }
 
-  // ── Lejano → Cercano ──────────────────────────────────────
-  // Empieza en el punto más lejano y progresivamente se acerca al almacén
-  function optimizarLejanoCercano(puntos, almacen) {
-    // Ordenar por distancia al almacén (lejano primero)
-    const ordenados = [...puntos].sort((a, b) => b.dAlm - a.dAlm);
-    const ruta = [];
-    let pendientes = [...ordenados];
-    let actual = almacen;
-
-    while (pendientes.length > 0) {
-      const dActualAlm = distancia(almacen, actual);
-      const TOLERANCIA = 0.15; // 15% de tolerancia para evitar rutas muy largas
-
-      // Candidatos: puntos que están más cerca del almacén que la posición actual
-      // Con tolerancia para no quedarnos atascados
-      let candidatos = pendientes.filter(p =>
-        p.dAlm <= dActualAlm * (1 + TOLERANCIA)
-      );
-
-      // Si no hay candidatos con la restricción, usar todos los pendientes
-      if (candidatos.length === 0) candidatos = pendientes;
-
-      // De los candidatos, elegir el más cercano a la posición actual
-      candidatos.sort((a, b) => distancia(actual, a) - distancia(actual, b));
-      const siguiente = candidatos[0];
-
-      ruta.push(siguiente);
-      actual = siguiente;
-      pendientes = pendientes.filter(p => p !== siguiente);
-    }
-
-    return ruta;
+  // Calcula el ángulo en grados (0=Este, 90=Norte, 180=Oeste, 270=Sur)
+  function anguloDesdePunto(origen, destino) {
+    const ang = Math.atan2(
+      destino.lat - origen.lat,
+      destino.lng - origen.lng
+    ) * 180 / Math.PI;
+    return ((ang % 360) + 360) % 360;
   }
 
-  // ── Cercano → Lejano ──────────────────────────────────────
-  // Empieza cerca del almacén y progresivamente se aleja
-  function optimizarCercanoLejano(puntos, almacen) {
-    // Ordenar por distancia al almacén (cercano primero)
-    const ordenados = [...puntos].sort((a, b) => a.dAlm - b.dAlm);
+  // Asigna cada punto a uno de 4 sectores geográficos
+  function getSector(angulo) {
+    if (angulo >= 45 && angulo < 135)  return "norte";
+    if (angulo >= 135 && angulo < 225) return "oeste";
+    if (angulo >= 225 && angulo < 315) return "sur";
+    return "este"; // 315-360 y 0-45
+  }
+
+  function optimizarPorSectores(puntos, almacen, criterio) {
+    // 1. Agrupar puntos por sector geográfico
+    const sectoresMap = { norte: [], este: [], sur: [], oeste: [] };
+    puntos.forEach(p => {
+      sectoresMap[getSector(p.angulo)].push(p);
+    });
+
+    // 2. Calcular distancia promedio de cada sector al almacén
+    const sectores = Object.entries(sectoresMap)
+      .filter(([, pts]) => pts.length > 0)
+      .map(([nombre, pts]) => ({
+        nombre,
+        pts,
+        distProm: pts.reduce((s, p) => s + p.dAlm, 0) / pts.length
+      }));
+
+    // 3. Ordenar sectores: lejano primero si criterio=lejano, cercano primero si criterio=cercano
+    sectores.sort((a, b) =>
+      criterio === "lejano"
+        ? b.distProm - a.distProm  // Sector más lejano primero
+        : a.distProm - b.distProm  // Sector más cercano primero
+    );
+
+    // 4. Dentro de cada sector, ordenar puntos por distancia al almacén
+    //    y aplicar Nearest Neighbor para minimizar recorrido interno
     const ruta = [];
-    let pendientes = [...ordenados];
     let actual = almacen;
 
-    while (pendientes.length > 0) {
-      const dActualAlm = distancia(almacen, actual);
-      const TOLERANCIA = 0.15;
-
-      // Candidatos: puntos que están más lejos del almacén que la posición actual
-      let candidatos = pendientes.filter(p =>
-        p.dAlm >= dActualAlm * (1 - TOLERANCIA)
+    for (const sector of sectores) {
+      // Ordenar puntos del sector según criterio
+      const ptsOrdenados = [...sector.pts].sort((a, b) =>
+        criterio === "lejano"
+          ? b.dAlm - a.dAlm  // Más lejanos del almacén primero dentro del sector
+          : a.dAlm - b.dAlm  // Más cercanos del almacén primero dentro del sector
       );
 
-      if (candidatos.length === 0) candidatos = pendientes;
-
-      // De los candidatos, elegir el más cercano a la posición actual
-      candidatos.sort((a, b) => distancia(actual, a) - distancia(actual, b));
-      const siguiente = candidatos[0];
-
-      ruta.push(siguiente);
-      actual = siguiente;
-      pendientes = pendientes.filter(p => p !== siguiente);
+      // Nearest Neighbor dentro del sector
+      let pendientes = [...ptsOrdenados];
+      while (pendientes.length > 0) {
+        // Elegir el más cercano a la posición actual dentro del sector
+        pendientes.sort((a, b) => distancia(actual, a) - distancia(actual, b));
+        const siguiente = pendientes[0];
+        ruta.push(siguiente);
+        actual = siguiente;
+        pendientes.splice(0, 1);
+      }
     }
 
     return ruta;
