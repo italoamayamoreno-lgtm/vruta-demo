@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vruta · Mapa de Ruta</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <style>
+    :root{--mid:#0B1120;--mid2:#131d30;--copper:#B87333;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--amber:#D97706;--red:#ef4444;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);height:100vh;display:flex;flex-direction:column;}
+    .header{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .logo{display:flex;align-items:center;gap:10px;}
+    .logo-main{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
+    .logo-sub{font-size:9px;color:var(--copper);}
+    .header-info{text-align:center;}
+    .header-title{font-size:14px;font-weight:600;color:var(--ice);}
+    .header-sub{font-size:11px;color:var(--graph);margin-top:2px;}
+    .header-actions{display:flex;align-items:center;gap:8px;}
+    .btn-close{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 14px;font-size:12px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;}
+    .btn-close:hover{border-color:rgba(184,115,51,0.4);color:var(--copper);}
+    #mapa{flex:1;width:100%;}
+    .legend{background:var(--mid2);border-top:0.5px solid rgba(255,255,255,0.07);padding:10px 20px;display:flex;align-items:center;gap:20px;flex-shrink:0;flex-wrap:wrap;}
+    .leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--graph);}
+    .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+    .line{width:28px;height:2px;flex-shrink:0;}
+    .stats{margin-left:auto;display:flex;gap:16px;}
+    .stat{font-size:11px;color:var(--graph);}
+    .stat b{color:var(--ice);}
+    .error-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;text-align:center;padding:24px;}
+    .error-screen i{font-size:40px;color:var(--red);opacity:0.5;}
+    .error-screen p{font-size:13px;color:var(--graph);}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
+      <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
+    </svg>
+    <div><div class="logo-main">VRUTA</div><div class="logo-sub">powered by Etrazia</div></div>
+  </div>
+  <div class="header-info">
+    <div class="header-title" id="titulo">Mapa de ruta</div>
+    <div class="header-sub" id="subtitulo"></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-close" onclick="window.close()"><i class="ti ti-x"></i>Cerrar</button>
+  </div>
+</div>
+
+<div id="mapa"></div>
+
+<div class="legend">
+  <div class="leg"><div class="dot" style="background:var(--red)"></div>Almacén (inicio)</div>
+  <div class="leg"><div class="dot" style="background:var(--copper)"></div>Punto de entrega</div>
+  <div class="leg"><div class="line" style="background:var(--copper);border-top:2px dashed var(--copper)"></div>Ruta optimizada</div>
+  <div class="stats" id="stats"></div>
+</div>
+
+<script>
+  // Leer datos del localStorage
+  const params   = new URLSearchParams(window.location.search);
+  const vehiculo = params.get("v") || "moto";
+  const fechaKey = new Date().toISOString().split("T")[0];
+  const empresaId = params.get("e") || "demo";
+  const LS_KEY   = `vruta_rutas_${empresaId}_${fechaKey}`;
+
+  const color = vehiculo === "moto" ? "#22c55e" : "#D97706";
+  const veh   = vehiculo === "moto" ? "Moto" : "Auto";
+  const rep   = vehiculo === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+
+  // Cargar datos desde localStorage
+  let pedidos = [];
+  let almacen = { lat: -12.1219, lng: -77.0282 }; // Default Miraflores
+
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      pedidos = data[vehiculo]?.pedidos || [];
+    }
+  } catch(e) {
+    console.error("Error leyendo localStorage:", e);
+  }
+
+  // Intentar cargar almacén desde otro localStorage key
+  try {
+    const cfgKey = `vruta_config_${empresaId}`;
+    const cfg = localStorage.getItem(cfgKey);
+    if (cfg) {
+      const c = JSON.parse(cfg);
+      if (c.almacen_lat) almacen = { lat: c.almacen_lat, lng: c.almacen_lng };
+    }
+  } catch(e) {}
+
+  const conGPS = pedidos.filter(p => p.lat && p.lng);
+
+  document.getElementById("titulo").textContent    = `Ruta ${veh}`;
+  document.getElementById("subtitulo").textContent = `${conGPS.length} de ${pedidos.length} puntos con GPS · ${rep}`;
+  document.getElementById("stats").innerHTML = `
+    <div class="stat">Total pedidos: <b>${pedidos.length}</b></div>
+    <div class="stat">Con GPS: <b>${conGPS.length}</b></div>
+    <div class="stat">Sin GPS: <b>${pedidos.length - conGPS.length}</b></div>`;
+
+  if (conGPS.length === 0) {
+    document.getElementById("mapa").outerHTML = `
+      <div class="error-screen">
+        <i class="ti ti-map-off"></i>
+        <p>No hay pedidos con coordenadas GPS.<br>Vuelve a Rutas y geocodifica las direcciones primero.</p>
+      </div>`;
+  } else {
+    // Inicializar mapa
+    const mapa = L.map("mapa");
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors", maxZoom: 18
+    }).addTo(mapa);
+
+    const pts = [];
+
+    // Almacén
+    L.marker([almacen.lat, almacen.lng], {
+      icon: L.divIcon({
+        html: `<div style="background:#ef4444;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
+                 <i class="ti ti-building-warehouse" style="font-size:10px;color:white"></i>
+               </div>`,
+        iconSize:[22,22], iconAnchor:[11,11], className:""
+      })
+    }).addTo(mapa).bindPopup("<b>📦 Almacén</b><br>Punto de inicio de la jornada");
+    pts.push([almacen.lat, almacen.lng]);
+
+    // Pedidos
+    pedidos.forEach((p, i) => {
+      if (!p.lat || !p.lng) return;
+      const n = i + 1;
+      L.marker([p.lat, p.lng], {
+        icon: L.divIcon({
+          html: `<div style="background:${color};color:#fff;width:30px;height:30px;border-radius:50%;border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Inter',sans-serif">${n}</div>`,
+          iconSize:[30,30], iconAnchor:[15,15], className:""
+        })
+      }).addTo(mapa)
+        .bindPopup(`<b>${n}. ${p.cliente}</b><br>${p.direccion}${p.producto ? "<br><small><i>"+p.producto+"</i></small>" : ""}${p.nota ? "<br><small>📝 "+p.nota+"</small>" : ""}`);
+      pts.push([p.lat, p.lng]);
+    });
+
+    // Línea de ruta
+    L.polyline(pts, { color, weight:3, opacity:0.75, dashArray:"8,5" }).addTo(mapa);
+
+    // Ajustar vista
+    mapa.fitBounds(L.latLngBounds(pts), { padding:[50,50] });
+  }
+</script>
+
+</body>
+</html>
