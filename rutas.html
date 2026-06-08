@@ -524,7 +524,7 @@
     document.getElementById(`tag-${repId}`).className = "tag tag-loaded";
     document.getElementById(`toggleTxt-${repId}`).textContent = state[repId].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
     document.getElementById(`btnLimpiar-${repId}`).classList.add("visible");
-    actualizarBtnLanzar(V);
+    actualizarBtnLanzar(repId);
   }
 
   function actualizarBtnLanzar(repId) {
@@ -791,7 +791,8 @@
   window.verDetalle = (repId, id) => {
     const p = state[repId].pedidos.find(x => x.id === id);
     if (!p) return;
-    const veh = V === "moto" ? "Moto" : "Auto";
+    const vehiculo = state[repId]?.vehiculo || "moto";
+    const veh = VEH_CONFIG[vehiculo]?.label || vehiculo;
     document.getElementById("detalleTitulo").textContent = p.cliente;
     document.getElementById("detalleSub").textContent = `Pedido asignado a ${veh}`;
     document.getElementById("detalleBody").innerHTML = `
@@ -825,7 +826,7 @@
     document.getElementById("modalConfirmCliente").classList.add("show");
   };
 
-  async function ejecutarEliminarCliente(V, id) {
+  async function ejecutarEliminarCliente(repId, id) {
     document.getElementById("modalConfirmCliente").classList.remove("show");
     state[repId].pedidos = state[repId].pedidos.filter(p => p.id !== id);
     renderLista(V);
@@ -850,7 +851,8 @@
 
   // ── Confirmar limpiar ruta completa ───────────────────────
   window.confirmarLimpiar = (V) => {
-    const veh = V === "moto" ? "Moto" : "Auto";
+    const vehiculo = state[repId]?.vehiculo || "moto";
+    const veh = VEH_CONFIG[vehiculo]?.label || vehiculo;
     document.getElementById("confirmLimpiarMsg").textContent =
       `Se eliminarán todos los pedidos de la ruta ${veh} del día de hoy, incluyendo los registros en el Dashboard. Esta acción no se puede deshacer.`;
     document.getElementById("btnConfirmLimpiar").onclick = () => ejecutarLimpiar(V);
