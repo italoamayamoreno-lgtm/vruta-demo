@@ -168,9 +168,6 @@
 </head>
 <body>
 
-<div id="jsBanner" style="background:#ef4444;color:white;padding:8px 16px;font-size:12px;font-weight:600;text-align:center;position:fixed;top:0;left:0;right:0;z-index:9999">
-  ⚠ VRUTA v3.1 CARGADO — SI VES ESTO JS NO EJECUTÓ
-</div>
 <div class="topbar">
   <div class="logo-area">
     <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
@@ -338,7 +335,6 @@
     deleteDoc, where
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  document.getElementById("jsBanner").style.display = "none";
   // ── Estado global (debe declararse antes de generarColumnas) ──
   let state = {};
 
@@ -431,7 +427,11 @@
 
   window.agregarReagendados = async () => {
     for (const p of reagendadosHoy) {
-      const V = p.vehiculo || "moto";
+      const vehiculo = p.vehiculo || "moto";
+      // Encontrar el repId del repartidor asignado a este vehiculo
+      const repObj = repartidoresActivos.find(r => r.vehiculo === vehiculo);
+      const repId  = repObj ? repObj.id : vehiculo;
+      if (!state[repId]) state[repId] = { pedidos:[], criterio:"cercano", listo:false, fileName:"", repId, vehiculo };
       const nuevoPedido = {
         id:        `reag_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
         cliente:   p.cliente,
@@ -440,16 +440,16 @@
         nota:      `[Reagendado] ${p.nota||""}`.trim(),
         lat:       p.lat || null,
         lng:       p.lng || null,
-        orden:     state[V].pedidos.length + 1,
+        orden:     state[repId].pedidos.length + 1,
         estado:    "pendiente"
       };
-      state[V].pedidos.push(nuevoPedido);
-      if (!state[V].listo) {
-        state[V].listo    = true;
-        state[V].fileName = "reagendados";
-        mostrarVehiculo(V);
+      state[repId].pedidos.push(nuevoPedido);
+      if (!state[repId].listo) {
+        state[repId].listo    = true;
+        state[repId].fileName = "reagendados";
+        mostrarVehiculo(repId);
       }
-      renderLista(V);
+      renderLista(repId);
 
       // Marcar como procesado en Firestore
       try {
@@ -511,27 +511,25 @@
   await verificarReagendados();
 
   // ── Mostrar sección vehículo cargado ──────────────────────
-  function mostrarVehiculo(V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "none";
-    const info = document.getElementById(`info${Cap}`);
+  function mostrarVehiculo(repId) {
+    document.getElementById(`upload-${repId}`).style.display = "none";
+    const info = document.getElementById(`info-${repId}`);
     info.style.display = "flex";
     info.style.flexDirection = "column";
     info.style.gap = "10px";
-    document.getElementById(`fileName${Cap}`).textContent = state[V].fileName || "archivo.xlsx";
-    document.getElementById(`statPed-${repId}`).textContent = state[V].pedidos.length;
-    document.getElementById(`statGeo-${repId}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
-    document.getElementById(`tag-${repId}`).textContent = `${state[V].pedidos.length} pedidos`;
-    document.getElementById(`tag${Cap}`).className = "tag tag-loaded";
-    document.getElementById(`toggleTxt${Cap}`).textContent = state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
-    document.getElementById(`btnLimpiar${Cap}`).classList.add("visible");
+    document.getElementById(`fileName-${repId}`).textContent = state[repId].fileName || "archivo.xlsx";
+    document.getElementById(`statPed-${repId}`).textContent = state[repId].pedidos.length;
+    document.getElementById(`statGeo-${repId}`).textContent = state[repId].pedidos.filter(p=>p.lat).length;
+    document.getElementById(`tag-${repId}`).textContent = `${state[repId].pedidos.length} pedidos`;
+    document.getElementById(`tag-${repId}`).className = "tag tag-loaded";
+    document.getElementById(`toggleTxt-${repId}`).textContent = state[repId].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
+    document.getElementById(`btnLimpiar-${repId}`).classList.add("visible");
     actualizarBtnLanzar(V);
   }
 
-  function actualizarBtnLanzar(V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    const btn = document.getElementById(`btnLanzar${Cap}`);
-    const tiene = state[V].pedidos.length > 0;
+  function actualizarBtnLanzar(repId) {
+    const btn = document.getElementById(`btnLanzar-${repId}`);
+    const tiene = state[repId].pedidos.length > 0;
     btn.disabled = !tiene;
     btn.className = `launch-btn ${tiene ? (V==="moto"?"launch-moto":"launch-auto") : "launch-dis"}`;
   }
@@ -562,24 +560,23 @@
   }
 
   // ── Re-geocodificar pedidos sin GPS ──────────────────────
-  window.reGeocod = async (V) => {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    const sinGPS = state[V].pedidos.filter(p => !p.lat || !p.lng);
+  window.reGeocod = async (repId) => {
+    const sinGPS = state[repId].pedidos.filter(p => !p.lat || !p.lng);
     if (sinGPS.length === 0) {
       mostrarToast("Todos los pedidos ya tienen GPS ✓", "ok");
       return;
     }
-    document.getElementById(`geoProc${Cap}`).classList.add("show");
+    document.getElementById(`geoProc-${repId}`).classList.add("show");
     let geocoded = 0;
-    for (const p of state[V].pedidos) {
+    for (const p of state[repId].pedidos) {
       if (p.lat && p.lng) continue;
-      document.getElementById(`geoTxt${Cap}`).textContent = `Reintentando ${geocoded+1} de ${sinGPS.length}...`;
+      document.getElementById(`geoTxt-${repId}`).textContent = `Reintentando ${geocoded+1} de ${sinGPS.length}...`;
       const coords = await geocodificar(p.direccion);
       if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
       await sleep(500); // más delay para evitar rate limit
     }
     if (document.getElementById(`geoProc-${repId}`)) document.getElementById(`geoProc-${repId}`).classList.remove("show");
-    document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
+    document.getElementById(`statGeo-${repId}`).textContent = state[repId].pedidos.filter(p=>p.lat).length;
     guardarLS();
     optimizar(V);
     mostrarToast(`${geocoded} direcciones geocodificadas ✓`, "ok");
@@ -621,16 +618,15 @@
     await procesarArchivo(file, repId);
   };
 
-  async function procesarArchivo(file, V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`geoProc${Cap}`).classList.add("show");
-    document.getElementById(`geoTxt${Cap}`).textContent = "Leyendo archivo...";
+  async function procesarArchivo(file, repId) {
+    document.getElementById(`geoProc-${repId}`).classList.add("show");
+    document.getElementById(`geoTxt-${repId}`).textContent = "Leyendo archivo...";
 
     let rows;
     try { rows = await leerArchivo(file); }
     catch(e) {
       mostrarToast("Error leyendo el archivo.", "err");
-      document.getElementById(`geoProc${Cap}`).classList.remove("show");
+      document.getElementById(`geoProc-${repId}`).classList.remove("show");
       return;
     }
 
@@ -640,23 +636,23 @@
 
     if (pedidos.length === 0) {
       mostrarToast("No se encontraron pedidos válidos.", "err");
-      document.getElementById(`geoProc${Cap}`).classList.remove("show");
+      document.getElementById(`geoProc-${repId}`).classList.remove("show");
       return;
     }
 
     let geocoded = 0;
     for (const p of pedidos) {
-      document.getElementById(`geoTxt${Cap}`).textContent = `Geocodificando ${geocoded} de ${pedidos.length}...`;
+      document.getElementById(`geoTxt-${repId}`).textContent = `Geocodificando ${geocoded} de ${pedidos.length}...`;
       const coords = await geocodificar(p.direccion);
       if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
       await sleep(500);
     }
 
-    state[V].pedidos  = pedidos;
-    state[V].listo    = true;
-    state[V].fileName = file.name;
+    state[repId].pedidos  = pedidos;
+    state[repId].listo    = true;
+    state[repId].fileName = file.name;
 
-    document.getElementById(`geoProc${Cap}`).classList.remove("show");
+    document.getElementById(`geoProc-${repId}`).classList.remove("show");
     mostrarVehiculo(V);
     optimizar(V);
     mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
@@ -738,20 +734,18 @@
     guardarLS();
   };
 
-  window.toggleCriterio = (V) => {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    state[V].criterio = state[V].criterio === "cercano" ? "lejano" : "cercano";
-    document.getElementById(`toggleTxt${Cap}`).textContent =
-      state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
-    document.getElementById(`toggle${Cap}`).classList.toggle("active", state[V].criterio === "lejano");
+  window.toggleCriterio = (repId) => {
+    state[repId].criterio = state[repId].criterio === "cercano" ? "lejano" : "cercano";
+    document.getElementById(`toggleTxt-${repId}`).textContent =
+      state[repId].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
+    document.getElementById(`toggle-${repId}`).classList.toggle("active", state[repId].criterio === "lejano");
     optimizar(V);
   };
 
   // ── Render lista ──────────────────────────────────────────
-  function renderLista(V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    const lista = document.getElementById(`lista${Cap}`);
-    const pedidos = state[V].pedidos;
+  function renderLista(repId) {
+    const lista = document.getElementById(`lista-${repId}`);
+    const pedidos = state[repId].pedidos;
 
     lista.innerHTML = pedidos.map((p, i) => {
       const mapsUrl = p.lat
@@ -777,8 +771,8 @@
       chosenClass: "sortable-chosen",
       onEnd: () => {
         const ids = [...lista.querySelectorAll(".ri")].map(el => el.dataset.id);
-        state[V].pedidos = ids.map((id,i) => ({
-          ...state[V].pedidos.find(p=>p.id===id), orden:i+1
+        state[repId].pedidos = ids.map((id,i) => ({
+          ...state[repId].pedidos.find(p=>p.id===id), orden:i+1
         }));
         guardarLS();
       }
@@ -786,15 +780,15 @@
 
     // Actualizar stats
     const zonas = new Set(pedidos.map(p => p.direccion.split(",").slice(-2,-1)[0]?.trim()).filter(Boolean));
-    document.getElementById(`statPed${Cap}`).textContent = pedidos.length;
-    document.getElementById(`statGeo${Cap}`).textContent = pedidos.filter(p=>p.lat).length;
+    document.getElementById(`statPed-${repId}`).textContent = pedidos.length;
+    document.getElementById(`statGeo-${repId}`).textContent = pedidos.filter(p=>p.lat).length;
     document.getElementById(`statZon-${repId}`).textContent = zonas.size || "—";
     actualizarBtnLanzar(V);
   }
 
   // ── Ver detalle del pedido ────────────────────────────────
   window.verDetalle = (V, id) => {
-    const p = state[V].pedidos.find(x => x.id === id);
+    const p = state[repId].pedidos.find(x => x.id === id);
     if (!p) return;
     const veh = V === "moto" ? "Moto" : "Auto";
     document.getElementById("detalleTitulo").textContent = p.cliente;
@@ -822,7 +816,7 @@
 
   // ── Confirmar eliminar cliente ────────────────────────────
   window.pedirConfirmEliminar = (V, id) => {
-    const p = state[V].pedidos.find(x => x.id === id);
+    const p = state[repId].pedidos.find(x => x.id === id);
     if (!p) return;
     document.getElementById("confirmClienteMsg").textContent =
       `¿Estás seguro de eliminar a "${p.cliente}" de la ruta? También se eliminará del Dashboard si ya fue lanzada.`;
@@ -832,7 +826,7 @@
 
   async function ejecutarEliminarCliente(V, id) {
     document.getElementById("modalConfirmCliente").classList.remove("show");
-    state[V].pedidos = state[V].pedidos.filter(p => p.id !== id);
+    state[repId].pedidos = state[repId].pedidos.filter(p => p.id !== id);
     renderLista(V);
     guardarLS();
 
@@ -843,7 +837,7 @@
       const batch = writeBatch(db);
       let found = false;
       snap.docs.forEach(d => {
-        if (d.data().vehiculo === V && d.data().cliente === state[V].pedidos.find(p=>p.id===id)?.cliente) {
+        if (d.data().vehiculo === V && d.data().cliente === state[repId].pedidos.find(p=>p.id===id)?.cliente) {
           batch.delete(d.ref); found = true;
         }
       });
@@ -874,29 +868,26 @@
       await batch.commit();
     } catch(e) { console.warn("Firestore:", e.message); }
 
-    state[V] = { pedidos:[], criterio:"cercano", listo:false, fileName:"" };
+    state[repId] = { pedidos:[], criterio: state[repId]?.criterio || "cercano", listo:false, fileName:"", repId, vehiculo: state[repId]?.vehiculo };
     guardarLS();
-
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "";
-    document.getElementById(`info${Cap}`).style.display = "none";
-    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
-    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
-    document.getElementById(`btnLimpiar${Cap}`).classList.remove("visible");
+    document.getElementById(`upload-${repId}`).style.display = "";
+    document.getElementById(`info-${repId}`).style.display = "none";
+    document.getElementById(`tag-${repId}`).textContent = "Sin cargar";
+    document.getElementById(`tag-${repId}`).className = "tag tag-empty";
+    document.getElementById(`btnLimpiar-${repId}`).classList.remove("visible");
     actualizarBtnLanzar(V);
     mostrarToast(`Ruta ${Cap} limpiada ✓`, "ok");
   }
 
   // ── Reset vehículo (cambiar archivo sin borrar Firestore) ──
-  window.resetVehiculo = (V) => {
-    state[V] = { pedidos:[], criterio:"cercano", listo:false, fileName:"" };
+  window.resetVehiculo = (repId) => {
+    state[repId] = { pedidos:[], criterio: state[repId]?.criterio || "cercano", listo:false, fileName:"", repId, vehiculo: state[repId]?.vehiculo };
     guardarLS();
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "";
-    document.getElementById(`info${Cap}`).style.display = "none";
-    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
-    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
-    document.getElementById(`btnLimpiar${Cap}`).classList.remove("visible");
+    document.getElementById(`upload-${repId}`).style.display = "";
+    document.getElementById(`info-${repId}`).style.display = "none";
+    document.getElementById(`tag-${repId}`).textContent = "Sin cargar";
+    document.getElementById(`tag-${repId}`).className = "tag tag-empty";
+    document.getElementById(`btnLimpiar-${repId}`).classList.remove("visible");
     actualizarBtnLanzar(V);
   };
 
@@ -1098,9 +1089,10 @@ _El link es válido solo para hoy._`;
   window.seleccionarPrioridad = (prioridad) => {
     window._prioridadAdicional = prioridad;
     document.getElementById("btnConfirmarAdicional").disabled = false;
-    const V   = window._vehiculoAdicional;
-    const rep = V==="moto" ? "Repartidor 1" : "Repartidor 2";
-    const n   = state[V].pedidos.length;
+    const repId  = window._repIdAdicional;
+    const repObj = repartidoresActivos.find(r => r.id === repId);
+    const nombre = repObj?.nombre?.split(" ")[0] || "Repartidor";
+    const n      = state[repId]?.pedidos?.length || 0;
     const preview = prioridad === "urgente"
       ? `⚡ Hola ${nombre}, se te asignó un pedido URGENTE que debes atender luego del que tienes en ruta.`
       : `📋 Hola ${nombre}, se agregó(aron) ${n} pedido(s) a tu lista para atenderse al final de la jornada.`;
