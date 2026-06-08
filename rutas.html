@@ -1142,6 +1142,10 @@ _El link es válido solo para hoy._`;
     await lanzarRuta(V, prioridad);
   };
 
+  // ── Mapa: exponer ALMACEN globalmente para el script no-módulo ──
+  window._ALMACEN_GLOBAL = ALMACEN;
+  window._STATE_GLOBAL   = state;
+
   // ── Mapa de ruta ─────────────────────────────────────────
   let mapaLeaflet = null;
 
@@ -1154,68 +1158,69 @@ _El link es válido solo para hoy._`;
       return;
     }
 
-    const veh     = V === "moto" ? "Moto" : "Auto";
-    const color   = V === "moto" ? "#22c55e" : "#D97706";
-    const repNom  = V === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+    const veh   = V === "moto" ? "Moto" : "Auto";
+    const color = V === "moto" ? "#22c55e" : "#D97706";
+    const rep   = V === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
 
     document.getElementById("mapaTitulo").innerHTML = `<i class="ti ti-map-2"></i>Ruta ${veh}`;
-    document.getElementById("mapaSub").textContent  = `${conGPS.length} puntos con GPS · ${repNom}`;
-    document.getElementById("modalMapaBg").classList.add("show");
+    document.getElementById("mapaSub").textContent  = `${conGPS.length} puntos con GPS · ${rep}`;
 
-    // Destruir mapa anterior si existe — esperar que el DOM sea visible
-    if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
+    // Mostrar modal con display:flex (no classList para evitar conflictos)
+    const bg = document.getElementById("modalMapaBg");
+    bg.style.display = "flex";
+
+    // Limpiar mapa anterior
     document.getElementById("mapaContainer").innerHTML = "";
+    if (window._mapa) { try { window._mapa.remove(); } catch(e){} window._mapa = null; }
 
+    // Inicializar Leaflet después de que el DOM esté visible
     setTimeout(() => {
-      mapaLeaflet = L.map("mapaContainer", { zoomControl: true });
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors"
-      }).addTo(mapaLeaflet);
+      try {
+        window._mapa = L.map("mapaContainer");
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap", maxZoom: 18
+        }).addTo(window._mapa);
 
-      const puntos = [];
+        const pts = [];
 
-      // Marcador del almacén
-      const almacenIcon = L.divIcon({
-        html: `<div style="background:#ef4444;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
-        iconSize: [18, 18], iconAnchor: [9, 9], className: ""
-      });
-      L.marker([ALMACEN.lat, ALMACEN.lng], { icon: almacenIcon })
-        .addTo(mapaLeaflet)
-        .bindPopup("<b>📦 Almacén</b><br>Punto de inicio");
-      puntos.push([ALMACEN.lat, ALMACEN.lng]);
+        // Almacén
+        L.marker([ALMACEN.lat, ALMACEN.lng], {
+          icon: L.divIcon({
+            html: `<div style="background:#ef4444;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5)"></div>`,
+            iconSize:[20,20], iconAnchor:[10,10], className:""
+          })
+        }).addTo(window._mapa).bindPopup("<b>📦 Almacén</b>");
+        pts.push([ALMACEN.lat, ALMACEN.lng]);
 
-      // Marcadores de pedidos
-      pedidos.forEach((p, i) => {
-        if (!p.lat || !p.lng) return;
-        const num = i + 1;
-        const icon = L.divIcon({
-          html: `<div style="background:${color};color:white;width:26px;height:26px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${num}</div>`,
-          iconSize: [26, 26], iconAnchor: [13, 13], className: ""
+        // Pedidos
+        pedidos.forEach((p, i) => {
+          if (!p.lat || !p.lng) return;
+          const n = i + 1;
+          L.marker([p.lat, p.lng], {
+            icon: L.divIcon({
+              html: `<div style="background:${color};color:#fff;width:28px;height:28px;border-radius:50%;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${n}</div>`,
+              iconSize:[28,28], iconAnchor:[14,14], className:""
+            })
+          }).addTo(window._mapa)
+            .bindPopup(`<b>${n}. ${p.cliente}</b><br>${p.direccion}`);
+          pts.push([p.lat, p.lng]);
         });
-        L.marker([p.lat, p.lng], { icon })
-          .addTo(mapaLeaflet)
-          .bindPopup(`<b>${num}. ${p.cliente}</b><br>${p.direccion}${p.producto ? "<br><i>" + p.producto + "</i>" : ""}`);
-        puntos.push([p.lat, p.lng]);
-      });
 
-      // Línea de ruta
-      L.polyline(puntos, {
-        color: color,
-        weight: 2.5,
-        opacity: 0.8,
-        dashArray: "6, 4"
-      }).addTo(mapaLeaflet);
+        // Línea
+        L.polyline(pts, { color, weight:2.5, opacity:0.8, dashArray:"6,4" })
+          .addTo(window._mapa);
 
-      // Ajustar vista para mostrar todos los puntos
-      const bounds = L.latLngBounds(puntos);
-      mapaLeaflet.fitBounds(bounds, { padding: [30, 30] });
-      setTimeout(() => mapaLeaflet.invalidateSize(), 100);
-    }, 350);
+        window._mapa.fitBounds(L.latLngBounds(pts), { padding:[40,40] });
+        window._mapa.invalidateSize();
+      } catch(err) {
+        console.error("Error Leaflet:", err);
+      }
+    }, 300);
   };
 
   window.cerrarMapa = () => {
-    document.getElementById("modalMapaBg").classList.remove("show");
-    if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
+    document.getElementById("modalMapaBg").style.display = "none";
+    if (window._mapa) { try { window._mapa.remove(); } catch(e){} window._mapa = null; }
   };
 
   document.getElementById("modalMapaBg").addEventListener("click", e => {
