@@ -66,25 +66,40 @@
 
 <script>
   // Leer datos del localStorage
-  const params   = new URLSearchParams(window.location.search);
-  const vehiculo = params.get("v") || "moto";
-  const fechaKey = new Date().toISOString().split("T")[0];
+  const params    = new URLSearchParams(window.location.search);
+  const repId     = params.get("rep");
+  const vehiculo  = params.get("v") || "moto";
   const empresaId = params.get("e") || "demo";
-  const LS_KEY   = `vruta_rutas_${empresaId}_${fechaKey}`;
+  const fechaKey  = new Date().toISOString().split("T")[0];
+  const LS_KEY    = `vruta_rutas_${empresaId}_${fechaKey}`;
 
-  const color = vehiculo === "moto" ? "#22c55e" : "#D97706";
-  const veh   = vehiculo === "moto" ? "Moto" : "Auto";
-  const rep   = vehiculo === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+  const VEH_COLORS = { moto:"#22c55e", auto:"#D97706", bicicleta:"#378ADD", pie:"#a855f7" };
+  const VEH_LABELS = { moto:"Moto", auto:"Auto", bicicleta:"Bicicleta", pie:"A pie" };
+  const color = VEH_COLORS[vehiculo] || "#B87333";
+  const veh   = VEH_LABELS[vehiculo] || vehiculo;
 
   // Cargar datos desde localStorage
   let pedidos = [];
-  let almacen = { lat: -12.1219, lng: -77.0282 }; // Default Miraflores
+  let almacen = { lat: -12.1219, lng: -77.0282 };
 
   try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      pedidos = data[vehiculo]?.pedidos || [];
+    // Intentar leer por repId primero (nuevo sistema)
+    if (repId) {
+      const mapaRaw = localStorage.getItem(`vruta_mapa_${repId}`);
+      if (mapaRaw) pedidos = JSON.parse(mapaRaw);
+    }
+    // Fallback: leer del state general
+    if (!pedidos.length) {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        // Buscar por repId o por vehiculo
+        if (repId && data[repId]?.pedidos) {
+          pedidos = data[repId].pedidos;
+        } else if (data[vehiculo]?.pedidos) {
+          pedidos = data[vehiculo].pedidos;
+        }
+      }
     }
   } catch(e) {
     console.error("Error leyendo localStorage:", e);
