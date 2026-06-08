@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root{--mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;--copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--red:#ef4444;}
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -57,6 +59,15 @@
     .toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:3px;transition:left 0.2s;}
     .toggle.on::after{left:21px;}
     .toggle.off::after{left:3px;}
+    /* ── Mapa almacén ── */
+    .mapa-almacen{height:260px;border-radius:10px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.1);margin-bottom:10px;display:none;}
+    .mapa-almacen.show{display:block;}
+    .btn-toggle-mapa{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 14px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;transition:all 0.15s;margin-bottom:10px;}
+    .btn-toggle-mapa:hover{border-color:rgba(184,115,51,0.3);color:var(--copper);}
+    .btn-toggle-mapa.active{background:rgba(184,115,51,0.1);border-color:rgba(184,115,51,0.3);color:var(--copper);}
+    .mapa-hint{font-size:11px;color:var(--graph);padding:6px 10px;background:rgba(184,115,51,0.06);border-radius:6px;margin-bottom:8px;display:none;}
+    .mapa-hint.show{display:block;}
+
     .btn-save{background:var(--copper);border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--ice);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;gap:6px;transition:opacity 0.15s;}
     .btn-save:hover{opacity:0.88;}
     .btn-save:disabled{opacity:0.4;cursor:not-allowed;}
@@ -161,6 +172,16 @@
         <i class="ti ti-circle-check" style="font-size:14px"></i>
         <span id="coordsTexto">Coordenadas obtenidas</span>
       </div>
+
+      <!-- Botón elegir en mapa -->
+      <button class="btn-toggle-mapa" id="btnToggleMapa" onclick="toggleMapaAlmacen()">
+        <i class="ti ti-map-pin" style="font-size:13px"></i>Elegir punto en el mapa
+      </button>
+      <div class="mapa-hint show" id="mapaHint">
+        <i class="ti ti-info-circle" style="font-size:12px;margin-right:4px"></i>
+        Haz clic en el mapa para marcar la ubicación exacta del almacén. Luego guarda.
+      </div>
+      <div class="mapa-almacen" id="mapaAlmacenDiv"></div>
       <div class="save-row">
         <div class="save-msg" id="msgAlmacen"><i class="ti ti-check"></i>Guardado</div>
         <button class="btn-save" onclick="guardarSeccion('almacen')"><i class="ti ti-device-floppy"></i>Guardar</button>
@@ -385,6 +406,75 @@
     el.classList.toggle("on");
     el.classList.toggle("off");
   };
+
+  // ── Mapa interactivo para elegir almacén ─────────────────
+  let mapaAlmacen = null;
+  let marcadorAlmacen = null;
+  let mapaVisible = false;
+
+  window.toggleMapaAlmacen = () => {
+    mapaVisible = !mapaVisible;
+    const div  = document.getElementById("mapaAlmacenDiv");
+    const btn  = document.getElementById("btnToggleMapa");
+    const hint = document.getElementById("mapaHint");
+
+    div.classList.toggle("show", mapaVisible);
+    btn.classList.toggle("active", mapaVisible);
+    hint.classList.toggle("show", mapaVisible);
+
+    if (mapaVisible) {
+      btn.innerHTML = `<i class="ti ti-map-pin" style="font-size:13px"></i>Cerrar mapa`;
+
+      if (!mapaAlmacen) {
+        // Inicializar mapa centrado en Lima
+        const lat = parseFloat(document.getElementById("cAlmacenLat").value) || -12.0933;
+        const lng = parseFloat(document.getElementById("cAlmacenLng").value) || -77.0282;
+
+        mapaAlmacen = L.map("mapaAlmacenDiv").setView([lat, lng], 13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors", maxZoom: 18
+        }).addTo(mapaAlmacen);
+
+        // Marcador inicial si hay coordenadas
+        if (document.getElementById("cAlmacenLat").value) {
+          marcadorAlmacen = L.marker([lat, lng], { draggable: true }).addTo(mapaAlmacen)
+            .bindPopup("📦 Almacén").openPopup();
+          marcadorAlmacen.on("dragend", actualizarCoordsDesdeMarker);
+        }
+
+        // Click en mapa coloca/mueve el marcador
+        mapaAlmacen.on("click", (e) => {
+          const { lat, lng } = e.latlng;
+          if (marcadorAlmacen) {
+            marcadorAlmacen.setLatLng([lat, lng]);
+          } else {
+            marcadorAlmacen = L.marker([lat, lng], { draggable: true }).addTo(mapaAlmacen)
+              .bindPopup("📦 Almacén").openPopup();
+            marcadorAlmacen.on("dragend", actualizarCoordsDesdeMarker);
+          }
+          actualizarCoordsManual(lat, lng);
+        });
+
+        setTimeout(() => mapaAlmacen.invalidateSize(), 200);
+      } else {
+        setTimeout(() => mapaAlmacen.invalidateSize(), 200);
+      }
+    } else {
+      btn.innerHTML = `<i class="ti ti-map-pin" style="font-size:13px"></i>Elegir punto en el mapa`;
+    }
+  };
+
+  function actualizarCoordsDesdeMarker(e) {
+    const { lat, lng } = e.target.getLatLng();
+    actualizarCoordsManual(lat, lng);
+  }
+
+  function actualizarCoordsManual(lat, lng) {
+    document.getElementById("cAlmacenLat").value = lat.toFixed(6);
+    document.getElementById("cAlmacenLng").value = lng.toFixed(6);
+    document.getElementById("coordsTexto").textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)} · seleccionado en mapa`;
+    document.getElementById("coordsPreview").classList.add("show");
+  }
 
   // ── Toast ─────────────────────────────────────────────────
   let toastTimer;
