@@ -168,6 +168,9 @@
 </head>
 <body>
 
+<div id="jsBanner" style="background:#ef4444;color:white;padding:8px 16px;font-size:12px;font-weight:600;text-align:center;position:fixed;top:0;left:0;right:0;z-index:9999">
+  ⚠ VRUTA v3.1 CARGADO — SI VES ESTO JS NO EJECUTÓ
+</div>
 <div class="topbar">
   <div class="logo-area">
     <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
@@ -335,15 +338,27 @@
     deleteDoc, where
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  console.log("[Vruta] SCRIPT INICIADO - post imports");
+  document.getElementById("jsBanner").style.display = "none";
+  // ── Configuración visual por tipo de vehículo (global) ──────
+  const VEH_CONFIG = {
+    moto:      { icon:"ti-motorbike", color:"var(--green)",  bg:"rgba(34,197,94,0.12)",  label:"Moto",      mapColor:"#22c55e" },
+    auto:      { icon:"ti-car",       color:"var(--amber)",  bg:"rgba(217,119,6,0.12)",  label:"Auto",      mapColor:"#D97706" },
+    bicicleta: { icon:"ti-bike",      color:"#378ADD",       bg:"rgba(55,138,221,0.12)", label:"Bicicleta", mapColor:"#378ADD" },
+    pie:       { icon:"ti-walk",      color:"#a855f7",       bg:"rgba(168,85,247,0.12)", label:"A pie",     mapColor:"#a855f7" }
+  };
+
   // ── Auth ─────────────────────────────────────────────────
   const usuario = requireAuth("operador");
   if (!usuario) throw new Error("No autorizado");
+  console.log("[Vruta] Auth OK - usuario:", usuario.nombre);
   document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
   document.getElementById("btnLogout").addEventListener("click", logout);
 
   const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
   const empresa = empresaSnap.data();
   document.getElementById("clienteNombre").textContent = empresa.nombre;
+  console.log("[Vruta] Empresa OK:", empresa.nombre);
   const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
   const fechaKey = new Date().toISOString().split("T")[0];
 
@@ -369,7 +384,17 @@
         .filter(r => r.activo !== false);
     } catch(e) { console.warn("Error cargando repartidores:", e.message); }
   }
+  console.log("[Vruta] Cargando repartidores...");
   await cargarRepartidores();
+  console.log("[Vruta] Repartidores activos:", repartidoresActivos.length, repartidoresActivos.map(r=>r.nombre));
+
+  // Generar columnas dinámicamente según repartidores activos en Flota
+  try {
+    generarColumnas();
+    console.log("[Vruta] generarColumnas() completada");
+  } catch(e) {
+    console.error("[Vruta] Error en generarColumnas:", e);
+  }
 
   // Obtener repartidor activo por tipo de vehículo
   function getRepartidor(vehiculo) {
@@ -1127,14 +1152,6 @@ _El link es válido solo para hoy._`;
     } catch(e) {}
     const veh = state[repId]?.vehiculo || "moto";
     window.open(`mapa.html?rep=${repId}&v=${veh}&e=${usuario.empresa_id}`, "_blank");
-  };
-
-  // ── Configuración visual por tipo de vehículo ────────────
-  const VEH_CONFIG = {
-    moto:      { icon:"ti-motorbike", color:"var(--green)",  bg:"rgba(34,197,94,0.12)",  label:"Moto",      mapColor:"#22c55e" },
-    auto:      { icon:"ti-car",       color:"var(--amber)",  bg:"rgba(217,119,6,0.12)",  label:"Auto",      mapColor:"#D97706" },
-    bicicleta: { icon:"ti-bike",      color:"#378ADD",       bg:"rgba(55,138,221,0.12)", label:"Bicicleta", mapColor:"#378ADD" },
-    pie:       { icon:"ti-walk",      color:"#a855f7",       bg:"rgba(168,85,247,0.12)", label:"A pie",     mapColor:"#a855f7" }
   };
 
   // ── Generar columnas dinámicamente desde repartidores activos ──
