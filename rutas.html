@@ -793,7 +793,20 @@
   }
   function deg2rad(d) { return d*Math.PI/180; }
 
-  window.optimizar = (V) => {
+  window.optimizar = async (V) => {
+    // Recargar almacén desde Firestore para asegurar coordenadas actualizadas
+    try {
+      const snap = await getDoc(doc(db, "empresas", usuario.empresa_id));
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.almacen_lat && d.almacen_lng) {
+          ALMACEN.lat = d.almacen_lat;
+          ALMACEN.lng = d.almacen_lng;
+          window._ALMACEN_GLOBAL = ALMACEN;
+        }
+      }
+    } catch(e) { console.warn("No se pudo recargar almacén:", e.message); }
+
     state[V].pedidos = nearestNeighbor(state[V].pedidos, ALMACEN, state[V].criterio)
       .map((p,i) => ({...p, orden:i+1}));
     renderLista(V);
