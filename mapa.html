@@ -118,7 +118,8 @@
   const conGPS = pedidos.filter(p => p.lat && p.lng);
 
   document.getElementById("titulo").textContent    = `Ruta ${veh}`;
-  document.getElementById("subtitulo").textContent = `${conGPS.length} de ${pedidos.length} puntos con GPS · ${rep}`;
+  const repLabel = repId ? repId.substring(0,8) + "..." : veh;
+  document.getElementById("subtitulo").textContent = `${conGPS.length} de ${pedidos.length} puntos con GPS · ${veh}`;
   document.getElementById("stats").innerHTML = `
     <div class="stat">Total pedidos: <b>${pedidos.length}</b></div>
     <div class="stat">Con GPS: <b>${conGPS.length}</b></div>
