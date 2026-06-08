@@ -469,11 +469,36 @@
     actualizarCoordsManual(lat, lng);
   }
 
-  function actualizarCoordsManual(lat, lng) {
+  async function actualizarCoordsManual(lat, lng) {
     document.getElementById("cAlmacenLat").value = lat.toFixed(6);
     document.getElementById("cAlmacenLng").value = lng.toFixed(6);
-    document.getElementById("coordsTexto").textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)} · seleccionado en mapa`;
+    document.getElementById("coordsTexto").textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)} · obteniendo dirección...`;
     document.getElementById("coordsPreview").classList.add("show");
+
+    // Geocoding inverso para obtener la dirección del punto seleccionado
+    try {
+      const r = await fetch(`${GEOCODING_WORKER}?address=${lat},${lng}&reverse=true`);
+      const d = await r.json();
+      let direccion = "";
+      if (d.status === "OK" && d.results && d.results[0]) {
+        direccion = d.results[0].formatted_address;
+      } else {
+        // Fallback: usar Nominatim para geocoding inverso
+        const nr = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=es`);
+        if (nr.ok) {
+          const nd = await nr.json();
+          direccion = nd.display_name || "";
+        }
+      }
+      if (direccion) {
+        document.getElementById("cAlmacenDir").value = direccion;
+        document.getElementById("coordsTexto").textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)} · ${direccion.split(",").slice(0,2).join(",")}`;
+      } else {
+        document.getElementById("coordsTexto").textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)} · seleccionado en mapa`;
+      }
+    } catch(e) {
+      document.getElementById("coordsTexto").textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)} · seleccionado en mapa`;
+    }
   }
 
   // ── Toast ─────────────────────────────────────────────────
