@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
@@ -226,6 +228,7 @@
             <button class="btn-opt" onclick="optimizar('moto')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
             <button class="btn-toggle" id="toggleMoto" onclick="toggleCriterio('moto')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxtMoto">Cercano → Lejano</span></button>
             <button class="btn-toggle" onclick="reGeocod('moto')" title="Reintentar geocodificación" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
+            <button class="btn-toggle" onclick="verMapa('moto')" title="Ver ruta en mapa" style="flex-shrink:0;background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.3);color:#378ADD;"><i class="ti ti-map-2" style="font-size:12px"></i>Mapa</button>
           </div>
           <div class="route-list" id="listaMoto"></div>
         </div>
@@ -269,6 +272,7 @@
             <button class="btn-opt amber" onclick="optimizar('auto')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
             <button class="btn-toggle" id="toggleAuto" onclick="toggleCriterio('auto')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxtAuto">Cercano → Lejano</span></button>
             <button class="btn-toggle" onclick="reGeocod('auto')" title="Reintentar geocodificación" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
+            <button class="btn-toggle" onclick="verMapa('auto')" title="Ver ruta en mapa" style="flex-shrink:0;background:rgba(217,119,6,0.1);border-color:rgba(217,119,6,0.3);color:var(--amber);"><i class="ti ti-map-2" style="font-size:12px"></i>Mapa</button>
           </div>
           <div class="route-list" id="listaAuto"></div>
         </div>
@@ -316,6 +320,25 @@
     <div style="display:flex;gap:8px;">
       <button style="flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;" onclick="document.getElementById('modalAdicional').classList.remove('show')">Cancelar</button>
       <button id="btnConfirmarAdicional" style="flex:2;background:var(--copper);border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--ice);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;" disabled onclick="confirmarAdicional()"><i class="ti ti-brand-whatsapp"></i>Confirmar y lanzar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Mapa de Ruta -->
+<div class="modal-mapa-bg" id="modalMapaBg">
+  <div class="modal-mapa">
+    <div class="modal-mapa-header">
+      <div>
+        <div class="modal-mapa-title" id="mapaTitulo"><i class="ti ti-map-2"></i>Ruta visualizada</div>
+        <div class="modal-mapa-sub" id="mapaSub"></div>
+      </div>
+      <div class="close-btn" onclick="cerrarMapa()"><i class="ti ti-x"></i></div>
+    </div>
+    <div id="mapaContainer"></div>
+    <div class="mapa-legend">
+      <div class="leg-item"><div style="width:12px;height:12px;border-radius:50%;background:#ef4444;flex-shrink:0;"></div>Almacén (inicio)</div>
+      <div class="leg-item"><div style="width:12px;height:12px;border-radius:50%;background:#B87333;flex-shrink:0;"></div>Punto de entrega</div>
+      <div class="leg-item"><div style="width:24px;height:2px;background:#B87333;flex-shrink:0;"></div>Ruta optimizada</div>
     </div>
   </div>
 </div>
@@ -1118,6 +1141,84 @@ _El link es válido solo para hoy._`;
     document.getElementById("modalAdicional").classList.remove("show");
     await lanzarRuta(V, prioridad);
   };
+
+  // ── Mapa de ruta ─────────────────────────────────────────
+  let mapaLeaflet = null;
+
+  window.verMapa = (V) => {
+    const pedidos = state[V].pedidos;
+    const conGPS  = pedidos.filter(p => p.lat && p.lng);
+
+    if (conGPS.length === 0) {
+      mostrarToast("No hay pedidos con GPS. Primero geocodifica las direcciones.", "err");
+      return;
+    }
+
+    const veh     = V === "moto" ? "Moto" : "Auto";
+    const color   = V === "moto" ? "#22c55e" : "#D97706";
+    const repNom  = V === "moto" ? "Repartidor 1 · Moto" : "Repartidor 2 · Auto";
+
+    document.getElementById("mapaTitulo").innerHTML = `<i class="ti ti-map-2"></i>Ruta ${veh}`;
+    document.getElementById("mapaSub").textContent  = `${conGPS.length} puntos con GPS · ${repNom}`;
+    document.getElementById("modalMapaBg").classList.add("show");
+
+    // Destruir mapa anterior si existe
+    setTimeout(() => {
+      if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
+
+      mapaLeaflet = L.map("mapaContainer");
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors"
+      }).addTo(mapaLeaflet);
+
+      const puntos = [];
+
+      // Marcador del almacén
+      const almacenIcon = L.divIcon({
+        html: `<div style="background:#ef4444;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+        iconSize: [18, 18], iconAnchor: [9, 9], className: ""
+      });
+      L.marker([ALMACEN.lat, ALMACEN.lng], { icon: almacenIcon })
+        .addTo(mapaLeaflet)
+        .bindPopup("<b>📦 Almacén</b><br>Punto de inicio");
+      puntos.push([ALMACEN.lat, ALMACEN.lng]);
+
+      // Marcadores de pedidos
+      pedidos.forEach((p, i) => {
+        if (!p.lat || !p.lng) return;
+        const num = i + 1;
+        const icon = L.divIcon({
+          html: `<div style="background:${color};color:white;width:26px;height:26px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${num}</div>`,
+          iconSize: [26, 26], iconAnchor: [13, 13], className: ""
+        });
+        L.marker([p.lat, p.lng], { icon })
+          .addTo(mapaLeaflet)
+          .bindPopup(`<b>${num}. ${p.cliente}</b><br>${p.direccion}${p.producto ? "<br><i>" + p.producto + "</i>" : ""}`);
+        puntos.push([p.lat, p.lng]);
+      });
+
+      // Línea de ruta
+      L.polyline(puntos, {
+        color: color,
+        weight: 2.5,
+        opacity: 0.8,
+        dashArray: "6, 4"
+      }).addTo(mapaLeaflet);
+
+      // Ajustar vista para mostrar todos los puntos
+      const bounds = L.latLngBounds(puntos);
+      mapaLeaflet.fitBounds(bounds, { padding: [30, 30] });
+    }, 100);
+  };
+
+  window.cerrarMapa = () => {
+    document.getElementById("modalMapaBg").classList.remove("show");
+    if (mapaLeaflet) { mapaLeaflet.remove(); mapaLeaflet = null; }
+  };
+
+  document.getElementById("modalMapaBg").addEventListener("click", e => {
+    if (e.target === document.getElementById("modalMapaBg")) cerrarMapa();
+  });
 
   // ── Drag & drop zona upload ───────────────────────────────
   window.dragOver  = e => { e.preventDefault(); e.currentTarget.classList.add("drag"); };
