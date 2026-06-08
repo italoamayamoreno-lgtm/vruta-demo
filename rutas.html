@@ -110,6 +110,13 @@
     .launch-moto:hover{background:rgba(34,197,94,0.22);}
     .launch-auto{background:rgba(217,119,6,0.15);border:0.5px solid rgba(217,119,6,0.35);color:var(--amber);}
     .launch-auto:hover{background:rgba(217,119,6,0.22);}
+    .launch-bicicleta{background:rgba(55,138,221,0.15);border:0.5px solid rgba(55,138,221,0.35);color:#378ADD;}
+    .launch-bicicleta:hover{background:rgba(55,138,221,0.22);}
+    .launch-pie{background:rgba(168,85,247,0.15);border:0.5px solid rgba(168,85,247,0.35);color:#a855f7;}
+    .launch-pie:hover{background:rgba(168,85,247,0.22);}
+    .vehicles-grid.cols-1{grid-template-columns:1fr;}
+    .vehicles-grid.cols-3{grid-template-columns:repeat(3,1fr);}
+    .vehicles-grid.cols-4{grid-template-columns:repeat(4,1fr);}
     .launch-dis{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);color:rgba(148,163,184,0.35);cursor:not-allowed;}
     .divider-line{border:none;border-top:0.5px solid rgba(255,255,255,0.06);}
     .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:400;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;max-width:320px;}
@@ -198,102 +205,8 @@
       <div class="step"><div class="step-num">3</div>Lanzar jornada</div>
     </div>
 
-    <div class="vehicles-grid">
-      <!-- MOTO -->
-      <div class="vcol">
-        <div class="vcol-header">
-          <div class="vcol-name">
-            <div class="vcol-icon" style="background:rgba(34,197,94,0.12);color:var(--green);"><i class="ti ti-motorbike"></i></div>
-            Repartidor 1 — Moto
-          </div>
-          <div class="vcol-actions">
-            <span class="tag tag-empty" id="tagMoto">Sin cargar</span>
-            <button class="btn-limpiar" id="btnLimpiarMoto" onclick="confirmarLimpiar('moto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
-          </div>
-        </div>
-        <div class="upload-zone" id="uploadMoto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'moto')" onclick="validarAntesDeAbrir('moto', this)">
-          <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'moto')" id="inputMoto" onclick="event.stopPropagation()"/>
-          <div class="upload-icon" id="iconUploadMoto"><i class="ti ti-file-spreadsheet"></i></div>
-          <div class="upload-txt" id="txtUploadMoto">Cargar Excel de Moto</div>
-          <div class="upload-sub" id="subUploadMoto">Arrastra el archivo o haz clic</div>
-          <div class="upload-hint" id="hintUploadMoto">Columnas: nombre · dirección · producto · nota</div>
-        </div>
-        <div class="upload-aviso" id="avisoConductorMoto">
-          <i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0"></i>
-          <span>No hay conductor activo para <b>Moto</b>. <a onclick="window.location.href='flota.html'">Ve a Flota</a> y registra un conductor antes de cargar esta ruta.</span>
-        </div>
-        <div class="geo-progress" id="geoProcMoto"><div class="geo-spin"></div><span id="geoTxtMoto">Geocodificando...</span></div>
-        <div style="display:none;flex-direction:column;gap:10px;" id="infoMoto">
-          <div class="file-info">
-            <div class="fi-name"><i class="ti ti-file-check" style="color:var(--green)"></i><span id="fileNameMoto">archivo.xlsx</span></div>
-            <div class="fi-change" onclick="resetVehiculo('moto')"><i class="ti ti-refresh"></i>Cambiar archivo</div>
-          </div>
-          <div class="stats-row">
-            <div class="stat"><div class="stat-lbl">Pedidos</div><div class="stat-val" id="statPedMoto">0</div></div>
-            <div class="stat"><div class="stat-lbl">GPS OK</div><div class="stat-val" id="statGeoMoto">0</div></div>
-            <div class="stat"><div class="stat-lbl">Zonas</div><div class="stat-val" id="statZonMoto">—</div></div>
-          </div>
-          <div class="opt-row">
-            <button class="btn-opt" onclick="optimizar('moto')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
-            <button class="btn-toggle" id="toggleMoto" onclick="toggleCriterio('moto')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxtMoto">Cercano → Lejano</span></button>
-            <button class="btn-toggle" onclick="reGeocod('moto')" title="Reintentar geocodificación" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
-            <button class="btn-toggle" onclick="verMapa('moto')" title="Ver ruta en mapa" style="flex-shrink:0;background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.3);color:#378ADD;"><i class="ti ti-map-2" style="font-size:12px"></i>Mapa</button>
-          </div>
-          <div class="route-list" id="listaMoto"></div>
-        </div>
-        <hr class="divider-line"/>
-        <button class="launch-btn launch-dis" id="btnLanzarMoto" disabled onclick="abrirModalWA('moto')">
-          <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Lanzar ruta · enviar por WhatsApp
-        </button>
-      </div>
-
-      <!-- AUTO -->
-      <div class="vcol">
-        <div class="vcol-header">
-          <div class="vcol-name">
-            <div class="vcol-icon" style="background:rgba(217,119,6,0.12);color:var(--amber);"><i class="ti ti-car"></i></div>
-            Repartidor 2 — Auto
-          </div>
-          <div class="vcol-actions">
-            <span class="tag tag-empty" id="tagAuto">Sin cargar</span>
-            <button class="btn-limpiar" id="btnLimpiarAuto" onclick="confirmarLimpiar('auto')"><i class="ti ti-trash"></i>Limpiar ruta</button>
-          </div>
-        </div>
-        <div class="upload-zone" id="uploadAuto" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'auto')" onclick="validarAntesDeAbrir('auto', this)">
-          <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'auto')" id="inputAuto" onclick="event.stopPropagation()"/>
-          <div class="upload-icon" id="iconUploadAuto"><i class="ti ti-file-spreadsheet"></i></div>
-          <div class="upload-txt" id="txtUploadAuto">Cargar Excel de Auto</div>
-          <div class="upload-sub" id="subUploadAuto">Arrastra el archivo o haz clic</div>
-          <div class="upload-hint" id="hintUploadAuto">Columnas: nombre · dirección · producto · nota</div>
-        </div>
-        <div class="upload-aviso" id="avisoConductorAuto">
-          <i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0"></i>
-          <span>No hay conductor activo para <b>Auto</b>. <a onclick="window.location.href='flota.html'">Ve a Flota</a> y registra un conductor antes de cargar esta ruta.</span>
-        </div>
-        <div class="geo-progress" id="geoProcAuto"><div class="geo-spin"></div><span id="geoTxtAuto">Geocodificando...</span></div>
-        <div style="display:none;flex-direction:column;gap:10px;" id="infoAuto">
-          <div class="file-info">
-            <div class="fi-name"><i class="ti ti-file-check" style="color:var(--amber)"></i><span id="fileNameAuto">archivo.xlsx</span></div>
-            <div class="fi-change" onclick="resetVehiculo('auto')"><i class="ti ti-refresh"></i>Cambiar archivo</div>
-          </div>
-          <div class="stats-row">
-            <div class="stat"><div class="stat-lbl">Pedidos</div><div class="stat-val" id="statPedAuto">0</div></div>
-            <div class="stat"><div class="stat-lbl">GPS OK</div><div class="stat-val" id="statGeoAuto">0</div></div>
-            <div class="stat"><div class="stat-lbl">Zonas</div><div class="stat-val" id="statZonAuto">—</div></div>
-          </div>
-          <div class="opt-row">
-            <button class="btn-opt amber" onclick="optimizar('auto')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
-            <button class="btn-toggle" id="toggleAuto" onclick="toggleCriterio('auto')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxtAuto">Cercano → Lejano</span></button>
-            <button class="btn-toggle" onclick="reGeocod('auto')" title="Reintentar geocodificación" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
-            <button class="btn-toggle" onclick="verMapa('auto')" title="Ver ruta en mapa" style="flex-shrink:0;background:rgba(217,119,6,0.1);border-color:rgba(217,119,6,0.3);color:var(--amber);"><i class="ti ti-map-2" style="font-size:12px"></i>Mapa</button>
-          </div>
-          <div class="route-list" id="listaAuto"></div>
-        </div>
-        <hr class="divider-line"/>
-        <button class="launch-btn launch-dis" id="btnLanzarAuto" disabled onclick="abrirModalWA('auto')">
-          <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Lanzar ruta · enviar por WhatsApp
-        </button>
-      </div>
+    <div class="vehicles-grid" id="vehiculosGrid">
+      <!-- Columnas generadas dinámicamente desde Flota -->
     </div>
   </main>
 </div>
@@ -571,16 +484,14 @@
   // Cargar desde localStorage al iniciar
   cargarLS();
 
-  // Restaurar UI si hay datos válidos guardados
-  for (const V of ["moto","auto"]) {
-    if (state[V].listo && state[V].pedidos && state[V].pedidos.length > 0) {
-      mostrarVehiculo(V);
-      renderLista(V);
-    } else {
-      // Limpiar estado inválido para evitar que el upload quede bloqueado
-      state[V] = { pedidos: [], criterio: "cercano", listo: false, fileName: "" };
+  // Restaurar UI si hay datos válidos guardados para cada repartidor
+  repartidoresActivos.forEach(rep => {
+    const st = state[rep.id];
+    if (st && st.listo && st.pedidos && st.pedidos.length > 0) {
+      mostrarVehiculo(rep.id);
+      renderLista(rep.id);
     }
-  }
+  });
 
   // Verificar pedidos reagendados para hoy
   await verificarReagendados();
@@ -594,9 +505,9 @@
     info.style.flexDirection = "column";
     info.style.gap = "10px";
     document.getElementById(`fileName${Cap}`).textContent = state[V].fileName || "archivo.xlsx";
-    document.getElementById(`statPed${Cap}`).textContent = state[V].pedidos.length;
-    document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
-    document.getElementById(`tag${Cap}`).textContent = `${state[V].pedidos.length} pedidos`;
+    document.getElementById(`statPed-${repId}`).textContent = state[V].pedidos.length;
+    document.getElementById(`statGeo-${repId}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
+    document.getElementById(`tag-${repId}`).textContent = `${state[V].pedidos.length} pedidos`;
     document.getElementById(`tag${Cap}`).className = "tag tag-loaded";
     document.getElementById(`toggleTxt${Cap}`).textContent = state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
     document.getElementById(`btnLimpiar${Cap}`).classList.add("visible");
@@ -653,7 +564,7 @@
       if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
       await sleep(500); // más delay para evitar rate limit
     }
-    document.getElementById(`geoProc${Cap}`).classList.remove("show");
+    if (document.getElementById(`geoProc-${repId}`)) document.getElementById(`geoProc-${repId}`).classList.remove("show");
     document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
     guardarLS();
     optimizar(V);
@@ -690,21 +601,10 @@
   }
 
   // ── Cargar archivo ────────────────────────────────────────
-  window.cargarArchivo = async (e, V) => {
+  window.cargarArchivo = async (e, repId) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Validar que existe repartidor activo para este vehículo
-    const rep = getRepartidor(V);
-    if (!rep) {
-      const veh = V === "moto" ? "Moto" : "Auto";
-      mostrarToast(`⚠ No hay conductor activo para ${veh}. Ve a Flota y registra uno antes de cargar la ruta.`, "err");
-      // Resetear el input para que pueda intentarlo de nuevo después
-      e.target.value = "";
-      return;
-    }
-
-    await procesarArchivo(file, V);
+    await procesarArchivo(file, repId);
   };
 
   async function procesarArchivo(file, V) {
@@ -748,94 +648,54 @@
     mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
   }
 
-  // ── Algoritmo de optimización por sectores geográficos ───
-  // Divide Lima en 4 sectores desde el almacén (N, E, S, O)
-  // Visita todos los puntos de un sector antes de saltar al siguiente
-  // Esto evita zigzaguear entre el norte y el sur de Lima
+  // ── Algoritmo Nearest Neighbor con punto de inicio por criterio ──
+  //
+  // LEJANO → CERCANO:
+  //   1. Empieza en el punto MÁS LEJANO al almacén
+  //   2. Desde ahí, siempre va al punto más cercano a la posición actual
+  //   3. Resultado: espiral natural de vuelta al almacén
+  //
+  // CERCANO → LEJANO:
+  //   1. Empieza en el punto MÁS CERCANO al almacén
+  //   2. Desde ahí, siempre va al punto más cercano a la posición actual
+  //   3. Resultado: espiral natural alejándose del almacén
+  //
   function nearestNeighbor(pedidos, almacen, criterio) {
     const conCoords = pedidos.filter(p => p.lat && p.lng);
     const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
     if (conCoords.length === 0) return [...sinCoords];
 
+    // Calcular distancia de cada punto al almacén
     const puntos = conCoords.map(p => ({
       ...p,
-      dAlm:   distancia(almacen, p),
-      angulo: anguloDesdePunto(almacen, p)
+      dAlm: distancia(almacen, p)
     }));
 
-    const ruta = criterio === "lejano"
-      ? optimizarPorSectores(puntos, almacen, "lejano")
-      : optimizarPorSectores(puntos, almacen, "cercano");
-
-    return [...ruta, ...sinCoords];
-  }
-
-  // Calcula el ángulo en grados (0=Este, 90=Norte, 180=Oeste, 270=Sur)
-  function anguloDesdePunto(origen, destino) {
-    const ang = Math.atan2(
-      destino.lat - origen.lat,
-      destino.lng - origen.lng
-    ) * 180 / Math.PI;
-    return ((ang % 360) + 360) % 360;
-  }
-
-  // Asigna cada punto a uno de 4 sectores geográficos
-  function getSector(angulo) {
-    if (angulo >= 45 && angulo < 135)  return "norte";
-    if (angulo >= 135 && angulo < 225) return "oeste";
-    if (angulo >= 225 && angulo < 315) return "sur";
-    return "este"; // 315-360 y 0-45
-  }
-
-  function optimizarPorSectores(puntos, almacen, criterio) {
-    // 1. Agrupar puntos por sector geográfico
-    const sectoresMap = { norte: [], este: [], sur: [], oeste: [] };
-    puntos.forEach(p => {
-      sectoresMap[getSector(p.angulo)].push(p);
-    });
-
-    // 2. Calcular distancia promedio de cada sector al almacén
-    const sectores = Object.entries(sectoresMap)
-      .filter(([, pts]) => pts.length > 0)
-      .map(([nombre, pts]) => ({
-        nombre,
-        pts,
-        distProm: pts.reduce((s, p) => s + p.dAlm, 0) / pts.length
-      }));
-
-    // 3. Ordenar sectores: lejano primero si criterio=lejano, cercano primero si criterio=cercano
-    sectores.sort((a, b) =>
+    // Elegir punto de inicio según criterio
+    puntos.sort((a, b) =>
       criterio === "lejano"
-        ? b.distProm - a.distProm  // Sector más lejano primero
-        : a.distProm - b.distProm  // Sector más cercano primero
+        ? b.dAlm - a.dAlm   // Más lejano primero
+        : a.dAlm - b.dAlm   // Más cercano primero
     );
 
-    // 4. Dentro de cada sector, ordenar puntos por distancia al almacén
-    //    y aplicar Nearest Neighbor para minimizar recorrido interno
     const ruta = [];
-    let actual = almacen;
+    let pendientes = [...puntos];
 
-    for (const sector of sectores) {
-      // Ordenar puntos del sector según criterio
-      const ptsOrdenados = [...sector.pts].sort((a, b) =>
-        criterio === "lejano"
-          ? b.dAlm - a.dAlm  // Más lejanos del almacén primero dentro del sector
-          : a.dAlm - b.dAlm  // Más cercanos del almacén primero dentro del sector
-      );
+    // Punto inicial = el extremo según criterio
+    let actual = pendientes[0];
+    ruta.push(actual);
+    pendientes.splice(0, 1);
 
-      // Nearest Neighbor dentro del sector
-      let pendientes = [...ptsOrdenados];
-      while (pendientes.length > 0) {
-        // Elegir el más cercano a la posición actual dentro del sector
-        pendientes.sort((a, b) => distancia(actual, a) - distancia(actual, b));
-        const siguiente = pendientes[0];
-        ruta.push(siguiente);
-        actual = siguiente;
-        pendientes.splice(0, 1);
-      }
+    // Nearest Neighbor puro: siempre el más cercano a la posición actual
+    while (pendientes.length > 0) {
+      pendientes.sort((a, b) => distancia(actual, a) - distancia(actual, b));
+      const siguiente = pendientes[0];
+      ruta.push(siguiente);
+      actual = siguiente;
+      pendientes.splice(0, 1);
     }
 
-    return ruta;
+    return [...ruta, ...sinCoords];
   }
 
   function distancia(a, b) {
@@ -845,8 +705,7 @@
   }
   function deg2rad(d) { return d*Math.PI/180; }
 
-  window.optimizar = async (V) => {
-    // Recargar almacén desde Firestore para asegurar coordenadas actualizadas
+  window.optimizar = async (repId) => {
     try {
       const snap = await getDoc(doc(db, "empresas", usuario.empresa_id));
       if (snap.exists()) {
@@ -857,11 +716,11 @@
           window._ALMACEN_GLOBAL = ALMACEN;
         }
       }
-    } catch(e) { console.warn("No se pudo recargar almacén:", e.message); }
-
-    state[V].pedidos = nearestNeighbor(state[V].pedidos, ALMACEN, state[V].criterio)
+    } catch(e) {}
+    if (!state[repId]?.pedidos?.length) return;
+    state[repId].pedidos = nearestNeighbor(state[repId].pedidos, ALMACEN, state[repId].criterio)
       .map((p,i) => ({...p, orden:i+1}));
-    renderLista(V);
+    renderLista(repId);
     guardarLS();
   };
 
@@ -915,7 +774,7 @@
     const zonas = new Set(pedidos.map(p => p.direccion.split(",").slice(-2,-1)[0]?.trim()).filter(Boolean));
     document.getElementById(`statPed${Cap}`).textContent = pedidos.length;
     document.getElementById(`statGeo${Cap}`).textContent = pedidos.filter(p=>p.lat).length;
-    document.getElementById(`statZon${Cap}`).textContent = zonas.size || "—";
+    document.getElementById(`statZon-${repId}`).textContent = zonas.size || "—";
     actualizarBtnLanzar(V);
   }
 
@@ -1028,8 +887,8 @@
   };
 
   // ── Guardar jornada en Firestore ──────────────────────────
-  async function guardarJornada(V, prioridad = null) {
-    const pedidos    = state[V].pedidos;
+  async function guardarJornada(repId, V, prioridad = null) {
+    const pedidos    = state[repId]?.pedidos || [];
     const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
     const batchAdd   = writeBatch(db);
 
@@ -1059,7 +918,7 @@
           vehiculo:      V,
           estado:        "pendiente",
           prioridad:     "normal",
-          repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
+          repartidor_id: repId,
           creado_en:     new Date().toISOString()
         });
       }
@@ -1097,7 +956,7 @@
           vehiculo:      V,
           estado:        "pendiente",
           prioridad:     prioridad,
-          repartidor_id: V === "moto" ? "repartidor1" : "repartidor2",
+          repartidor_id: repId,
           creado_en:     new Date().toISOString()
         });
       }
@@ -1116,25 +975,20 @@
   }
 
   // ── Modal WhatsApp con lógica de ruta adicional ───────────
-  window.abrirModalWA = async (V) => {
-    if (state[V].pedidos.length === 0) return;
-
-    // Verificar que existe un repartidor activo para este vehículo
-    const rep = getRepartidor(V);
-    if (!rep) {
-      mostrarToast(`No hay repartidor activo asignado a ${V === "moto" ? "Moto" : "Auto"}. Ve a Flota y activa uno.`, "err");
-      return;
-    }
+  window.abrirModalWA = async (repId) => {
+    if (!state[repId]?.pedidos?.length) return;
+    const rep = repartidoresActivos.find(r => r.id === repId);
+    if (!rep) { mostrarToast("Conductor no encontrado.", "err"); return; }
 
     mostrarToast("Verificando jornada...", "ok");
+    const V = rep.vehiculo;
     const hayRutaActiva = await tieneRutaActiva(V);
 
     if (hayRutaActiva) {
-      abrirModalAdicional(V);
+      abrirModalAdicional(repId);
       return;
     }
-
-    await lanzarRuta(V, null);
+    await lanzarRuta(repId, null);
   };
 
   // ── Verificar si vehículo ya tiene ruta activa ───────────
@@ -1147,13 +1001,13 @@
   }
 
   // ── Función central de lanzamiento ───────────────────────
-  async function lanzarRuta(V, prioridad) {
-    // Declarar rep primero para evitar ReferenceError
-    const rep      = getRepartidor(V);
-    const repId    = rep ? rep.id : V;
-    const repNombre= rep ? rep.nombre.split(" ")[0] : (V==="moto" ? "Repartidor 1" : "Repartidor 2");
-    const veh      = V==="moto" ? "Moto" : "Auto";
-    const cantidad = state[V].pedidos.length;
+  async function lanzarRuta(repId, prioridad) {
+    const rep      = repartidoresActivos.find(r => r.id === repId);
+    const V        = rep?.vehiculo || "moto";
+    const repNombre= rep ? rep.nombre.split(" ")[0] : "Repartidor";
+    const vehCfg   = VEH_CONFIG[V] || VEH_CONFIG.moto;
+    const veh      = vehCfg.label;
+    const cantidad = state[repId]?.pedidos?.length || 0;
     const fecha    = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
     const token    = generarToken(repId, fechaKey, usuario.empresa_id);
     const link     = rep
@@ -1161,7 +1015,7 @@
       : `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}&e=${usuario.empresa_id}`;
 
     mostrarToast("Guardando jornada...", "ok");
-    try { await guardarJornada(V, prioridad); }
+    try { await guardarJornada(repId, V, prioridad); }
     catch(e) { mostrarToast("Error: " + e.message, "err"); return; }
 
     let mensaje;
@@ -1206,23 +1060,23 @@ _El link es válido solo para hoy._`;
       window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`,"_blank");
       document.getElementById("modalWA").classList.remove("show");
       // Limpiar pantalla DESPUÉS de confirmar envío
-      resetVehiculo(V);
+      resetVehiculo(repId);
       mostrarToast(`Ruta ${veh} lanzada ✓`, "ok");
     };
     document.getElementById("modalWA").classList.add("show");
   }
 
   // ── Modal ruta adicional ──────────────────────────────────
-  function abrirModalAdicional(V) {
-    const veh       = V==="moto" ? "Moto" : "Auto";
-    const repNombre = V==="moto" ? "Repartidor 1" : "Repartidor 2";
-    document.getElementById("modalAdicionalTitulo").textContent = `${repNombre} ya tiene una ruta activa`;
-    document.getElementById("modalAdicionalSub").textContent    = `${state[V].pedidos.length} pedidos nuevos · ${veh}`;
+  function abrirModalAdicional(repId) {
+    const rep = repartidoresActivos.find(r => r.id === repId);
+    const veh = VEH_CONFIG[rep?.vehiculo || "moto"]?.label || "Vehículo";
+    document.getElementById("modalAdicionalTitulo").textContent = `${rep?.nombre || repId} ya tiene una ruta activa`;
+    document.getElementById("modalAdicionalSub").textContent    = `${state[repId]?.pedidos?.length || 0} pedidos nuevos · ${veh}`;
     document.getElementById("radioUrgente").checked  = false;
     document.getElementById("radioFinal").checked    = false;
     document.getElementById("previewMensaje").style.display = "none";
     document.getElementById("btnConfirmarAdicional").disabled = true;
-    window._vehiculoAdicional  = V;
+    window._repIdAdicional     = repId;
     window._prioridadAdicional = null;
     document.getElementById("modalAdicional").classList.add("show");
   }
@@ -1234,18 +1088,18 @@ _El link es válido solo para hoy._`;
     const rep = V==="moto" ? "Repartidor 1" : "Repartidor 2";
     const n   = state[V].pedidos.length;
     const preview = prioridad === "urgente"
-      ? `⚡ Hola ${rep}, se te asignó un pedido URGENTE que debes atender luego del que tienes en ruta.`
-      : `📋 Hola ${rep}, se agregó(aron) ${n} pedido(s) a tu lista para atenderse al final de la jornada.`;
+      ? `⚡ Hola ${nombre}, se te asignó un pedido URGENTE que debes atender luego del que tienes en ruta.`
+      : `📋 Hola ${nombre}, se agregó(aron) ${n} pedido(s) a tu lista para atenderse al final de la jornada.`;
     const el = document.getElementById("previewMensaje");
     el.textContent    = preview;
     el.style.display  = "";
   };
 
   window.confirmarAdicional = async () => {
-    const V         = window._vehiculoAdicional;
+    const repId     = window._repIdAdicional;
     const prioridad = window._prioridadAdicional;
     document.getElementById("modalAdicional").classList.remove("show");
-    await lanzarRuta(V, prioridad);
+    await lanzarRuta(repId, prioridad);
   };
 
   // ── Mapa: exponer ALMACEN globalmente para el script no-módulo ──
@@ -1256,64 +1110,130 @@ _El link es válido solo para hoy._`;
   let mapaLeaflet = null;
 
   // Abrir mapa en nueva página (evita problemas de Leaflet en modal)
-  window.verMapa = (V) => {
-    const pedidos = state[V].pedidos;
+  window.verMapa = (repId) => {
+    const pedidos = state[repId]?.pedidos || [];
     const conGPS  = pedidos.filter(p => p.lat && p.lng);
     if (conGPS.length === 0) {
       mostrarToast("No hay pedidos con GPS. Geocodifica primero.", "err");
       return;
     }
-    // Guardar ALMACEN en localStorage para que mapa.html lo lea
     try {
       localStorage.setItem(`vruta_config_${usuario.empresa_id}`, JSON.stringify({
         almacen_lat: ALMACEN.lat,
         almacen_lng: ALMACEN.lng
       }));
+      // Guardar pedidos del rep en localStorage para que mapa.html los lea
+      localStorage.setItem(`vruta_mapa_${repId}`, JSON.stringify(pedidos));
     } catch(e) {}
-    window.open(`mapa.html?v=${V}&e=${usuario.empresa_id}`, "_blank");
+    const veh = state[repId]?.vehiculo || "moto";
+    window.open(`mapa.html?rep=${repId}&v=${veh}&e=${usuario.empresa_id}`, "_blank");
   };
+
+  // ── Configuración visual por tipo de vehículo ────────────
+  const VEH_CONFIG = {
+    moto:      { icon:"ti-motorbike", color:"var(--green)",  bg:"rgba(34,197,94,0.12)",  label:"Moto",      mapColor:"#22c55e" },
+    auto:      { icon:"ti-car",       color:"var(--amber)",  bg:"rgba(217,119,6,0.12)",  label:"Auto",      mapColor:"#D97706" },
+    bicicleta: { icon:"ti-bike",      color:"#378ADD",       bg:"rgba(55,138,221,0.12)", label:"Bicicleta", mapColor:"#378ADD" },
+    pie:       { icon:"ti-walk",      color:"#a855f7",       bg:"rgba(168,85,247,0.12)", label:"A pie",     mapColor:"#a855f7" }
+  };
+
+  // ── Generar columnas dinámicamente desde repartidores activos ──
+  function generarColumnas() {
+    const grid = document.getElementById("vehiculosGrid");
+    const cols = repartidoresActivos.length;
+
+    // Ajustar clase del grid según número de columnas
+    grid.className = `vehicles-grid${cols === 1 ? " cols-1" : cols === 3 ? " cols-3" : cols === 4 ? " cols-4" : ""}`;
+
+    if (cols === 0) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--graph);">
+          <i class="ti ti-users-group" style="font-size:40px;opacity:0.3;display:block;margin-bottom:14px;"></i>
+          <p style="font-size:13px;margin-bottom:12px;">No hay conductores activos registrados.</p>
+          <a href="flota.html" style="background:var(--copper);color:var(--ice);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            <i class="ti ti-plus"></i>Agregar conductores en Flota
+          </a>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = repartidoresActivos.map(rep => {
+      const V   = rep.vehiculo;
+      const cfg = VEH_CONFIG[V] || VEH_CONFIG.moto;
+      const Cap = V.charAt(0).toUpperCase() + V.slice(1);
+      const id  = rep.id; // Usar ID del repartidor como key
+
+      return `
+        <div class="vcol" id="vcol-${id}">
+          <div class="vcol-header">
+            <div class="vcol-name">
+              <div class="vcol-icon" style="background:${cfg.bg};color:${cfg.color};"><i class="ti ${cfg.icon}"></i></div>
+              ${rep.nombre} — ${cfg.label}
+            </div>
+            <div class="vcol-actions">
+              <span class="tag tag-empty" id="tag-${id}">Sin cargar</span>
+              <button class="btn-limpiar" id="btnLimpiar-${id}" onclick="confirmarLimpiar('${id}')"><i class="ti ti-trash"></i>Limpiar ruta</button>
+            </div>
+          </div>
+          <div class="upload-zone" id="upload-${id}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'${id}')" onclick="validarAntesDeAbrir('${id}', this)">
+            <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'${id}')" id="input-${id}" onclick="event.stopPropagation()"/>
+            <div class="upload-icon" id="iconUpload-${id}"><i class="ti ti-file-spreadsheet"></i></div>
+            <div class="upload-txt" id="txtUpload-${id}">Cargar Excel de ${cfg.label}</div>
+            <div class="upload-sub" id="subUpload-${id}">${rep.nombre} · Arrastra o haz clic</div>
+            <div class="upload-hint">Columnas: nombre · dirección · producto · nota</div>
+          </div>
+          <div class="upload-aviso" id="avisoConductor-${id}" style="display:none;"></div>
+          <div class="geo-progress" id="geoProc-${id}"><div class="geo-spin"></div><span id="geoTxt-${id}">Geocodificando...</span></div>
+          <div style="display:none;flex-direction:column;gap:10px;" id="info-${id}">
+            <div class="file-info">
+              <div class="fi-name"><i class="ti ti-file-check" style="color:${cfg.color}"></i><span id="fileName-${id}">archivo.xlsx</span></div>
+              <div class="fi-change" onclick="resetVehiculo('${id}')"><i class="ti ti-refresh"></i>Cambiar archivo</div>
+            </div>
+            <div class="stats-row">
+              <div class="stat"><div class="stat-lbl">Pedidos</div><div class="stat-val" id="statPed-${id}">0</div></div>
+              <div class="stat"><div class="stat-lbl">GPS OK</div><div class="stat-val" id="statGeo-${id}">0</div></div>
+              <div class="stat"><div class="stat-lbl">Zonas</div><div class="stat-val" id="statZon-${id}">—</div></div>
+            </div>
+            <div class="opt-row">
+              <button class="btn-opt" style="background:${cfg.color};color:var(--mid);" onclick="optimizar('${id}')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
+              <button class="btn-toggle" id="toggle-${id}" onclick="toggleCriterio('${id}')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxt-${id}">Cercano → Lejano</span></button>
+              <button class="btn-toggle" onclick="reGeocod('${id}')" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
+              <button class="btn-toggle" onclick="verMapa('${id}')" style="flex-shrink:0;background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.3);color:#378ADD;"><i class="ti ti-map-2" style="font-size:12px"></i>Mapa</button>
+            </div>
+            <div class="route-list" id="lista-${id}"></div>
+          </div>
+          <hr class="divider-line"/>
+          <button class="launch-btn launch-dis launch-${V}" id="btnLanzar-${id}" disabled onclick="abrirModalWA('${id}')">
+            <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Lanzar ruta · enviar por WhatsApp
+          </button>
+        </div>`;
+    }).join("");
+
+    // Inicializar state para cada repartidor
+    repartidoresActivos.forEach(rep => {
+      if (!state[rep.id]) {
+        state[rep.id] = { pedidos: [], criterio: "cercano", listo: false, fileName: "", repId: rep.id, vehiculo: rep.vehiculo };
+      }
+    });
+
+    console.log("✓ Columnas generadas para:", repartidoresActivos.map(r => r.nombre).join(", "));
+  }
 
   // ── Validación visual de conductores ─────────────────────
   function verificarConductoresUI() {
-    for (const V of ["moto", "auto"]) {
-      const Cap    = V === "moto" ? "Moto" : "Auto";
-      const rep    = getRepartidor(V);
-      const zone   = document.getElementById(`upload${Cap}`);
-      const aviso  = document.getElementById(`avisoConductor${Cap}`);
-      const icono  = document.getElementById(`iconUpload${Cap}`);
-      const txt    = document.getElementById(`txtUpload${Cap}`);
-      const sub    = document.getElementById(`subUpload${Cap}`);
-
-      if (!rep) {
-        // Sin conductor — bloquear visualmente
-        zone.classList.add("bloqueada");
-        aviso.classList.add("show");
-        icono.innerHTML = `<i class="ti ti-user-off" style="color:var(--red)"></i>`;
-        txt.textContent = `Sin conductor asignado para ${Cap}`;
-        txt.style.color = "var(--red)";
-        sub.textContent = "Registra un conductor en Flota primero";
-      } else {
-        // Con conductor — mostrar nombre
-        zone.classList.remove("bloqueada");
-        aviso.classList.remove("show");
-        icono.innerHTML = `<i class="ti ti-file-spreadsheet"></i>`;
-        txt.textContent = `Cargar Excel de ${Cap}`;
-        txt.style.color = "";
-        sub.textContent = `Conductor: ${rep.nombre} · Arrastra o haz clic`;
-      }
-    }
+    // Con columnas dinámicas, cada columna ya muestra el nombre del conductor
+    // No hay necesidad de verificar — las columnas solo aparecen si hay conductor activo
+    // Esta función se mantiene por compatibilidad
   }
 
-  // Validar antes de abrir el file picker
-  window.validarAntesDeAbrir = (V, zone) => {
-    const rep = getRepartidor(V);
+  // Validar antes de abrir el file picker (V = repId)
+  window.validarAntesDeAbrir = (repId, zone) => {
+    const rep = repartidoresActivos.find(r => r.id === repId);
     if (!rep) {
-      const veh = V === "moto" ? "Moto" : "Auto";
-      mostrarToast(`Sin conductor para ${veh}. Ve a Flota primero.`, "err");
-      return false; // Prevenir apertura del input
+      mostrarToast("Conductor no encontrado. Recarga la página.", "err");
+      return;
     }
-    // Si hay conductor, abrir el input manualmente
-    document.getElementById(`input${V === "moto" ? "Moto" : "Auto"}`).click();
+    document.getElementById(`input-${repId}`).click();
   };
 
   // ── Drag & drop zona upload ───────────────────────────────
