@@ -475,10 +475,21 @@
 
   function guardarLS() {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        moto: { pedidos: state.moto.pedidos, criterio: state.moto.criterio, listo: state.moto.listo, fileName: state.moto.fileName },
-        auto: { pedidos: state.auto.pedidos, criterio: state.auto.criterio, listo: state.auto.listo, fileName: state.auto.fileName }
-      }));
+      // Guardar state de cada repartidor activo
+      const toSave = {};
+      Object.keys(state).forEach(repId => {
+        if (state[repId] && state[repId].pedidos) {
+          toSave[repId] = {
+            pedidos:  state[repId].pedidos,
+            criterio: state[repId].criterio || "cercano",
+            listo:    state[repId].listo || false,
+            fileName: state[repId].fileName || "",
+            vehiculo: state[repId].vehiculo || "",
+            repId:    repId
+          };
+        }
+      });
+      localStorage.setItem(LS_KEY, JSON.stringify(toSave));
     } catch(e) { console.warn("localStorage no disponible:", e); }
   }
 
