@@ -3,1280 +3,173 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vruta · Planificador de Rutas</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <title>Vruta · Mapa de Ruta</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
   <style>
-    :root{
-      --mid:#0B1120;--mid2:#131d30;--mid3:#1a2640;
-      --copper:#B87333;--amber:#D97706;--ice:#F8FAFC;--graph:#94A3B8;
-      --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
-    }
+    :root{--mid:#0B1120;--mid2:#131d30;--copper:#B87333;--ice:#F8FAFC;--graph:#94A3B8;--green:#22c55e;--amber:#D97706;--red:#ef4444;}
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);min-height:100vh;display:flex;flex-direction:column;}
-    .topbar{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:100;}
-    .logo-area{display:flex;align-items:center;gap:10px;}
-    .logo-text{display:flex;flex-direction:column;line-height:1.1;}
+    body{background:var(--mid);font-family:'Inter',sans-serif;color:var(--ice);height:100vh;display:flex;flex-direction:column;}
+    .header{background:var(--mid2);border-bottom:0.5px solid rgba(184,115,51,0.25);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .logo{display:flex;align-items:center;gap:10px;}
     .logo-main{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--ice);letter-spacing:0.06em;}
-    .logo-sub{font-size:9px;color:var(--copper);letter-spacing:0.07em;font-weight:500;}
-    .topbar-right{display:flex;align-items:center;gap:12px;}
-    .client-chip{background:rgba(184,115,51,0.12);border:0.5px solid rgba(184,115,51,0.3);border-radius:999px;padding:4px 14px;font-size:11px;color:var(--copper);font-weight:500;}
-    .user-dot{width:30px;height:30px;border-radius:50%;background:rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--copper);}
-    .btn-logout{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;}
-    .btn-logout:hover{border-color:rgba(239,68,68,0.4);color:var(--red);}
-    .app-body{display:flex;flex:1;}
-    .sidebar{background:var(--mid2);width:56px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);}
-    .sib{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--graph);cursor:pointer;text-decoration:none;transition:all 0.15s;}
-    .sib:hover{background:rgba(255,255,255,0.05);color:var(--ice);}
-    .sib.active{background:rgba(184,115,51,0.15);color:var(--copper);}
-    .sib-spacer{flex:1;}
-    .main{flex:1;padding:24px;overflow:auto;}
-    .mod-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:rgba(184,115,51,0.15);color:var(--copper);padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:16px;}
-    .steps{display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
-    .step{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--graph);}
-    .step.done{color:var(--green);}
-    .step.active{color:var(--copper);}
-    .step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);}
-    .step.done .step-num{background:rgba(34,197,94,0.15);color:var(--green);}
-    .step.active .step-num{background:rgba(184,115,51,0.2);color:var(--copper);}
-    .step-arrow{color:rgba(148,163,184,0.3);font-size:12px;}
-    .vehicles-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-    .vcol{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;}
-    .vcol-header{display:flex;align-items:center;justify-content:space-between;}
-    .vcol-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ice);}
-    .vcol-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-    .vcol-actions{display:flex;align-items:center;gap:6px;}
-    .tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;}
-    .tag-empty{background:rgba(148,163,184,0.1);color:var(--graph);}
-    .tag-loaded{background:rgba(184,115,51,0.15);color:var(--copper);}
-    .upload-zone{border:1px dashed rgba(148,163,184,0.2);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;}
-    .upload-zone:hover,.upload-zone.drag{border-color:rgba(184,115,51,0.5);background:rgba(184,115,51,0.04);}
-    .upload-zone.bloqueada{border-color:rgba(239,68,68,0.25);background:rgba(239,68,68,0.04);cursor:not-allowed;}
-    .upload-zone.bloqueada:hover{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.07);}
-    .upload-aviso{background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--red);display:none;align-items:center;gap:8px;line-height:1.5;}
-    .upload-aviso.show{display:flex;}
-    .upload-aviso a{color:var(--copper);text-decoration:underline;cursor:pointer;}
-    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;pointer-events:none;}
-    .upload-icon{font-size:26px;color:var(--graph);margin-bottom:8px;}
-    .upload-txt{font-size:13px;color:var(--ice);margin-bottom:3px;font-weight:500;}
-    .upload-sub{font-size:11px;color:var(--graph);}
-    .upload-hint{font-size:10px;color:rgba(148,163,184,0.5);margin-top:6px;}
-    .file-info{display:flex;align-items:center;justify-content:space-between;}
-    .fi-name{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--graph);}
-    .fi-change{font-size:10px;color:var(--copper);cursor:pointer;display:flex;align-items:center;gap:3px;}
-    .fi-change:hover{text-decoration:underline;}
-    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
-    .stat{background:rgba(255,255,255,0.04);border-radius:7px;padding:8px;text-align:center;}
-    .stat-lbl{font-size:9px;color:var(--graph);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
-    .stat-val{font-size:17px;font-weight:600;color:var(--ice);}
-    .opt-row{display:flex;gap:6px;}
-    .btn-opt{flex:1;background:var(--copper);border:none;border-radius:7px;padding:8px;font-size:10px;font-weight:600;color:var(--ice);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:opacity 0.15s;font-family:'Inter',sans-serif;}
-    .btn-opt:hover{opacity:0.88;}
-    .btn-opt.amber{background:rgba(217,119,6,0.85);}
-    .btn-toggle{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 10px;font-size:10px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;font-family:'Inter',sans-serif;transition:all 0.15s;}
-    .btn-toggle:hover{border-color:rgba(184,115,51,0.4);color:var(--copper);}
-    .btn-toggle.active{background:rgba(184,115,51,0.1);border-color:rgba(184,115,51,0.35);color:var(--copper);}
-    .btn-limpiar{background:none;border:0.5px solid rgba(239,68,68,0.25);border-radius:6px;padding:4px 10px;font-size:10px;color:rgba(239,68,68,0.65);cursor:pointer;display:none;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:all 0.15s;}
-    .btn-limpiar:hover{border-color:rgba(239,68,68,0.5);color:var(--red);background:rgba(239,68,68,0.06);}
-    .btn-limpiar.visible{display:flex;}
-    .route-list{display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 440px);min-height:120px;overflow-y:auto;padding-right:4px;}
-    .route-list::-webkit-scrollbar{width:4px;}
-    .route-list::-webkit-scrollbar-track{background:transparent;}
-    .route-list::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.2);border-radius:999px;}
-    .ri{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.06);border-radius:7px;padding:8px 10px;cursor:grab;transition:background 0.15s;}
-    .ri:hover{background:rgba(255,255,255,0.06);}
-    .ri.sortable-ghost{opacity:0.3;}
-    .ri.sortable-chosen{background:rgba(184,115,51,0.08);border-color:rgba(184,115,51,0.2);}
-    .ri-grip{font-size:14px;color:rgba(148,163,184,0.25);flex-shrink:0;}
-    .ri-num{font-size:10px;color:var(--graph);min-width:18px;font-weight:500;}
-    .ri-info{flex:1;min-width:0;cursor:pointer;}
-    .ri-info:hover .ri-name{color:var(--copper);}
-    .ri-name{font-size:11px;font-weight:500;color:var(--ice);transition:color 0.15s;}
-    .ri-addr{font-size:10px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .ri-maps{width:26px;height:26px;border-radius:5px;background:rgba(184,115,51,0.1);border:0.5px solid rgba(184,115,51,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--copper);flex-shrink:0;text-decoration:none;}
-    .ri-del{width:22px;height:22px;border-radius:4px;background:rgba(239,68,68,0.08);border:0.5px solid rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--red);cursor:pointer;flex-shrink:0;}
-    .ri-del:hover{background:rgba(239,68,68,0.2);}
-    .geo-progress{background:rgba(184,115,51,0.08);border:0.5px solid rgba(184,115,51,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--copper);display:none;align-items:center;gap:8px;}
-    .geo-progress.show{display:flex;}
-    .geo-spin{width:14px;height:14px;border:2px solid rgba(184,115,51,0.3);border-top-color:var(--copper);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    .launch-btn{width:100%;border:none;border-radius:9px;padding:11px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Montserrat',sans-serif;letter-spacing:0.02em;transition:all 0.2s;}
-    .launch-moto{background:rgba(34,197,94,0.15);border:0.5px solid rgba(34,197,94,0.35);color:var(--green);}
-    .launch-moto:hover{background:rgba(34,197,94,0.22);}
-    .launch-auto{background:rgba(217,119,6,0.15);border:0.5px solid rgba(217,119,6,0.35);color:var(--amber);}
-    .launch-auto:hover{background:rgba(217,119,6,0.22);}
-    .launch-bicicleta{background:rgba(55,138,221,0.15);border:0.5px solid rgba(55,138,221,0.35);color:#378ADD;}
-    .launch-bicicleta:hover{background:rgba(55,138,221,0.22);}
-    .launch-pie{background:rgba(168,85,247,0.15);border:0.5px solid rgba(168,85,247,0.35);color:#a855f7;}
-    .launch-pie:hover{background:rgba(168,85,247,0.22);}
-    .vehicles-grid.cols-1{grid-template-columns:1fr;}
-    .vehicles-grid.cols-3{grid-template-columns:repeat(3,1fr);}
-    .vehicles-grid.cols-4{grid-template-columns:repeat(4,1fr);}
-    .launch-dis{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);color:rgba(148,163,184,0.35);cursor:not-allowed;}
-    .divider-line{border:none;border-top:0.5px solid rgba(255,255,255,0.06);}
-    .toast{position:fixed;bottom:24px;right:24px;background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--ice);z-index:400;display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;max-width:320px;}
-    .toast.show{transform:translateY(0);opacity:1;}
-    .toast.ok{border-color:rgba(34,197,94,0.3);}
-    .toast.err{border-color:rgba(239,68,68,0.3);}
-    /* Modales */
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
-    .modal-bg.show{opacity:1;pointer-events:all;}
-    .modal{background:var(--mid2);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px;width:100%;max-width:420px;transform:translateY(10px);transition:transform 0.2s;}
-    .modal-bg.show .modal{transform:translateY(0);}
-    .modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
-    .modal-title{font-size:15px;font-weight:600;color:var(--ice);}
-    .modal-sub{font-size:11px;color:var(--graph);margin-top:2px;}
-    .close-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--graph);cursor:pointer;flex-shrink:0;}
-    .wa-box{background:rgba(37,211,102,0.06);border:0.5px solid rgba(37,211,102,0.25);border-radius:10px;padding:14px;margin-bottom:14px;}
-    .wa-header{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(37,211,102,0.8);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
-    .wa-msg{font-size:12px;color:var(--ice);line-height:1.7;white-space:pre-line;}
-    .wa-msg b{color:var(--green);}
-    .btn-wa{width:100%;background:rgba(37,211,102,0.15);border:0.5px solid rgba(37,211,102,0.35);border-radius:8px;padding:11px;font-size:12px;font-weight:600;color:rgba(37,211,102,0.95);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Montserrat',sans-serif;transition:background 0.15s;}
-    .btn-wa:hover{background:rgba(37,211,102,0.22);}
-    /* Modal detalle cliente */
-    .detalle-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-    .dc{background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px;}
-    .dc-lbl{font-size:10px;color:var(--graph);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
-    .dc-val{font-size:13px;color:var(--ice);font-weight:500;line-height:1.4;}
-    .dc-full{grid-column:1/-1;}
-    .dc-nota{background:rgba(184,115,51,0.06);border:0.5px solid rgba(184,115,51,0.15);}
-    /* Modal confirmación */
-    .confirm-box{background:var(--mid2);border:0.5px solid rgba(239,68,68,0.25);border-radius:14px;padding:24px;width:100%;max-width:360px;}
-    .confirm-icon{width:44px;height:44px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);margin-bottom:14px;}
-    .confirm-title{font-size:15px;font-weight:600;color:var(--ice);margin-bottom:6px;}
-    .confirm-msg{font-size:12px;color:var(--graph);line-height:1.6;margin-bottom:20px;}
-    .confirm-actions{display:flex;gap:8px;}
-    .btn-cancel{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
-    .btn-confirm-del{flex:1;background:rgba(239,68,68,0.15);border:0.5px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;font-family:'Inter',sans-serif;}
-    .btn-confirm-del:hover{background:rgba(239,68,68,0.25);}
-    /* ── Banner reagendados ── */
-    .banner-reag{background:rgba(217,119,6,0.08);border:0.5px solid rgba(217,119,6,0.3);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
-    .banner-reag-txt{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ice);}
-    .banner-reag-txt i{font-size:18px;color:var(--amber);flex-shrink:0;}
-    .banner-reag-txt b{color:var(--amber);}
-    .banner-reag-actions{display:flex;gap:6px;flex-shrink:0;}
-    .btn-reag-si{background:rgba(217,119,6,0.2);border:0.5px solid rgba(217,119,6,0.4);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:600;color:var(--amber);cursor:pointer;font-family:'Inter',sans-serif;}
-    .btn-reag-si:hover{background:rgba(217,119,6,0.3);}
-    .btn-reag-no{background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:6px 12px;font-size:11px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;}
-    @media(max-width:800px){.vehicles-grid{grid-template-columns:1fr;}}
+    .logo-sub{font-size:9px;color:var(--copper);}
+    .header-info{text-align:center;}
+    .header-title{font-size:14px;font-weight:600;color:var(--ice);}
+    .header-sub{font-size:11px;color:var(--graph);margin-top:2px;}
+    .header-actions{display:flex;align-items:center;gap:8px;}
+    .btn-close{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:7px 14px;font-size:12px;color:var(--graph);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;}
+    .btn-close:hover{border-color:rgba(184,115,51,0.4);color:var(--copper);}
+    #mapa{flex:1;width:100%;}
+    .legend{background:var(--mid2);border-top:0.5px solid rgba(255,255,255,0.07);padding:10px 20px;display:flex;align-items:center;gap:20px;flex-shrink:0;flex-wrap:wrap;}
+    .leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--graph);}
+    .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+    .line{width:28px;height:2px;flex-shrink:0;}
+    .stats{margin-left:auto;display:flex;gap:16px;}
+    .stat{font-size:11px;color:var(--graph);}
+    .stat b{color:var(--ice);}
+    .error-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;text-align:center;padding:24px;}
+    .error-screen i{font-size:40px;color:var(--red);opacity:0.5;}
+    .error-screen p{font-size:13px;color:var(--graph);}
   </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="logo-area">
-    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+<div class="header">
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
       <circle cx="20" cy="20" r="18" stroke="#B87333" stroke-width="1.5"/>
       <circle cx="20" cy="20" r="11" stroke="#B87333" stroke-width="1" stroke-dasharray="3 2.5" opacity="0.6"/>
       <circle cx="20" cy="20" r="4" fill="#B87333" opacity="0.85"/>
     </svg>
-    <div class="logo-text"><span class="logo-main">VRUTA</span><span class="logo-sub">powered by Etrazia</span></div>
+    <div><div class="logo-main">VRUTA</div><div class="logo-sub">powered by Etrazia</div></div>
   </div>
-  <div class="topbar-right">
-    <span class="client-chip" id="clienteNombre">Cargando...</span>
-    <div class="user-dot" id="usuarioAvatar">OP</div>
-    <button class="btn-logout" id="btnLogout"><i class="ti ti-logout"></i>Salir</button>
+  <div class="header-info">
+    <div class="header-title" id="titulo">Mapa de ruta</div>
+    <div class="header-sub" id="subtitulo"></div>
   </div>
-</div>
-
-<div class="app-body">
-  <nav class="sidebar">
-    <a class="sib" href="dashboard.html" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
-    <a class="sib active" href="rutas.html" title="Rutas"><i class="ti ti-route"></i></a>
-    <a class="sib" href="flota.html" title="Flota"><i class="ti ti-motorbike"></i></a>
-    <a class="sib" href="historial.html" title="Historial"><i class="ti ti-history"></i></a>
-    <div class="sib-spacer"></div>
-    <a class="sib" href="configuracion.html" title="Configuración"><i class="ti ti-settings"></i></a>
-  </nav>
-
-  <main class="main">
-    <div class="mod-label">Planificador de rutas</div>
-    <div id="bannerReagendados" style="display:none"></div>
-    <div class="steps">
-      <div class="step done"><div class="step-num"><i class="ti ti-check" style="font-size:9px"></i></div>Cargar Excel</div>
-      <div class="step-arrow">›</div>
-      <div class="step active"><div class="step-num">2</div>Optimizar ruta</div>
-      <div class="step-arrow">›</div>
-      <div class="step"><div class="step-num">3</div>Lanzar jornada</div>
-    </div>
-
-    <div class="vehicles-grid" id="vehiculosGrid">
-      <!-- Columnas generadas dinámicamente desde Flota -->
-    </div>
-  </main>
-</div>
-
-<!-- Modal ruta adicional -->
-<div class="modal-bg" id="modalAdicional">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title" id="modalAdicionalTitulo"></div>
-        <div class="modal-sub" id="modalAdicionalSub"></div>
-      </div>
-      <div class="close-btn" onclick="document.getElementById('modalAdicional').classList.remove('show')"><i class="ti ti-x"></i></div>
-    </div>
-    <div style="background:rgba(217,119,6,0.08);border:0.5px solid rgba(217,119,6,0.2);border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--graph);line-height:1.6;">
-      <i class="ti ti-info-circle" style="color:var(--amber);margin-right:5px;"></i>
-      El repartidor ya tiene pedidos en camino. ¿Deseas agregar estos pedidos adicionales a su ruta?
-    </div>
-    <div style="font-size:11px;color:var(--graph);margin-bottom:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">Tipo de prioridad</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-      <label style="display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;cursor:pointer;transition:all 0.15s;" onclick="seleccionarPrioridad('urgente')">
-        <input type="radio" name="prioridad" id="radioUrgente" style="width:16px;height:16px;accent-color:var(--red);margin-top:1px;flex-shrink:0;"/>
-        <div>
-          <div style="font-size:13px;font-weight:500;color:var(--ice);display:flex;align-items:center;gap:6px;"><i class="ti ti-bolt" style="color:var(--red)"></i>Urgente</div>
-          <div style="font-size:11px;color:var(--graph);margin-top:2px;">El repartidor debe atenderlo luego del pedido actual en curso</div>
-        </div>
-      </label>
-      <label style="display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;cursor:pointer;transition:all 0.15s;" onclick="seleccionarPrioridad('final')">
-        <input type="radio" name="prioridad" id="radioFinal" style="width:16px;height:16px;accent-color:var(--copper);margin-top:1px;flex-shrink:0;"/>
-        <div>
-          <div style="font-size:13px;font-weight:500;color:var(--ice);display:flex;align-items:center;gap:6px;"><i class="ti ti-list-end" style="color:var(--copper)"></i>Agregar al final de la lista</div>
-          <div style="font-size:11px;color:var(--graph);margin-top:2px;">Se suma al final de la jornada sin alterar el orden actual</div>
-        </div>
-      </label>
-    </div>
-    <div id="previewMensaje" style="display:none;background:rgba(37,211,102,0.06);border:0.5px solid rgba(37,211,102,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--ice);line-height:1.6;margin-bottom:14px;"></div>
-    <div style="display:flex;gap:8px;">
-      <button style="flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:12px;color:var(--graph);cursor:pointer;font-family:'Inter',sans-serif;" onclick="document.getElementById('modalAdicional').classList.remove('show')">Cancelar</button>
-      <button id="btnConfirmarAdicional" style="flex:2;background:var(--copper);border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;color:var(--ice);cursor:pointer;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;" disabled onclick="confirmarAdicional()"><i class="ti ti-brand-whatsapp"></i>Confirmar y lanzar</button>
-    </div>
+  <div class="header-actions">
+    <button class="btn-close" onclick="window.close()"><i class="ti ti-x"></i>Cerrar</button>
   </div>
 </div>
 
-<!-- Modal Mapa de Ruta -->
-<div class="modal-mapa-bg" id="modalMapaBg" style="display:none">
-  <div class="modal-mapa">
-    <div class="modal-mapa-header">
-      <div>
-        <div class="modal-mapa-title" id="mapaTitulo"><i class="ti ti-map-2"></i>Ruta visualizada</div>
-        <div class="modal-mapa-sub" id="mapaSub"></div>
-      </div>
-      <div class="close-btn" onclick="cerrarMapa()"><i class="ti ti-x"></i></div>
-    </div>
-    <div id="mapaContainer"></div>
-    <div class="mapa-legend">
-      <div class="leg-item"><div style="width:12px;height:12px;border-radius:50%;background:#ef4444;flex-shrink:0;"></div>Almacén (inicio)</div>
-      <div class="leg-item"><div style="width:12px;height:12px;border-radius:50%;background:#B87333;flex-shrink:0;"></div>Punto de entrega</div>
-      <div class="leg-item"><div style="width:24px;height:2px;background:#B87333;flex-shrink:0;"></div>Ruta optimizada</div>
-    </div>
-  </div>
+<div id="mapa"></div>
+
+<div class="legend">
+  <div class="leg"><div class="dot" style="background:var(--red)"></div>Almacén (inicio)</div>
+  <div class="leg"><div class="dot" style="background:var(--copper)"></div>Punto de entrega</div>
+  <div class="leg"><div class="line" style="background:var(--copper);border-top:2px dashed var(--copper)"></div>Ruta optimizada</div>
+  <div class="stats" id="stats"></div>
 </div>
 
-<!-- Modal WhatsApp -->
-<div class="modal-bg" id="modalWA">
-  <div class="modal">
-    <div class="modal-header">
-      <div><div class="modal-title" id="waTitulo">Lanzar ruta</div><div class="modal-sub" id="waSub"></div></div>
-      <div class="close-btn" onclick="document.getElementById('modalWA').classList.remove('show')"><i class="ti ti-x"></i></div>
-    </div>
-    <div class="wa-box">
-      <div class="wa-header"><i class="ti ti-brand-whatsapp" style="font-size:13px"></i>Mensaje de WhatsApp</div>
-      <div class="wa-msg" id="waMensaje"></div>
-    </div>
-    <button class="btn-wa" id="btnAbrirWA"><i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Abrir WhatsApp y enviar</button>
-  </div>
-</div>
+<script>
+  // Leer datos del localStorage
+  const params    = new URLSearchParams(window.location.search);
+  const repId     = params.get("rep");
+  const vehiculo  = params.get("v") || "moto";
+  const empresaId = params.get("e") || "demo";
+  const fechaKey  = new Date().toISOString().split("T")[0];
+  const LS_KEY    = `vruta_rutas_${empresaId}_${fechaKey}`;
 
-<!-- Modal detalle cliente -->
-<div class="modal-bg" id="modalDetalle">
-  <div class="modal">
-    <div class="modal-header">
-      <div><div class="modal-title" id="detalleTitulo">Detalle del pedido</div><div class="modal-sub" id="detalleSub"></div></div>
-      <div class="close-btn" onclick="document.getElementById('modalDetalle').classList.remove('show')"><i class="ti ti-x"></i></div>
-    </div>
-    <div id="detalleBody"></div>
-  </div>
-</div>
+  const VEH_COLORS = { moto:"#22c55e", auto:"#D97706", bicicleta:"#378ADD", pie:"#a855f7" };
+  const VEH_LABELS = { moto:"Moto", auto:"Auto", bicicleta:"Bicicleta", pie:"A pie" };
+  const color = VEH_COLORS[vehiculo] || "#B87333";
+  const veh   = VEH_LABELS[vehiculo] || vehiculo;
 
-<!-- Modal confirmación eliminar cliente -->
-<div class="modal-bg" id="modalConfirmCliente">
-  <div class="modal" style="max-width:360px;">
-    <div class="confirm-box" style="background:transparent;border:none;padding:0;">
-      <div class="confirm-icon"><i class="ti ti-user-minus"></i></div>
-      <div class="confirm-title">¿Eliminar cliente de la ruta?</div>
-      <div class="confirm-msg" id="confirmClienteMsg"></div>
-      <div class="confirm-actions">
-        <button class="btn-cancel" onclick="document.getElementById('modalConfirmCliente').classList.remove('show')">Cancelar</button>
-        <button class="btn-confirm-del" id="btnConfirmEliminar">Sí, eliminar</button>
-      </div>
-    </div>
-  </div>
-</div>
+  // Cargar datos desde localStorage
+  let pedidos = [];
+  let almacen = { lat: -12.1219, lng: -77.0282 };
 
-<!-- Modal confirmación limpiar ruta -->
-<div class="modal-bg" id="modalConfirmLimpiar">
-  <div class="modal" style="max-width:360px;">
-    <div class="confirm-box" style="background:transparent;border:none;padding:0;">
-      <div class="confirm-icon"><i class="ti ti-alert-triangle"></i></div>
-      <div class="confirm-title">¿Limpiar esta ruta?</div>
-      <div class="confirm-msg" id="confirmLimpiarMsg"></div>
-      <div class="confirm-actions">
-        <button class="btn-cancel" onclick="document.getElementById('modalConfirmLimpiar').classList.remove('show')">Cancelar</button>
-        <button class="btn-confirm-del" id="btnConfirmLimpiar">Sí, limpiar ruta</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script type="module">
-  import { requireAuth, logout } from "./assets/js/auth.js";
-  import { db } from "./assets/js/firebase-config.js";
-  import {
-    doc, setDoc, getDoc, collection, writeBatch, getDocs, query,
-    deleteDoc, where
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  console.log("[Vruta] SCRIPT INICIADO - post imports");
-  // ── Configuración visual por tipo de vehículo (global) ──────
-  const VEH_CONFIG = {
-    moto:      { icon:"ti-motorbike", color:"var(--green)",  bg:"rgba(34,197,94,0.12)",  label:"Moto",      mapColor:"#22c55e" },
-    auto:      { icon:"ti-car",       color:"var(--amber)",  bg:"rgba(217,119,6,0.12)",  label:"Auto",      mapColor:"#D97706" },
-    bicicleta: { icon:"ti-bike",      color:"#378ADD",       bg:"rgba(55,138,221,0.12)", label:"Bicicleta", mapColor:"#378ADD" },
-    pie:       { icon:"ti-walk",      color:"#a855f7",       bg:"rgba(168,85,247,0.12)", label:"A pie",     mapColor:"#a855f7" }
-  };
-
-  // ── Auth ─────────────────────────────────────────────────
-  const usuario = requireAuth("operador");
-  if (!usuario) throw new Error("No autorizado");
-  console.log("[Vruta] Auth OK - usuario:", usuario.nombre);
-  document.getElementById("usuarioAvatar").textContent = usuario.nombre.substring(0,2).toUpperCase();
-  document.getElementById("btnLogout").addEventListener("click", logout);
-
-  const empresaSnap = await getDoc(doc(db, "empresas", usuario.empresa_id));
-  const empresa = empresaSnap.data();
-  document.getElementById("clienteNombre").textContent = empresa.nombre;
-  console.log("[Vruta] Empresa OK:", empresa.nombre);
-  const ALMACEN = { lat: empresa.almacen_lat, lng: empresa.almacen_lng };
-  const fechaKey = new Date().toISOString().split("T")[0];
-
-  // ── Generar token seguro (mismo algoritmo que flota y repartidor) ──
-  function generarToken(repId, fecha, empresaId) {
-    const SALT = "vruta_etrazia_2026";
-    const str  = `${repId}|${fecha}|${empresaId}|${SALT}`;
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return Math.abs(hash).toString(36);
-  }
-
-  // ── Cargar repartidores activos desde Flota ───────────────
-  let repartidoresActivos = [];
-  async function cargarRepartidores() {
-    try {
-      const snap = await getDocs(collection(db, "empresas", usuario.empresa_id, "repartidores"));
-      repartidoresActivos = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(r => r.activo !== false);
-    } catch(e) { console.warn("Error cargando repartidores:", e.message); }
-  }
-  console.log("[Vruta] Cargando repartidores...");
-  await cargarRepartidores();
-  console.log("[Vruta] Repartidores activos:", repartidoresActivos.length, repartidoresActivos.map(r=>r.nombre));
-
-  // Generar columnas dinámicamente según repartidores activos en Flota
   try {
-    generarColumnas();
-    console.log("[Vruta] generarColumnas() completada");
-  } catch(e) {
-    console.error("[Vruta] Error en generarColumnas:", e);
-  }
-
-  // Obtener repartidor activo por tipo de vehículo
-  function getRepartidor(vehiculo) {
-    return repartidoresActivos.find(r => r.vehiculo === vehiculo) || null;
-  }
-
-  // ── Verificar reagendados para hoy ───────────────────────
-  let reagendadosHoy = [];
-
-  async function verificarReagendados() {
-    try {
-      const ref = collection(db, "empresas", usuario.empresa_id, "reagendados");
-      const snap = await getDocs(query(ref, where("fecha_programada","==",fechaKey), where("estado","==","programado")));
-      reagendadosHoy = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-      if (reagendadosHoy.length > 0) mostrarBannerReagendados();
-    } catch(e) { console.warn("Error verificando reagendados:", e.message); }
-  }
-
-  function mostrarBannerReagendados() {
-    const banner = document.getElementById("bannerReagendados");
-    const moto = reagendadosHoy.filter(p=>p.vehiculo==="moto").length;
-    const auto = reagendadosHoy.filter(p=>p.vehiculo==="auto").length;
-    let detalle = [];
-    if (moto>0) detalle.push(`${moto} para Moto`);
-    if (auto>0) detalle.push(`${auto} para Auto`);
-
-    banner.style.display = "";
-    banner.innerHTML = `
-      <div class="banner-reag">
-        <div class="banner-reag-txt">
-          <i class="ti ti-calendar-exclamation"></i>
-          <div>Hay <b>${reagendadosHoy.length} pedido${reagendadosHoy.length>1?"s":""} reagendado${reagendadosHoy.length>1?"s":""}</b> del día anterior programados para hoy (${detalle.join(", ")}).
-          ¿Deseas sumarlos a la ruta en planificación?</div>
-        </div>
-        <div class="banner-reag-actions">
-          <button class="btn-reag-si" onclick="agregarReagendados()">Sí, agregar</button>
-          <button class="btn-reag-no" onclick="descartarBanner()">Ignorar</button>
-        </div>
-      </div>`;
-  }
-
-  window.agregarReagendados = async () => {
-    for (const p of reagendadosHoy) {
-      const V = p.vehiculo || "moto";
-      const nuevoPedido = {
-        id:        `reag_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
-        cliente:   p.cliente,
-        direccion: p.direccion,
-        producto:  p.producto || "",
-        nota:      `[Reagendado] ${p.nota||""}`.trim(),
-        lat:       p.lat || null,
-        lng:       p.lng || null,
-        orden:     state[V].pedidos.length + 1,
-        estado:    "pendiente"
-      };
-      state[V].pedidos.push(nuevoPedido);
-      if (!state[V].listo) {
-        state[V].listo    = true;
-        state[V].fileName = "reagendados";
-        mostrarVehiculo(V);
-      }
-      renderLista(V);
-
-      // Marcar como procesado en Firestore
-      try {
-        const reagRef = doc(db, "empresas", usuario.empresa_id, "reagendados", p.docId);
-        await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")
-          .then(({updateDoc}) => updateDoc(reagRef, { estado: "procesado", procesado_en: new Date().toISOString() }));
-      } catch(e) {}
+    // Intentar leer por repId primero (nuevo sistema)
+    if (repId) {
+      const mapaRaw = localStorage.getItem(`vruta_mapa_${repId}`);
+      if (mapaRaw) pedidos = JSON.parse(mapaRaw);
     }
-
-    guardarLS();
-    document.getElementById("bannerReagendados").style.display = "none";
-    mostrarToast(`${reagendadosHoy.length} pedidos reagendados agregados a la ruta ✓`, "ok");
-    reagendadosHoy = [];
-  };
-
-  window.descartarBanner = () => {
-    document.getElementById("bannerReagendados").style.display = "none";
-  };
-
-  // ── Persistencia con localStorage ────────────────────────
-  // localStorage persiste entre navegaciones de página a diferencia de variables JS
-  const LS_KEY = `vruta_rutas_${usuario.empresa_id}_${fechaKey}`;
-
-  function guardarLS() {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        moto: { pedidos: state.moto.pedidos, criterio: state.moto.criterio, listo: state.moto.listo, fileName: state.moto.fileName },
-        auto: { pedidos: state.auto.pedidos, criterio: state.auto.criterio, listo: state.auto.listo, fileName: state.auto.fileName }
-      }));
-    } catch(e) { console.warn("localStorage no disponible:", e); }
-  }
-
-  function cargarLS() {
-    try {
+    // Fallback: leer del state general
+    if (!pedidos.length) {
       const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return false;
-      const saved = JSON.parse(raw);
-      if (saved.moto) Object.assign(state.moto, saved.moto);
-      if (saved.auto) Object.assign(state.auto, saved.auto);
-      return true;
-    } catch(e) { return false; }
-  }
-
-  // ── Estado ───────────────────────────────────────────────
-  const state = {
-    moto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" },
-    auto: { pedidos: [], criterio: "cercano", listo: false, fileName: "" }
-  };
-
-  // Cargar desde localStorage al iniciar
-  cargarLS();
-
-  // Restaurar UI si hay datos válidos guardados para cada repartidor
-  repartidoresActivos.forEach(rep => {
-    const st = state[rep.id];
-    if (st && st.listo && st.pedidos && st.pedidos.length > 0) {
-      mostrarVehiculo(rep.id);
-      renderLista(rep.id);
-    }
-  });
-
-  // Verificar pedidos reagendados para hoy
-  await verificarReagendados();
-
-  // ── Mostrar sección vehículo cargado ──────────────────────
-  function mostrarVehiculo(V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "none";
-    const info = document.getElementById(`info${Cap}`);
-    info.style.display = "flex";
-    info.style.flexDirection = "column";
-    info.style.gap = "10px";
-    document.getElementById(`fileName${Cap}`).textContent = state[V].fileName || "archivo.xlsx";
-    document.getElementById(`statPed-${repId}`).textContent = state[V].pedidos.length;
-    document.getElementById(`statGeo-${repId}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
-    document.getElementById(`tag-${repId}`).textContent = `${state[V].pedidos.length} pedidos`;
-    document.getElementById(`tag${Cap}`).className = "tag tag-loaded";
-    document.getElementById(`toggleTxt${Cap}`).textContent = state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
-    document.getElementById(`btnLimpiar${Cap}`).classList.add("visible");
-    actualizarBtnLanzar(V);
-  }
-
-  function actualizarBtnLanzar(V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    const btn = document.getElementById(`btnLanzar${Cap}`);
-    const tiene = state[V].pedidos.length > 0;
-    btn.disabled = !tiene;
-    btn.className = `launch-btn ${tiene ? (V==="moto"?"launch-moto":"launch-auto") : "launch-dis"}`;
-  }
-
-  // ── Geocoding (Nominatim, gratis) ─────────────────────────
-  // ── Configuración geocoding ──────────────────────────────
-  // Para activar Google Maps: reemplaza "" con tu API Key
-  // Obtén una en: console.cloud.google.com → APIs → Geocoding API
-  // Cloudflare Worker proxy — resuelve CORS de Google Maps
-  const GEOCODING_WORKER = "https://vruta-geocoding.italoamaya-moreno.workers.dev";
-
-  async function geocodificar(dir) {
-    const dirCompleta = dir + ", Lima, Peru";
-
-    try {
-      const q = encodeURIComponent(dirCompleta);
-      const r = await fetch(`${GEOCODING_WORKER}?address=${q}`);
-      if (r.ok) {
-        const d = await r.json();
-        if (d.status === "OK" && d.results && d.results.length > 0) {
-          const loc = d.results[0].geometry.location;
-          return { lat: loc.lat, lng: loc.lng };
+      if (raw) {
+        const data = JSON.parse(raw);
+        // Buscar por repId o por vehiculo
+        if (repId && data[repId]?.pedidos) {
+          pedidos = data[repId].pedidos;
+        } else if (data[vehiculo]?.pedidos) {
+          pedidos = data[vehiculo].pedidos;
         }
       }
-    } catch(e) { console.warn("Worker geocoding falló:", e.message); }
-
-    return null;
-  }
-
-  // ── Re-geocodificar pedidos sin GPS ──────────────────────
-  window.reGeocod = async (V) => {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    const sinGPS = state[V].pedidos.filter(p => !p.lat || !p.lng);
-    if (sinGPS.length === 0) {
-      mostrarToast("Todos los pedidos ya tienen GPS ✓", "ok");
-      return;
     }
-    document.getElementById(`geoProc${Cap}`).classList.add("show");
-    let geocoded = 0;
-    for (const p of state[V].pedidos) {
-      if (p.lat && p.lng) continue;
-      document.getElementById(`geoTxt${Cap}`).textContent = `Reintentando ${geocoded+1} de ${sinGPS.length}...`;
-      const coords = await geocodificar(p.direccion);
-      if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
-      await sleep(500); // más delay para evitar rate limit
+  } catch(e) {
+    console.error("Error leyendo localStorage:", e);
+  }
+
+  // Intentar cargar almacén desde otro localStorage key
+  try {
+    const cfgKey = `vruta_config_${empresaId}`;
+    const cfg = localStorage.getItem(cfgKey);
+    if (cfg) {
+      const c = JSON.parse(cfg);
+      if (c.almacen_lat) almacen = { lat: c.almacen_lat, lng: c.almacen_lng };
     }
-    if (document.getElementById(`geoProc-${repId}`)) document.getElementById(`geoProc-${repId}`).classList.remove("show");
-    document.getElementById(`statGeo${Cap}`).textContent = state[V].pedidos.filter(p=>p.lat).length;
-    guardarLS();
-    optimizar(V);
-    mostrarToast(`${geocoded} direcciones geocodificadas ✓`, "ok");
-  };
+  } catch(e) {}
 
-  // ── Leer Excel ────────────────────────────────────────────
-  function leerArchivo(file) {
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const wb = XLSX.read(e.target.result, { type:"binary" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        resolve(XLSX.utils.sheet_to_json(ws, { defval:"" }));
-      };
-      reader.readAsBinaryString(file);
-    });
-  }
+  const conGPS = pedidos.filter(p => p.lat && p.lng);
 
-  function normalizarFila(row) {
-    const get = (...ns) => {
-      for (const n of ns) {
-        const k = Object.keys(row).find(k => k.toLowerCase().trim().includes(n));
-        if (k && row[k]) return String(row[k]).trim();
-      }
-      return "";
-    };
-    return {
-      cliente:   get("nombre","cliente","name","destinatario"),
-      direccion: get("dirección","direccion","address","dir","calle"),
-      producto:  get("producto","product","item","descripcion","articulo"),
-      nota:      get("nota","note","observacion","obs","comentario"),
-    };
-  }
+  document.getElementById("titulo").textContent    = `Ruta ${veh}`;
+  document.getElementById("subtitulo").textContent = `${conGPS.length} de ${pedidos.length} puntos con GPS · ${rep}`;
+  document.getElementById("stats").innerHTML = `
+    <div class="stat">Total pedidos: <b>${pedidos.length}</b></div>
+    <div class="stat">Con GPS: <b>${conGPS.length}</b></div>
+    <div class="stat">Sin GPS: <b>${pedidos.length - conGPS.length}</b></div>`;
 
-  // ── Cargar archivo ────────────────────────────────────────
-  window.cargarArchivo = async (e, repId) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    await procesarArchivo(file, repId);
-  };
-
-  async function procesarArchivo(file, V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`geoProc${Cap}`).classList.add("show");
-    document.getElementById(`geoTxt${Cap}`).textContent = "Leyendo archivo...";
-
-    let rows;
-    try { rows = await leerArchivo(file); }
-    catch(e) {
-      mostrarToast("Error leyendo el archivo.", "err");
-      document.getElementById(`geoProc${Cap}`).classList.remove("show");
-      return;
-    }
-
-    const pedidos = rows
-      .map((r, i) => ({ ...normalizarFila(r), id:`p${Date.now()}_${i}`, orden:i, lat:null, lng:null, estado:"pendiente" }))
-      .filter(p => p.cliente && p.direccion);
-
-    if (pedidos.length === 0) {
-      mostrarToast("No se encontraron pedidos válidos.", "err");
-      document.getElementById(`geoProc${Cap}`).classList.remove("show");
-      return;
-    }
-
-    let geocoded = 0;
-    for (const p of pedidos) {
-      document.getElementById(`geoTxt${Cap}`).textContent = `Geocodificando ${geocoded} de ${pedidos.length}...`;
-      const coords = await geocodificar(p.direccion);
-      if (coords) { p.lat = coords.lat; p.lng = coords.lng; geocoded++; }
-      await sleep(500);
-    }
-
-    state[V].pedidos  = pedidos;
-    state[V].listo    = true;
-    state[V].fileName = file.name;
-
-    document.getElementById(`geoProc${Cap}`).classList.remove("show");
-    mostrarVehiculo(V);
-    optimizar(V);
-    mostrarToast(`${pedidos.length} pedidos cargados · ${geocoded} con GPS`, "ok");
-  }
-
-  // ── Algoritmo Nearest Neighbor con punto de inicio por criterio ──
-  //
-  // LEJANO → CERCANO:
-  //   1. Empieza en el punto MÁS LEJANO al almacén
-  //   2. Desde ahí, siempre va al punto más cercano a la posición actual
-  //   3. Resultado: espiral natural de vuelta al almacén
-  //
-  // CERCANO → LEJANO:
-  //   1. Empieza en el punto MÁS CERCANO al almacén
-  //   2. Desde ahí, siempre va al punto más cercano a la posición actual
-  //   3. Resultado: espiral natural alejándose del almacén
-  //
-  function nearestNeighbor(pedidos, almacen, criterio) {
-    const conCoords = pedidos.filter(p => p.lat && p.lng);
-    const sinCoords = pedidos.filter(p => !p.lat || !p.lng);
-    if (conCoords.length === 0) return [...sinCoords];
-
-    // Calcular distancia de cada punto al almacén
-    const puntos = conCoords.map(p => ({
-      ...p,
-      dAlm: distancia(almacen, p)
-    }));
-
-    // Elegir punto de inicio según criterio
-    puntos.sort((a, b) =>
-      criterio === "lejano"
-        ? b.dAlm - a.dAlm   // Más lejano primero
-        : a.dAlm - b.dAlm   // Más cercano primero
-    );
-
-    const ruta = [];
-    let pendientes = [...puntos];
-
-    // Punto inicial = el extremo según criterio
-    let actual = pendientes[0];
-    ruta.push(actual);
-    pendientes.splice(0, 1);
-
-    // Nearest Neighbor puro: siempre el más cercano a la posición actual
-    while (pendientes.length > 0) {
-      pendientes.sort((a, b) => distancia(actual, a) - distancia(actual, b));
-      const siguiente = pendientes[0];
-      ruta.push(siguiente);
-      actual = siguiente;
-      pendientes.splice(0, 1);
-    }
-
-    return [...ruta, ...sinCoords];
-  }
-
-  function distancia(a, b) {
-    const R = 6371, dLat = deg2rad(b.lat-a.lat), dLon = deg2rad(b.lng-a.lng);
-    const x = Math.sin(dLat/2)**2 + Math.cos(deg2rad(a.lat))*Math.cos(deg2rad(b.lat))*Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
-  }
-  function deg2rad(d) { return d*Math.PI/180; }
-
-  window.optimizar = async (repId) => {
-    try {
-      const snap = await getDoc(doc(db, "empresas", usuario.empresa_id));
-      if (snap.exists()) {
-        const d = snap.data();
-        if (d.almacen_lat && d.almacen_lng) {
-          ALMACEN.lat = d.almacen_lat;
-          ALMACEN.lng = d.almacen_lng;
-          window._ALMACEN_GLOBAL = ALMACEN;
-        }
-      }
-    } catch(e) {}
-    if (!state[repId]?.pedidos?.length) return;
-    state[repId].pedidos = nearestNeighbor(state[repId].pedidos, ALMACEN, state[repId].criterio)
-      .map((p,i) => ({...p, orden:i+1}));
-    renderLista(repId);
-    guardarLS();
-  };
-
-  window.toggleCriterio = (V) => {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    state[V].criterio = state[V].criterio === "cercano" ? "lejano" : "cercano";
-    document.getElementById(`toggleTxt${Cap}`).textContent =
-      state[V].criterio === "cercano" ? "Cercano → Lejano" : "Lejano → Cercano";
-    document.getElementById(`toggle${Cap}`).classList.toggle("active", state[V].criterio === "lejano");
-    optimizar(V);
-  };
-
-  // ── Render lista ──────────────────────────────────────────
-  function renderLista(V) {
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    const lista = document.getElementById(`lista${Cap}`);
-    const pedidos = state[V].pedidos;
-
-    lista.innerHTML = pedidos.map((p, i) => {
-      const mapsUrl = p.lat
-        ? `https://maps.google.com/?q=${p.lat},${p.lng}`
-        : `https://maps.google.com/?q=${encodeURIComponent(p.direccion+", Lima, Peru")}`;
-      return `
-        <div class="ri" data-id="${p.id}">
-          <i class="ti ti-grip-vertical ri-grip"></i>
-          <div class="ri-num">${String(i+1).padStart(2,"0")}</div>
-          <div class="ri-info" onclick="verDetalle('${V}','${p.id}')" title="Ver detalle del pedido">
-            <div class="ri-name">${p.cliente}</div>
-            <div class="ri-addr">${p.direccion}</div>
-          </div>
-          <a class="ri-maps" href="${mapsUrl}" target="_blank" onclick="event.stopPropagation()" title="Ver en Google Maps"><i class="ti ti-map-pin"></i></a>
-          <div class="ri-del" onclick="pedirConfirmEliminar('${V}','${p.id}')" title="Eliminar de la ruta"><i class="ti ti-x"></i></div>
-        </div>`;
-    }).join("");
-
-    // Drag and drop
-    Sortable.create(lista, {
-      animation: 150,
-      ghostClass: "sortable-ghost",
-      chosenClass: "sortable-chosen",
-      onEnd: () => {
-        const ids = [...lista.querySelectorAll(".ri")].map(el => el.dataset.id);
-        state[V].pedidos = ids.map((id,i) => ({
-          ...state[V].pedidos.find(p=>p.id===id), orden:i+1
-        }));
-        guardarLS();
-      }
-    });
-
-    // Actualizar stats
-    const zonas = new Set(pedidos.map(p => p.direccion.split(",").slice(-2,-1)[0]?.trim()).filter(Boolean));
-    document.getElementById(`statPed${Cap}`).textContent = pedidos.length;
-    document.getElementById(`statGeo${Cap}`).textContent = pedidos.filter(p=>p.lat).length;
-    document.getElementById(`statZon-${repId}`).textContent = zonas.size || "—";
-    actualizarBtnLanzar(V);
-  }
-
-  // ── Ver detalle del pedido ────────────────────────────────
-  window.verDetalle = (V, id) => {
-    const p = state[V].pedidos.find(x => x.id === id);
-    if (!p) return;
-    const veh = V === "moto" ? "Moto" : "Auto";
-    document.getElementById("detalleTitulo").textContent = p.cliente;
-    document.getElementById("detalleSub").textContent = `Pedido asignado a ${veh}`;
-    document.getElementById("detalleBody").innerHTML = `
-      <div class="detalle-grid">
-        <div class="dc dc-full">
-          <div class="dc-lbl">Dirección de entrega</div>
-          <div class="dc-val">${p.direccion}</div>
-        </div>
-        <div class="dc">
-          <div class="dc-lbl">Producto</div>
-          <div class="dc-val">${p.producto || "—"}</div>
-        </div>
-        <div class="dc">
-          <div class="dc-lbl">GPS</div>
-          <div class="dc-val" style="font-size:11px;color:${p.lat?'var(--green)':'var(--red)'}">
-            ${p.lat ? '✓ Geocodificado' : '✗ Sin coordenadas'}
-          </div>
-        </div>
-        ${p.nota ? `<div class="dc dc-full dc-nota"><div class="dc-lbl">Nota / Observación</div><div class="dc-val">${p.nota}</div></div>` : ''}
+  if (conGPS.length === 0) {
+    document.getElementById("mapa").outerHTML = `
+      <div class="error-screen">
+        <i class="ti ti-map-off"></i>
+        <p>No hay pedidos con coordenadas GPS.<br>Vuelve a Rutas y geocodifica las direcciones primero.</p>
       </div>`;
-    document.getElementById("modalDetalle").classList.add("show");
-  };
+  } else {
+    // Inicializar mapa
+    const mapa = L.map("mapa");
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors", maxZoom: 18
+    }).addTo(mapa);
 
-  // ── Confirmar eliminar cliente ────────────────────────────
-  window.pedirConfirmEliminar = (V, id) => {
-    const p = state[V].pedidos.find(x => x.id === id);
-    if (!p) return;
-    document.getElementById("confirmClienteMsg").textContent =
-      `¿Estás seguro de eliminar a "${p.cliente}" de la ruta? También se eliminará del Dashboard si ya fue lanzada.`;
-    document.getElementById("btnConfirmEliminar").onclick = () => ejecutarEliminarCliente(V, id);
-    document.getElementById("modalConfirmCliente").classList.add("show");
-  };
+    const pts = [];
 
-  async function ejecutarEliminarCliente(V, id) {
-    document.getElementById("modalConfirmCliente").classList.remove("show");
-    state[V].pedidos = state[V].pedidos.filter(p => p.id !== id);
-    renderLista(V);
-    guardarLS();
+    // Almacén
+    L.marker([almacen.lat, almacen.lng], {
+      icon: L.divIcon({
+        html: `<div style="background:#ef4444;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
+                 <i class="ti ti-building-warehouse" style="font-size:10px;color:white"></i>
+               </div>`,
+        iconSize:[22,22], iconAnchor:[11,11], className:""
+      })
+    }).addTo(mapa).bindPopup("<b>📦 Almacén</b><br>Punto de inicio de la jornada");
+    pts.push([almacen.lat, almacen.lng]);
 
-    // Intentar borrar de Firestore si ya fue guardado
-    try {
-      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
-      const snap = await getDocs(pedidosRef);
-      const batch = writeBatch(db);
-      let found = false;
-      snap.docs.forEach(d => {
-        if (d.data().vehiculo === V && d.data().cliente === state[V].pedidos.find(p=>p.id===id)?.cliente) {
-          batch.delete(d.ref); found = true;
-        }
-      });
-      if (found) await batch.commit();
-    } catch(e) {}
-
-    mostrarToast("Cliente eliminado de la ruta ✓", "ok");
-  }
-
-  // ── Confirmar limpiar ruta completa ───────────────────────
-  window.confirmarLimpiar = (V) => {
-    const veh = V === "moto" ? "Moto" : "Auto";
-    document.getElementById("confirmLimpiarMsg").textContent =
-      `Se eliminarán todos los pedidos de la ruta ${veh} del día de hoy, incluyendo los registros en el Dashboard. Esta acción no se puede deshacer.`;
-    document.getElementById("btnConfirmLimpiar").onclick = () => ejecutarLimpiar(V);
-    document.getElementById("modalConfirmLimpiar").classList.add("show");
-  };
-
-  async function ejecutarLimpiar(V) {
-    document.getElementById("modalConfirmLimpiar").classList.remove("show");
-    mostrarToast("Eliminando registros...", "ok");
-
-    try {
-      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
-      const snap = await getDocs(pedidosRef);
-      const batch = writeBatch(db);
-      snap.docs.forEach(d => { if (d.data().vehiculo === V) batch.delete(d.ref); });
-      await batch.commit();
-    } catch(e) { console.warn("Firestore:", e.message); }
-
-    state[V] = { pedidos:[], criterio:"cercano", listo:false, fileName:"" };
-    guardarLS();
-
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "";
-    document.getElementById(`info${Cap}`).style.display = "none";
-    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
-    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
-    document.getElementById(`btnLimpiar${Cap}`).classList.remove("visible");
-    actualizarBtnLanzar(V);
-    mostrarToast(`Ruta ${Cap} limpiada ✓`, "ok");
-  }
-
-  // ── Reset vehículo (cambiar archivo sin borrar Firestore) ──
-  window.resetVehiculo = (V) => {
-    state[V] = { pedidos:[], criterio:"cercano", listo:false, fileName:"" };
-    guardarLS();
-    const Cap = V === "moto" ? "Moto" : "Auto";
-    document.getElementById(`upload${Cap}`).style.display = "";
-    document.getElementById(`info${Cap}`).style.display = "none";
-    document.getElementById(`tag${Cap}`).textContent = "Sin cargar";
-    document.getElementById(`tag${Cap}`).className = "tag tag-empty";
-    document.getElementById(`btnLimpiar${Cap}`).classList.remove("visible");
-    actualizarBtnLanzar(V);
-  };
-
-  // ── Guardar jornada en Firestore ──────────────────────────
-  async function guardarJornada(repId, V, prioridad = null) {
-    const pedidos    = state[repId]?.pedidos || [];
-    const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
-    const batchAdd   = writeBatch(db);
-
-    if (!prioridad) {
-      // ── Primera carga del día: borrar pedidos previos del vehículo ──
-      const snapExistente = await getDocs(pedidosRef);
-      const batchDel = writeBatch(db);
-      let hayQueEliminar = false;
-      snapExistente.docs.forEach(d => {
-        if (d.data().vehiculo === V) {
-          batchDel.delete(d.ref);
-          hayQueEliminar = true;
-        }
-      });
-      if (hayQueEliminar) await batchDel.commit();
-
-      // Guardar pedidos nuevos con orden normal
-      for (const p of pedidos) {
-        batchAdd.set(doc(pedidosRef), {
-          cliente:       p.cliente,
-          direccion:     p.direccion,
-          producto:      p.producto || "",
-          nota:          p.nota || "",
-          lat:           p.lat || null,
-          lng:           p.lng || null,
-          orden:         p.orden,
-          vehiculo:      V,
-          estado:        "pendiente",
-          prioridad:     "normal",
-          repartidor_id: repId,
-          creado_en:     new Date().toISOString()
-        });
-      }
-
-    } else {
-      // ── Pedidos adicionales: solo AGREGAR, nunca borrar ──────────
-      // Obtener el orden máximo actual para insertar después
-      const snapActual = await getDocs(pedidosRef);
-      const pedidosActuales = snapActual.docs
-        .filter(d => d.data().vehiculo === V)
-        .map(d => d.data().orden || 0);
-
-      let ordenBase = pedidosActuales.length > 0 ? Math.max(...pedidosActuales) : 0;
-
-      if (prioridad === "urgente") {
-        // Insertar justo después del pedido actual en curso
-        // Buscamos el pendiente con menor orden
-        const ordenesPendientes = snapActual.docs
-          .filter(d => d.data().vehiculo === V && d.data().estado === "pendiente")
-          .map(d => d.data().orden || 999);
-        const ordenActual = ordenesPendientes.length > 0 ? Math.min(...ordenesPendientes) : 1;
-        ordenBase = ordenActual; // Se insertan justo después del actual
-      }
-
-      for (let i = 0; i < pedidos.length; i++) {
-        const p = pedidos[i];
-        batchAdd.set(doc(pedidosRef), {
-          cliente:       p.cliente,
-          direccion:     p.direccion,
-          producto:      p.producto || "",
-          nota:          p.nota ? `[${prioridad === "urgente" ? "⚡ URGENTE" : "➕ Adicional"}] ${p.nota}` : (prioridad === "urgente" ? "⚡ URGENTE" : "➕ Adicional"),
-          lat:           p.lat || null,
-          lng:           p.lng || null,
-          orden:         ordenBase + i + 1,
-          vehiculo:      V,
-          estado:        "pendiente",
-          prioridad:     prioridad,
-          repartidor_id: repId,
-          creado_en:     new Date().toISOString()
-        });
-      }
-    }
-
-    // Metadata de jornada
-    const jornadaRef = doc(db, "empresas", usuario.empresa_id, "jornadas", fechaKey);
-    batchAdd.set(jornadaRef, {
-      fecha:   fechaKey,
-      estado:  "activa",
-      empresa: usuario.empresa_id,
-      [`lanzado_${V}`]: new Date().toISOString()
-    }, { merge: true });
-
-    await batchAdd.commit();
-  }
-
-  // ── Modal WhatsApp con lógica de ruta adicional ───────────
-  window.abrirModalWA = async (repId) => {
-    if (!state[repId]?.pedidos?.length) return;
-    const rep = repartidoresActivos.find(r => r.id === repId);
-    if (!rep) { mostrarToast("Conductor no encontrado.", "err"); return; }
-
-    mostrarToast("Verificando jornada...", "ok");
-    const V = rep.vehiculo;
-    const hayRutaActiva = await tieneRutaActiva(V);
-
-    if (hayRutaActiva) {
-      abrirModalAdicional(repId);
-      return;
-    }
-    await lanzarRuta(repId, null);
-  };
-
-  // ── Verificar si vehículo ya tiene ruta activa ───────────
-  async function tieneRutaActiva(V) {
-    try {
-      const pedidosRef = collection(db, "empresas", usuario.empresa_id, "jornadas", fechaKey, "pedidos");
-      const snap = await getDocs(pedidosRef);
-      return snap.docs.some(d => d.data().vehiculo === V);
-    } catch(e) { return false; }
-  }
-
-  // ── Función central de lanzamiento ───────────────────────
-  async function lanzarRuta(repId, prioridad) {
-    const rep      = repartidoresActivos.find(r => r.id === repId);
-    const V        = rep?.vehiculo || "moto";
-    const repNombre= rep ? rep.nombre.split(" ")[0] : "Repartidor";
-    const vehCfg   = VEH_CONFIG[V] || VEH_CONFIG.moto;
-    const veh      = vehCfg.label;
-    const cantidad = state[repId]?.pedidos?.length || 0;
-    const fecha    = new Date().toLocaleDateString("es-PE",{day:"numeric",month:"long",year:"numeric"});
-    const token    = generarToken(repId, fechaKey, usuario.empresa_id);
-    const link     = rep
-      ? `${window.location.origin}/repartidor.html?rep=${repId}&fecha=${fechaKey}&e=${usuario.empresa_id}&token=${token}`
-      : `${window.location.origin}/repartidor.html?v=${V}&fecha=${fechaKey}&e=${usuario.empresa_id}`;
-
-    mostrarToast("Guardando jornada...", "ok");
-    try { await guardarJornada(repId, V, prioridad); }
-    catch(e) { mostrarToast("Error: " + e.message, "err"); return; }
-
-    let mensaje;
-    if (prioridad === "urgente") {
-      mensaje = `Hola ${repNombre} 👋
-
-⚡ *Se te asignó un pedido URGENTE* que debes atender luego del que tienes en ruta ahora mismo.
-
-📦 *${cantidad} pedido(s) nuevo(s)* — ${veh}
-📅 ${fecha}
-
-👉 Revisa tu lista actualizada:
-${link}`;
-    } else if (prioridad === "final") {
-      mensaje = `Hola ${repNombre} 👋
-
-📋 Se agregó(aron) *${cantidad} pedido(s) nuevo(s)* a tu lista. Deberá(n) atenderse al *final de tu jornada de hoy*.
-
-📅 ${fecha}
-
-👉 Revisa tu lista actualizada:
-${link}`;
-    } else {
-      mensaje = `Hola ${repNombre} 👋
-
-Ya tienes tu ruta del día lista.
-
-📦 *${cantidad} pedidos* asignados — ${veh}
-📅 Jornada *${fecha}*
-
-👉 Ingresa aquí:
-${link}
-
-_El link es válido solo para hoy._`;
-    }
-
-    document.getElementById("waTitulo").textContent = prioridad ? `Pedidos adicionales — ${veh}` : `Lanzar ruta ${veh}`;
-    document.getElementById("waSub").textContent    = `${cantidad} pedido(s) · ${repNombre}`;
-    document.getElementById("waMensaje").innerHTML  = mensaje.replace(/\*(.+?)\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
-
-    document.getElementById("btnAbrirWA").onclick = () => {
-      window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`,"_blank");
-      document.getElementById("modalWA").classList.remove("show");
-      // Limpiar pantalla DESPUÉS de confirmar envío
-      resetVehiculo(repId);
-      mostrarToast(`Ruta ${veh} lanzada ✓`, "ok");
-    };
-    document.getElementById("modalWA").classList.add("show");
-  }
-
-  // ── Modal ruta adicional ──────────────────────────────────
-  function abrirModalAdicional(repId) {
-    const rep = repartidoresActivos.find(r => r.id === repId);
-    const veh = VEH_CONFIG[rep?.vehiculo || "moto"]?.label || "Vehículo";
-    document.getElementById("modalAdicionalTitulo").textContent = `${rep?.nombre || repId} ya tiene una ruta activa`;
-    document.getElementById("modalAdicionalSub").textContent    = `${state[repId]?.pedidos?.length || 0} pedidos nuevos · ${veh}`;
-    document.getElementById("radioUrgente").checked  = false;
-    document.getElementById("radioFinal").checked    = false;
-    document.getElementById("previewMensaje").style.display = "none";
-    document.getElementById("btnConfirmarAdicional").disabled = true;
-    window._repIdAdicional     = repId;
-    window._prioridadAdicional = null;
-    document.getElementById("modalAdicional").classList.add("show");
-  }
-
-  window.seleccionarPrioridad = (prioridad) => {
-    window._prioridadAdicional = prioridad;
-    document.getElementById("btnConfirmarAdicional").disabled = false;
-    const V   = window._vehiculoAdicional;
-    const rep = V==="moto" ? "Repartidor 1" : "Repartidor 2";
-    const n   = state[V].pedidos.length;
-    const preview = prioridad === "urgente"
-      ? `⚡ Hola ${nombre}, se te asignó un pedido URGENTE que debes atender luego del que tienes en ruta.`
-      : `📋 Hola ${nombre}, se agregó(aron) ${n} pedido(s) a tu lista para atenderse al final de la jornada.`;
-    const el = document.getElementById("previewMensaje");
-    el.textContent    = preview;
-    el.style.display  = "";
-  };
-
-  window.confirmarAdicional = async () => {
-    const repId     = window._repIdAdicional;
-    const prioridad = window._prioridadAdicional;
-    document.getElementById("modalAdicional").classList.remove("show");
-    await lanzarRuta(repId, prioridad);
-  };
-
-  // ── Mapa: exponer ALMACEN globalmente para el script no-módulo ──
-  window._ALMACEN_GLOBAL = ALMACEN;
-  window._STATE_GLOBAL   = state;
-
-  // ── Mapa de ruta ─────────────────────────────────────────
-  let mapaLeaflet = null;
-
-  // Abrir mapa en nueva página (evita problemas de Leaflet en modal)
-  window.verMapa = (repId) => {
-    const pedidos = state[repId]?.pedidos || [];
-    const conGPS  = pedidos.filter(p => p.lat && p.lng);
-    if (conGPS.length === 0) {
-      mostrarToast("No hay pedidos con GPS. Geocodifica primero.", "err");
-      return;
-    }
-    try {
-      localStorage.setItem(`vruta_config_${usuario.empresa_id}`, JSON.stringify({
-        almacen_lat: ALMACEN.lat,
-        almacen_lng: ALMACEN.lng
-      }));
-      // Guardar pedidos del rep en localStorage para que mapa.html los lea
-      localStorage.setItem(`vruta_mapa_${repId}`, JSON.stringify(pedidos));
-    } catch(e) {}
-    const veh = state[repId]?.vehiculo || "moto";
-    window.open(`mapa.html?rep=${repId}&v=${veh}&e=${usuario.empresa_id}`, "_blank");
-  };
-
-  // ── Generar columnas dinámicamente desde repartidores activos ──
-  function generarColumnas() {
-    const grid = document.getElementById("vehiculosGrid");
-    const cols = repartidoresActivos.length;
-
-    // Ajustar clase del grid según número de columnas
-    grid.className = `vehicles-grid${cols === 1 ? " cols-1" : cols === 3 ? " cols-3" : cols === 4 ? " cols-4" : ""}`;
-
-    if (cols === 0) {
-      grid.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--graph);">
-          <i class="ti ti-users-group" style="font-size:40px;opacity:0.3;display:block;margin-bottom:14px;"></i>
-          <p style="font-size:13px;margin-bottom:12px;">No hay conductores activos registrados.</p>
-          <a href="flota.html" style="background:var(--copper);color:var(--ice);padding:9px 18px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-            <i class="ti ti-plus"></i>Agregar conductores en Flota
-          </a>
-        </div>`;
-      return;
-    }
-
-    grid.innerHTML = repartidoresActivos.map(rep => {
-      const V   = rep.vehiculo;
-      const cfg = VEH_CONFIG[V] || VEH_CONFIG.moto;
-      const Cap = V.charAt(0).toUpperCase() + V.slice(1);
-      const id  = rep.id; // Usar ID del repartidor como key
-
-      return `
-        <div class="vcol" id="vcol-${id}">
-          <div class="vcol-header">
-            <div class="vcol-name">
-              <div class="vcol-icon" style="background:${cfg.bg};color:${cfg.color};"><i class="ti ${cfg.icon}"></i></div>
-              ${rep.nombre} — ${cfg.label}
-            </div>
-            <div class="vcol-actions">
-              <span class="tag tag-empty" id="tag-${id}">Sin cargar</span>
-              <button class="btn-limpiar" id="btnLimpiar-${id}" onclick="confirmarLimpiar('${id}')"><i class="ti ti-trash"></i>Limpiar ruta</button>
-            </div>
-          </div>
-          <div class="upload-zone" id="upload-${id}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'${id}')" onclick="validarAntesDeAbrir('${id}', this)">
-            <input type="file" accept=".xlsx,.xls,.csv" onchange="cargarArchivo(event,'${id}')" id="input-${id}" onclick="event.stopPropagation()"/>
-            <div class="upload-icon" id="iconUpload-${id}"><i class="ti ti-file-spreadsheet"></i></div>
-            <div class="upload-txt" id="txtUpload-${id}">Cargar Excel de ${cfg.label}</div>
-            <div class="upload-sub" id="subUpload-${id}">${rep.nombre} · Arrastra o haz clic</div>
-            <div class="upload-hint">Columnas: nombre · dirección · producto · nota</div>
-          </div>
-          <div class="upload-aviso" id="avisoConductor-${id}" style="display:none;"></div>
-          <div class="geo-progress" id="geoProc-${id}"><div class="geo-spin"></div><span id="geoTxt-${id}">Geocodificando...</span></div>
-          <div style="display:none;flex-direction:column;gap:10px;" id="info-${id}">
-            <div class="file-info">
-              <div class="fi-name"><i class="ti ti-file-check" style="color:${cfg.color}"></i><span id="fileName-${id}">archivo.xlsx</span></div>
-              <div class="fi-change" onclick="resetVehiculo('${id}')"><i class="ti ti-refresh"></i>Cambiar archivo</div>
-            </div>
-            <div class="stats-row">
-              <div class="stat"><div class="stat-lbl">Pedidos</div><div class="stat-val" id="statPed-${id}">0</div></div>
-              <div class="stat"><div class="stat-lbl">GPS OK</div><div class="stat-val" id="statGeo-${id}">0</div></div>
-              <div class="stat"><div class="stat-lbl">Zonas</div><div class="stat-val" id="statZon-${id}">—</div></div>
-            </div>
-            <div class="opt-row">
-              <button class="btn-opt" style="background:${cfg.color};color:var(--mid);" onclick="optimizar('${id}')"><i class="ti ti-wand" style="font-size:12px"></i>Auto-optimizar</button>
-              <button class="btn-toggle" id="toggle-${id}" onclick="toggleCriterio('${id}')"><i class="ti ti-arrows-sort" style="font-size:12px"></i><span id="toggleTxt-${id}">Cercano → Lejano</span></button>
-              <button class="btn-toggle" onclick="reGeocod('${id}')" style="flex-shrink:0;"><i class="ti ti-map-pin" style="font-size:12px"></i>GPS</button>
-              <button class="btn-toggle" onclick="verMapa('${id}')" style="flex-shrink:0;background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.3);color:#378ADD;"><i class="ti ti-map-2" style="font-size:12px"></i>Mapa</button>
-            </div>
-            <div class="route-list" id="lista-${id}"></div>
-          </div>
-          <hr class="divider-line"/>
-          <button class="launch-btn launch-dis launch-${V}" id="btnLanzar-${id}" disabled onclick="abrirModalWA('${id}')">
-            <i class="ti ti-brand-whatsapp" style="font-size:15px"></i>Lanzar ruta · enviar por WhatsApp
-          </button>
-        </div>`;
-    }).join("");
-
-    // Inicializar state para cada repartidor
-    repartidoresActivos.forEach(rep => {
-      if (!state[rep.id]) {
-        state[rep.id] = { pedidos: [], criterio: "cercano", listo: false, fileName: "", repId: rep.id, vehiculo: rep.vehiculo };
-      }
+    // Pedidos
+    pedidos.forEach((p, i) => {
+      if (!p.lat || !p.lng) return;
+      const n = i + 1;
+      L.marker([p.lat, p.lng], {
+        icon: L.divIcon({
+          html: `<div style="background:${color};color:#fff;width:30px;height:30px;border-radius:50%;border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Inter',sans-serif">${n}</div>`,
+          iconSize:[30,30], iconAnchor:[15,15], className:""
+        })
+      }).addTo(mapa)
+        .bindPopup(`<b>${n}. ${p.cliente}</b><br>${p.direccion}${p.producto ? "<br><small><i>"+p.producto+"</i></small>" : ""}${p.nota ? "<br><small>📝 "+p.nota+"</small>" : ""}`);
+      pts.push([p.lat, p.lng]);
     });
 
-    console.log("✓ Columnas generadas para:", repartidoresActivos.map(r => r.nombre).join(", "));
+    // Línea de ruta
+    L.polyline(pts, { color, weight:3, opacity:0.75, dashArray:"8,5" }).addTo(mapa);
+
+    // Ajustar vista
+    mapa.fitBounds(L.latLngBounds(pts), { padding:[50,50] });
   }
-
-  // ── Validación visual de conductores ─────────────────────
-  function verificarConductoresUI() {
-    // Con columnas dinámicas, cada columna ya muestra el nombre del conductor
-    // No hay necesidad de verificar — las columnas solo aparecen si hay conductor activo
-    // Esta función se mantiene por compatibilidad
-  }
-
-  // Validar antes de abrir el file picker (V = repId)
-  window.validarAntesDeAbrir = (repId, zone) => {
-    const rep = repartidoresActivos.find(r => r.id === repId);
-    if (!rep) {
-      mostrarToast("Conductor no encontrado. Recarga la página.", "err");
-      return;
-    }
-    document.getElementById(`input-${repId}`).click();
-  };
-
-  // ── Drag & drop zona upload ───────────────────────────────
-  window.dragOver  = e => { e.preventDefault(); e.currentTarget.classList.add("drag"); };
-  window.dragLeave = e => { e.currentTarget.classList.remove("drag"); };
-  window.dropFile  = async (e, V) => {
-    e.preventDefault(); e.currentTarget.classList.remove("drag");
-    const file = e.dataTransfer.files[0];
-    if (file) await procesarArchivo(file, V);
-  };
-
-  // ── Cerrar modales al click fuera ─────────────────────────
-  ["modalWA","modalDetalle","modalConfirmCliente","modalConfirmLimpiar","modalAdicional"].forEach(id => {
-    document.getElementById(id).addEventListener("click", e => {
-      if (e.target === document.getElementById(id))
-        document.getElementById(id).classList.remove("show");
-    });
-  });
-
-  // ── Helpers ───────────────────────────────────────────────
-  let toastTimer;
-  window.mostrarToast = function(msg, tipo="ok") {
-    const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.className = `toast show ${tipo}`;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
-  };
-  function mostrarToast(msg, tipo) { window.mostrarToast(msg, tipo); }
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
 
 </body>
